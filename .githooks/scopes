@@ -1,0 +1,24 @@
+# Allowed commit scopes, one per line (CONTRIBUTING.md §3.3).
+# Add domain-module scopes here at 9:30 AM once the problem is chosen,
+# and update the table in CONTRIBUTING.md in the same commit.
+
+# Apps
+client
+server
+
+# Cross-cutting
+auth
+users
+db
+api
+ui
+validation
+
+# Repository
+deps
+config
+repo
+readme
+
+# Domain modules (added on the day)
+dashboard
