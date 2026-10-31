@@ -160,3 +160,65 @@ test('simultaneous subscriptions cannot claim the last discount use twice', asyn
     await prisma.discount.delete({ where: { id: rule.id } });
   }
 });
+
+test('cancellation refunds a discount once and rebills its period once', async () => {
+  const { cancelInvoice } = await import('../src/modules/invoices/invoiceCancellation.service.js');
+  const actor = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+  const sub = await subscription({ nextInvoiceDate: issueDate });
+  const rule = await prisma.discount.create({
+    data: {
+      name: `Cancel refund ${process.pid}`,
+      type: 'PERCENT',
+      percent: 100,
+      scope: 'SUBSCRIPTION',
+      startDate: issueDate,
+      endDate: issueDate,
+      usageLimit: 1,
+    },
+  });
+  try {
+    await billSubscription(sub.id, { issueDate });
+    const invoice = await prisma.invoice.findFirst({ where: { subscriptionId: sub.id } });
+    assert.equal(invoice.discountId, rule.id);
+    const results = await Promise.allSettled([
+      cancelInvoice(invoice.id, actor),
+      cancelInvoice(invoice.id, actor),
+    ]);
+    assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
+    assert.equal(results.find((r) => r.status === 'rejected').reason.status, 409);
+    assert.equal((await prisma.discount.findUnique({ where: { id: rule.id } })).usageCount, 0);
+    assert.equal((await billSubscription(sub.id, { issueDate })).created, 1);
+    assert.equal(
+      await prisma.invoice.count({ where: { subscriptionId: sub.id, status: { not: 'CANCELED' } } }),
+      1,
+    );
+    assert.equal((await prisma.discount.findUnique({ where: { id: rule.id } })).usageCount, 1);
+  } finally {
+    await prisma.discount.delete({ where: { id: rule.id } });
+  }
+});
+test('a real partial payment prevents cancellation and leaves the billing cursor unchanged', async () => {
+  const { cancelInvoice } = await import('../src/modules/invoices/invoiceCancellation.service.js');
+  const actor = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+  const sub = await subscription({ nextInvoiceDate: issueDate });
+  await billSubscription(sub.id, { issueDate });
+  const invoice = await prisma.invoice.findFirst({ where: { subscriptionId: sub.id } });
+  await prisma.$transaction(async (tx) => {
+    await tx.invoice.update({ where: { id: invoice.id }, data: { status: 'CONFIRMED', paidAmount: 1 } });
+    await tx.payment.create({
+      data: {
+        invoiceId: invoice.id,
+        recordedById: actor.id,
+        method: 'CASH',
+        amount: 1,
+        paymentDate: issueDate,
+      },
+    });
+  });
+  const cursor = (await prisma.subscription.findUnique({ where: { id: sub.id } })).nextInvoiceDate;
+  await assert.rejects(cancelInvoice(invoice.id, actor), { status: 409 });
+  assert.equal(
+    (await prisma.subscription.findUnique({ where: { id: sub.id } })).nextInvoiceDate.getTime(),
+    cursor.getTime(),
+  );
+});
