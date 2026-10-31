@@ -219,11 +219,11 @@ See [docs/api.md](docs/api.md).
 
 ## Known limitations
 
-Current limitations (refreshed against develop `9727582`):
+Current limitations (refreshed against develop `122148f`):
 
 - Creating/editing subscriptions, lifecycle controls, discount management, customer portal reads and authentication attempt limits are now implemented.
 - Starting a quotation from a template (#36), portal acceptance (#29), lifecycle actions (#31) and add-on changes (#32) still await their owners. Full demo and final sign-off remain open.
-- The scale results in J-068 apply to its recorded source commit only. Newly merged screens require fresh measurements; PR #114 contains a separate scale review.
+- The scale results in J-068 apply to its recorded source commit only. Newly merged screens require fresh measurements. PR #114 is merged, but its report is partial, so PS-25 remains in progress and issue #44 stays open.
 - Without SMTP, invoice/recovery messages print locally. Real SMTP delivery has not been exercised. Authentication attempt counters are local to one API process and reset on restart.
 
 
