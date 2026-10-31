@@ -1,4 +1,4 @@
-# J-079: Publish portal-addons for review
+# J-088: Publish portal add-ons for review
 
 - Date: 2026-10-31
 - Contributor/agent: Yadhu Krishna P R with Codex

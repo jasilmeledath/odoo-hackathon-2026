@@ -1,4 +1,4 @@
-# J-077: customer subscription addons
+# J-087: customer subscription add-ons
 
 - Date: 2026-10-31
 - Contributor/agent: Yadhu Krishna P R with Codex
