@@ -63,3 +63,5 @@ The scheduled activation/closure/billing pass took **8135 ms**, activated **250*
 - Frontend/performance/usability: measured available screens at both widths, with prior invalid-input, empty-state and retry checks recorded in J-067. Unimplemented screens are listed above.
 - Debugging/live data: request logs remain enabled, payment writes update balances and emit a committed SSE event. Audit/history service regressions remain in the test suite.
 - Cut-if-late: #32 add-ons and #33 attempt limiting are still assigned to Yadhu. Their owner/lead must record a retain/drop decision at the checkpoint; this audit does not silently drop them.
+
+Pull request: [#107](https://github.com/jasilmeledath/odoo-hackathon-2026/pull/107), opened for review into develop.
