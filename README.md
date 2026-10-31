@@ -14,6 +14,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
+- Active accounts log in with expiring tokens and role-based navigation (PS-2).
 - Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
 - Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
 
