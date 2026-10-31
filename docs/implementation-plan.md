@@ -208,7 +208,7 @@ Record only once the entire path above works; seeded data can support rehearsals
 | 4:20–5:05 | Dashboard live update, overdue invoices and filtered reports | “Committed payments update the dashboard. Revenue means money received; outstanding and overdue balances stay separate.” |
 | 5:05–5:30 | Architecture and database constraints | “The application uses local PostgreSQL, foreign keys, check constraints, pagination and shared services. The core flow uses no external APIs.” |
 
-Current recording blockers: subscription creation/template workflow (#18, #36), portal reads/acceptance and isolation (#11, #12, #29). Narration is prepared; recording duration, upload and submission are not yet verified. Readiness evidence is in [J-068](journal/2026-10-31-J068-readiness-check.md).
+Current recording blockers: template-to-quotation workflow (#36) and portal acceptance (#29). Subscription creation and portal reads are now merged; comprehensive isolation proof remains tracked in #12. Narration is prepared; recording duration, upload and submission are not yet verified. Readiness evidence is in [J-068](journal/2026-10-31-J068-readiness-check.md).
 
 ## 9. If we fall behind
 

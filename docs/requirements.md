@@ -37,7 +37,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | PS-1 | A customer signs up with email and password. Each email belongs to one account. The password must be **more than eight characters** with an uppercase letter, a lowercase letter and a special character | P1 | Yadhu | Done |
 | PS-2 | Users log in and stay logged in with a token that expires | P1 | Yadhu | Done |
 | PS-3 | A forgotten password is reset through a link sent to the registered email | P1 | Yadhu | Done |
-| PS-4 | Three roles see different things. Customers see only their own records, and any other record returns `404` | P1 | Yadhu | In progress |
+| PS-4 | Three roles see different things. Customers see only their own records, and any other record returns `404` | P1 | Yadhu | Not started |
 | PS-5 | Only the Admin can add a staff member, and sign-up can never create staff | P1 | Yadhu | Done |
 
 ### Catalog
@@ -55,9 +55,9 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-11 | Quotation templates hold the plan and product lines and stay valid for a set number of days. A quotation can start from one | P2 | Manoj | In progress |
-| PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | In progress |
+| PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | Done |
 | PS-13 | A subscription moves Draft → Quotation → Confirmed → Active → Closed, and the team can see where it stands and its history | P1 | Jayasurya | In progress |
-| PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | In progress |
+| PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | Done |
 
 ### Billing
 
@@ -72,7 +72,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-19 | Only the Admin creates discount rules: fixed or percentage, minimum purchase or quantity, start and end dates, usage limit, and scope (specific products or the whole subscription) | P2 | Manoj | In progress |
+| PS-19 | Only the Admin creates discount rules: fixed or percentage, minimum purchase or quantity, start and end dates, usage limit, and scope (specific products or the whole subscription) | P2 | Manoj | Done |
 | PS-20 | A discount that applies appears on the next invoice by itself, and stops when it expires or runs out | P2 | Jasil | Done |
 
 ### Payments and reporting
@@ -81,23 +81,23 @@ Brightloop Software sells everything on subscription: software billed monthly or
 |---|---|---|---|---|
 | PS-21 | A payment is recorded with method, amount, date and note against the right invoice | P1 | Yadhu | Done |
 | PS-22 | The team can see which invoices are paid, outstanding and overdue at any moment | P1 | Yadhu | Done |
-| PS-23 | The finance lead sees active subscriptions, revenue, payments, amounts owed and overdue invoices in one place | P1 | Jayasurya | Done |
-| PS-24 | Reports have filters and a summary view | P2 | Jayasurya | Done |
-| PS-25 | With thousands of subscriptions, every page responds in under two seconds | P2 | Everyone | In progress |
+| PS-23 | The finance lead sees active subscriptions, revenue, payments, amounts owed and overdue invoices in one place | P1 | Jayasurya | In progress |
+| PS-24 | Reports have filters and a summary view | P2 | Jayasurya | In progress |
+| PS-25 | With thousands of subscriptions, every page responds in under two seconds | P2 | Everyone | Not started |
 
 ### Customer portal
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-26 | Customers see their own subscriptions and invoices through a portal | P1 | Yadhu | Not started |
+| PS-26 | Customers see their own subscriptions and invoices through a portal | P1 | Yadhu | Done |
 | PS-27 | Customers manage their own subscriptions: accept a quotation, switch add-ons on and off, and pause or close where the plan allows | P2 | Yadhu | Not started |
 
 ### Beyond the problem statement
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-28 | The dashboard updates live, using Server-Sent Events, when a payment or invoice changes. Odoo strongly recommends real-time data | P2 | Jayasurya | Done |
-| PS-29 | Login and password reset limit repeated attempts | P2 | Yadhu | Not started |
+| PS-28 | The dashboard updates live, using Server-Sent Events, when a payment or invoice changes. Odoo strongly recommends real-time data | P2 | Jayasurya | In progress |
+| PS-29 | Login and password reset limit repeated attempts | P2 | Yadhu | Done |
 
 ## Module ownership
 
@@ -139,5 +139,4 @@ Anything the problem statement leaves open, and what we decided.
 | A-21 | When does Confirmed become Active? | On the start date through the daily job, or earlier by staff |
 | A-22 | What is revenue? | Payments received in the period. Invoiced and outstanding amounts are shown separately. Monthly recurring revenue is before tax and discount |
 | A-23 | Currencies, companies and time zones? | Indian rupees, one company, business days in IST |
-
 | A-24 | How are future or disabled discounts displayed? | User approved Scheduled and Inactive on 31 October. Derive state in this order: Inactive, Expired, Used up, Scheduled, Active. Both date boundaries are inclusive in IST; retain the Active, Expired and Used up filters. |

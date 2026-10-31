@@ -25,7 +25,7 @@ Base URL: `http://localhost:4000/api`. Every route except sign-up, login, passwo
 
 **Money** is whole paise in both directions: `156000` means ₹1,560.00. **Dates** are `YYYY-MM-DD`.
 
-**Status codes:** `200` OK · `201` created · `204` deleted · `400` validation failed · `401` not logged in · `403` not allowed · `404` not found, or another customer's record · `409` a conflict, such as a duplicate value or an action not allowed in the current status · `500` unexpected.
+**Status codes:** `200` OK · `201` created · `204` deleted · `400` validation failed · `401` not logged in · `403` not allowed · `404` not found, or another customer's record · `409` a conflict, such as a duplicate value or an action not allowed in the current status · `429` too many attempts (Retry-After seconds) · `500` unexpected.
 
 ## Route map
 
@@ -105,15 +105,15 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/subscriptions` | Staff | List, filtered by `status`, `customerId`, `planId`, `q` | PS-12, PS-13 | ✓ |
 | GET | `/subscriptions/:id` | Staff | Subscription with lines, totals and invoices | PS-12 | ✓ |
 | GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | ✓ |
-| POST | `/subscriptions` | Staff | Create a draft. `templateId` fills in the plan and lines | PS-11, PS-12 | |
-| PUT | `/subscriptions/:id` | Staff | Update, in Draft or Quotation only | PS-12 | |
+| POST | `/subscriptions` | Staff | Create a numbered draft with customer, available plan, payment terms and priced lines | PS-12 | ✓ |
+| PUT | `/subscriptions/:id` | Staff | Update details and replace priced lines, in Draft or Quotation only | PS-12 | ✓ |
 | POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation, requires a line | PS-13 | ✓ |
 | POST | `/subscriptions/:id/confirm` | Staff | Unexpired Quotation → Confirmed | PS-13 | ✓ |
 | POST | `/subscriptions/:id/activate` | Staff | Confirmed → Active and schedule billing | PS-13 | ✓ |
-| POST | `/subscriptions/:id/pause` | Staff | Active → Paused, if the plan allows | PS-14 | |
-| POST | `/subscriptions/:id/resume` | Staff | Paused → Active | PS-14 | |
-| POST | `/subscriptions/:id/renew` | Staff | `{ expiryDate }`, if the plan allows | PS-14 | |
-| POST | `/subscriptions/:id/close` | Staff | Close early, if the plan allows | PS-14 | |
+| POST | `/subscriptions/:id/pause` | Staff | Active → Paused, if the plan allows | PS-14 | ✓ |
+| POST | `/subscriptions/:id/resume` | Staff | Paused → Active at the next scheduled billing boundary | PS-14 | ✓ |
+| POST | `/subscriptions/:id/renew` | Staff | Extend the same subscription with `{ expiryDate }`, if the plan allows | PS-14 | ✓ |
+| POST | `/subscriptions/:id/close` | Staff | Close an Active or Paused subscription early, if the plan allows | PS-14 | ✓ |
 
 ### Billing and invoices (`modules/billing`, `modules/invoices`)
 
@@ -152,19 +152,35 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/portal/subscriptions` | Customer | Own subscriptions | PS-26 | |
-| GET | `/portal/subscriptions/:id` | Customer | One subscription with lines | PS-26 | |
+| GET | `/portal/subscriptions` | Customer | Own subscriptions | PS-26 | Yes |
+| GET | `/portal/subscriptions/:id` | Customer | One subscription with lines | PS-26 | Yes |
 | POST | `/portal/subscriptions/:id/accept` | Customer | Accept a quotation | PS-27 | |
 | PATCH | `/portal/subscriptions/:id/lines/:lineId` | Customer | `{ isActive }`: switch an add-on on or off | PS-27 | |
 | POST | `/portal/subscriptions/:id/pause` | Customer | Pause, if the plan allows | PS-27 | |
 | POST | `/portal/subscriptions/:id/resume` | Customer | Resume | PS-27 | |
 | POST | `/portal/subscriptions/:id/close` | Customer | Close, if the plan allows | PS-27 | |
-| GET | `/portal/invoices` | Customer | Own invoices | PS-26 | |
-| GET | `/portal/invoices/:id` | Customer | One invoice with lines and payments | PS-26 | |
+| GET | `/portal/invoices` | Customer | Own invoices | PS-26 | Yes |
+| GET | `/portal/invoices/:id` | Customer | One invoice with lines and payments | PS-26 | Yes |
 
 ---
 
 ## Route details
+
+### Authentication attempt limits
+
+Login and recovery requests have separate in-memory windows keyed by the connection IP. **Auth:** public. Refs: PS-29.
+
+| Route | Attempts per 15 minutes |
+|---|---|
+| POST /api/auth/login | 20 |
+| POST /api/auth/forgot-password | 5 |
+| POST /api/auth/reset-password | 10 |
+
+Validation failures count too. A limited request returns 429 with { error } explaining how many seconds remain and a Retry-After header containing that wait in seconds. Further blocked requests do not extend the window. Other auth endpoints and authenticated sessions remain usable.
+
+The server does not trust forwarded IP headers. Expired entries are removed, storage is capped at 10,000 clients per endpoint and active windows are never evicted to admit another client. At capacity, a new client gets 429 until space becomes available.
+
+Limits are per process and restart with the API; multiple server processes do not share counters. Existing form alerts display the 429 message. No database schema, environment variable or dependency is added.
 
 ### POST /api/auth/login
 
@@ -226,6 +242,18 @@ Read one subscription with its customer, plan rules, payment terms, lines and in
 
 **Responses:** `200` the subscription with `lines`, `invoices`, `customer`, `plan` and `paymentTerm` · `400` the id is not a positive integer · `401` not logged in · `403` not staff · `404` subscription not found
 
+### POST /api/subscriptions
+
+Create a numbered Draft. The request body contains `customerId`, `planId`, `paymentTermId`, `startDate`, `expiryDate`, optional `notes`, and at least one `lines` entry with `productId`, optional `variantId` and optional `taxId`, and `quantity`. Prices and amounts are read from the database: the plan price applies to its product line; other products use their current sales price; variant extra price is added. The server calculates line amounts and both recurring totals in paise. The plan must be available on `startDate`, and `minQuantity` applies to the plan product only. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** `201` the created subscription · `400` invalid fields or unavailable references (`fields` identifies the invalid field) · `401` not logged in · `403` not staff
+
+### PUT /api/subscriptions/:id
+
+Replace the subscription details and lines using the same request body as `POST /api/subscriptions`. Updates are allowed only while the subscription is Draft or Quotation. Prices, line amounts, `recurringAmount` and `monthlyRecurringAmount` are recalculated from current database values in the transaction; the number, status and template association are retained. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** `200` the updated subscription · `400` invalid fields or unavailable references · `401` not logged in · `403` not staff · `404` subscription not found · `409` status does not allow editing or a concurrent update changed the status
+
 ### GET /api/subscriptions/:id/activity
 
 Read a subscription's activity timeline in chronological order, including the actor when recorded. Scheduler actions have a null actor and are displayed as System. **Auth:** Admin, Internal. Refs: PS-13.
@@ -251,6 +279,24 @@ Move an unexpired quotation to Confirmed. **Auth:** Admin, Internal. Refs: PS-13
 Move a confirmed subscription to Active and set `nextInvoiceDate` to `startDate`. **Auth:** Admin, Internal. Refs: PS-13.
 
 **Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not confirmed
+
+### POST /api/subscriptions/:id/pause and `/resume`
+
+Pause is allowed for Active subscriptions only when the plan's `canPause` flag is enabled. A Paused subscription is excluded from billing. Resume requires Paused status and the same plan flag; its next invoice date advances on the original billing schedule to the first period boundary on or after today, so paused periods are not charged. **Auth:** Admin, Internal. Refs: PS-14, A-18.
+
+**Responses:** `200` the updated subscription · `401` not logged in · `403` not staff · `404` subscription not found · `409` the plan disallows the action or the status is invalid
+
+### POST /api/subscriptions/:id/renew
+
+Extend the expiry date of the same Active subscription. The body is `{ "expiryDate": "YYYY-MM-DD" }`; the new date must be after both the current expiry and today. When billing had stopped at expiry, the next invoice date resumes at the next scheduled boundary derived from the last non-canceled invoice (or the subscription start date if none exists). The plan's `canRenew` flag must be enabled. **Auth:** Admin, Internal. Refs: PS-14, A-19.
+
+**Responses:** `200` the updated subscription · `400` invalid date (`fields.expiryDate`) · `401` not logged in · `403` not staff · `404` subscription not found · `409` the plan disallows renewal or the subscription is not Active
+
+### POST /api/subscriptions/:id/close
+
+Close an Active or Paused subscription early when the plan's `canCloseEarly` flag is enabled. The next invoice date is cleared and future billing stops; existing invoices and history remain. The change is recorded as `CLOSED` with close reason `CLOSED_EARLY`. **Auth:** Admin, Internal. Refs: PS-14.
+
+**Responses:** `200` the updated subscription · `401` not logged in · `403` not staff · `404` subscription not found · `409` the plan disallows early closing or the subscription status is invalid
 
 ### GET /api/subscriptions
 
@@ -278,6 +324,44 @@ Read finance totals and the ten oldest overdue invoices. Revenue is the sum of p
 **Response** `200`: `{ period, activeSubscriptionCount, monthlyRecurringAmount, invoicedAmount, revenueAmount, outstandingAmount, overdueAmount, overdueInvoices }`. `overdueInvoices` contains at most ten oldest overdue entries with `balanceAmount`. Money is in paise.
 
 **Responses:** `200` the summary · `400` invalid date (`fields.from`, `fields.to`) · `401` not logged in · `403` not staff
+
+### GET /api/portal/subscriptions
+
+List only the authenticated customer's subscriptions. **Auth:** Customer. Refs: PS-26.
+
+**Query**
+
+| Field | Type | Rules |
+|---|---|---|
+| page, pageSize | number | Standard pagination: page from 1, page size 1–50, default 10 |
+| q | string | Trimmed, at most 100 characters; case-insensitive subscription number search |
+| status | string | A native SubscriptionStatus value |
+
+**Response:** 200 { items, total, page, pageSize, pages }. Each item includes number, status, start/expiry dates, recurring amount and plan name/billing period. Caller-supplied customerId is ignored; ownership comes only from req.user.customerId.
+
+**Responses:** 400 field validation; 401 missing/invalid session; 403 non-Customer; 404 missing customer profile.
+
+### GET /api/portal/subscriptions/:id
+
+Read an owned subscription with product/variant lines, quantities, saved unit prices, active flags and tax descriptions. **Auth:** Customer. Refs: PS-26.
+
+**Responses:** 200 subscription; 400 invalid ID; 401/403 unauthorized; 404 missing profile, absent subscription or another customer's subscription. Internal cost prices and account secrets are not selected.
+
+### GET /api/portal/invoices
+
+List only the authenticated customer's invoices, newest issue date first. **Auth:** Customer. Refs: PS-26.
+
+**Query:** standard page/pageSize; q at most 100 characters, matching invoice number or billing name; optional native InvoiceStatus status. Filters combine with ownership.
+
+**Response:** 200 { items, total, page, pageSize, pages }. Items include totalAmount, paidAmount, balanceAmount and isOverdue. Balance and overdue rules reuse the existing invoice service helper; money is whole paise.
+
+**Responses:** 400 invalid filters; 401/403 unauthorized; 404 missing customer profile.
+
+### GET /api/portal/invoices/:id
+
+Read an owned invoice with billing snapshot, line prices/discounts/tax, payments and remaining balance. **Auth:** Customer. Refs: PS-26.
+
+**Responses:** 200 invoice; 400 invalid ID; 401/403 unauthorized; 404 missing profile, absent invoice or another customer's invoice. Payments expose date, method, amount and note; internal staff identities and password/account fields are omitted.
 
 ### GET /api/reports/renewals
 
@@ -729,3 +813,8 @@ Errors: `400` field errors or invalid/read-only input, `401` unauthenticated,
 `403` not Admin, `404` missing discount, `409` duplicate name with
 `fields.name` or concurrently removed product choices. No schema changes.
 
+### Discount administration (PS-19)
+
+The Discounts page uses URL-backed search/state filters and real paginated
+rules. Admin-only forms show product selection only for PRODUCT scope, convert
+rupees to paise once and preserve usage counts. Internal staff browse read-only.

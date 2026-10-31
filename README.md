@@ -16,6 +16,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 - Customers can create Customer-only accounts with password validation and atomic billing-profile linking (PS-1, PS-5).
 - Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
+- Add customer-only subscription and invoice lists and details, scoped queries, URL search, payment history and balance display. (PS-26).
 - Staff can record part and final payments from invoices with transactional balance protection (PS-21, PS-22).
 
 - Startup/hourly processing activates due subscriptions, closes plans at expiry when configured, and generates due invoices (PS-14, PS-15).
@@ -23,6 +24,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 - Staff can generate recurring Draft invoices with tax snapshots, catch-up billing and duplicate protection (PS-15, PS-16).
 
 - Active accounts log in with expiring tokens and role-based navigation (PS-2).
+- Add bounded per-IP attempt windows to login, forgot-password and reset-password without a new dependency. (PS-29).
 - Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
 - Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
 
@@ -35,6 +37,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 - Add Admin-only staff search/create/edit with password validation, field conflicts and immediate deactivation. (PS-5).
 
 - Add forgot/reset pages, 30-minute hashed recovery tokens and immediate session invalidation, including the same-second boundary. (PS-3).
+
+- Admins manage fixed/percentage discounts, scope-specific products, minimums, dates and usage limits; staff filter current rule states (PS-19).
 
 ## Screenshots
 
@@ -201,14 +205,13 @@ See [docs/api.md](docs/api.md).
 
 ## Known limitations
 
-Readiness checked against `develop` at `6c57fe2` on 31 October 2026:
+Current limitations (refreshed against develop `9727582`):
 
-- Subscription create/edit, starting a quotation from a template, and pause/resume/renew/early-close still await issues #18, #36 and #30. Existing seeded subscriptions support the implemented status and billing flows.
-- Customer portal reads/actions and ownership-isolation proof await #11, #12 and #29–#32. The portal pages are placeholders; the complete customer demo cannot yet run.
-- Discount rules have validated read/write APIs, but the discount management page still awaits #35. Login/reset attempt limiting remains pending in #33.
-- All 59 implemented HTTP endpoints are documented and marked complete; 15 planned subscription/portal endpoints remain unimplemented. Blank completion cells in the API reference are deliberate.
-- Scale measurements cover implemented screens only. Final full-story, all-page scale, team polish, documentation sign-off and video submission remain open until their dependencies are delivered. See the latest readiness journal for evidence and owners.
-- Without SMTP, invoice and recovery messages print locally. Real SMTP delivery has not been exercised. After a successful mail delivery followed by a database error, check delivery before retrying.
+- Creating/editing subscriptions, lifecycle controls, discount management, customer portal reads and authentication attempt limits are now implemented.
+- Starting a quotation from a template (#36), portal acceptance (#29), lifecycle actions (#31) and add-on changes (#32) still await their owners. Full demo and final sign-off remain open.
+- The scale results in J-068 apply to its recorded source commit only. Newly merged screens require fresh measurements; PR #114 contains a separate scale review.
+- Without SMTP, invoice/recovery messages print locally. Real SMTP delivery has not been exercised. Authentication attempt counters are local to one API process and reset on restart.
+
 
 ## Team
 
