@@ -1,17 +1,10 @@
 // Invoice list with paid, outstanding and overdue filters (PS-17, PS-22). The
 // filters live in the URL, so they survive a refresh and other pages can link here.
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import {
-  Alert,
-  EmptyState,
-  Field,
-  PageHeader,
-  Pagination,
-  Spinner,
-  StatusBadge,
-} from '../../components/ui.jsx';
-import { formatDate, formatMoney } from '../../lib/format.js';
+import InvoiceTable from './InvoiceTable.jsx';
+import { api } from '../../lib/api.js';
+import { useSearchParams } from 'react-router-dom';
+import { Alert, EmptyState, Field, PageHeader, Pagination, Spinner } from '../../components/ui.jsx';
 import { useApi } from '../../lib/useApi.js';
 import { validateDateRange } from '../../lib/validators.js';
 
@@ -103,50 +96,31 @@ function InvoiceFilters({ values, onApply }) {
   );
 }
 
-function InvoiceTable({ items }) {
-  return (
-    <div className="card overflow-x-auto">
-      <table className="w-full text-left text-sm">
-        <thead className="text-slate-500">
-          <tr>
-            <th className="py-2 pr-4 font-medium">Invoice</th>
-            <th className="py-2 pr-4 font-medium">Customer</th>
-            <th className="py-2 pr-4 font-medium">Subscription</th>
-            <th className="py-2 pr-4 font-medium">Issued</th>
-            <th className="py-2 pr-4 font-medium">Due</th>
-            <th className="py-2 pr-4 text-right font-medium">Total</th>
-            <th className="py-2 pr-4 text-right font-medium">Balance</th>
-            <th className="py-2 font-medium">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((invoice) => (
-            <tr key={invoice.id} className="border-t border-slate-100">
-              <td className="py-3 pr-4 font-medium">
-                <Link to={`/invoices/${invoice.id}`} className="text-brand-600 hover:underline">
-                  {invoice.number}
-                </Link>
-              </td>
-              <td className="py-3 pr-4">{invoice.billingName}</td>
-              <td className="py-3 pr-4">{invoice.subscription.number}</td>
-              <td className="py-3 pr-4 whitespace-nowrap">{formatDate(invoice.issueDate)}</td>
-              <td className="py-3 pr-4 whitespace-nowrap">{formatDate(invoice.dueDate)}</td>
-              <td className="py-3 pr-4 text-right">{formatMoney(invoice.totalAmount)}</td>
-              <td className="py-3 pr-4 text-right">{formatMoney(invoice.balanceAmount)}</td>
-              <td className="py-3">
-                <StatusBadge status={invoice.isOverdue ? 'OVERDUE' : invoice.status} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 export default function InvoiceList() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { data, loading, error } = useApi('/invoices', Object.fromEntries(searchParams));
+  const { data, loading, error, reload } = useApi('/invoices', Object.fromEntries(searchParams));
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [bulkError, setBulkError] = useState('');
+  const [bulkResult, setBulkResult] = useState(null);
+  const draftIds =
+    data?.items.filter((invoice) => invoice.status === 'DRAFT').map((invoice) => invoice.id) ?? [];
+  const selected = selectedIds.filter((id) => draftIds.includes(id));
+  const handleBulkConfirm = async () => {
+    if (isConfirming || !selected.length) return;
+    setIsConfirming(true);
+    setBulkError('');
+    setBulkResult(null);
+    try {
+      setBulkResult(await api('/invoices/confirm-all', { method: 'POST', body: { invoiceIds: selected } }));
+      setSelectedIds([]);
+      await reload();
+    } catch (failure) {
+      setBulkError(failure.message);
+    } finally {
+      setIsConfirming(false);
+    }
+  };
   const activeView = findActiveView(searchParams);
 
   // Any filter change goes back to page 1, because the old page may no longer exist.
@@ -174,14 +148,35 @@ export default function InvoiceList() {
       />
       <ViewTabs activeKey={activeView?.key} onSelect={handleSelectView} />
       <InvoiceFilters key={JSON.stringify(filterValues)} values={filterValues} onApply={updateParams} />
-      <Alert>{error}</Alert>
+      <Alert>{error || bulkError}</Alert>
+      <div aria-live="polite">
+        {bulkResult && (
+          <Alert tone={bulkResult.failed ? 'error' : 'success'}>
+            Confirmed: {bulkResult.confirmed} · Skipped: {bulkResult.skipped} · Failed: {bulkResult.failed}
+          </Alert>
+        )}
+      </div>
+      {draftIds.length > 0 && (
+        <button
+          className="btn-primary mb-4"
+          disabled={isConfirming || loading || !selected.length}
+          onClick={handleBulkConfirm}
+        >
+          {isConfirming ? 'Confirming…' : `Confirm selected (${selected.length})`}
+        </button>
+      )}
       {loading && <Spinner />}
       {data && data.items.length === 0 && (
         <EmptyState title="No invoices match">Try another view, or clear the filters.</EmptyState>
       )}
       {data && data.items.length > 0 && (
         <>
-          <InvoiceTable items={data.items} />
+          <InvoiceTable
+            items={data.items}
+            selected={selected}
+            onSelect={setSelectedIds}
+            disabled={isConfirming}
+          />
           <Pagination
             page={data.page}
             pages={data.pages}

@@ -2,25 +2,17 @@
 import jwt from 'jsonwebtoken';
 import { HttpError } from '../lib/errors.js';
 import { prisma } from '../lib/prisma.js';
+import { passwordVersion, matchesPasswordVersion } from '../lib/sessions.js';
 
 const TOKEN_LIFETIME = '8h';
-const MS_PER_SECOND = 1000;
 const SESSION_ENDED_MESSAGE = 'Session expired, please log in again';
 
 // The token only proves who is calling. Role and customerId come from the
 // database on every request, so a role change or deactivation applies at once.
-export const signToken = ({ id, passwordChangedAt }) =>
-  jwt.sign(
-    {
-      id,
-      iat: Math.max(
-        Math.floor(Date.now() / MS_PER_SECOND),
-        Math.ceil((passwordChangedAt?.getTime() ?? 0) / MS_PER_SECOND),
-      ),
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: TOKEN_LIFETIME },
-  );
+export const signToken = (user) =>
+  jwt.sign({ id: user.id, passwordVersion: passwordVersion(user) }, process.env.JWT_SECRET, {
+    expiresIn: TOKEN_LIFETIME,
+  });
 
 const verifyToken = (token) => {
   try {
@@ -29,8 +21,6 @@ const verifyToken = (token) => {
     return null;
   }
 };
-
-const wasIssuedBefore = (payload, date) => date !== null && payload.iat * MS_PER_SECOND < date.getTime();
 
 export const requireAuth = async (req, _res, next) => {
   const header = req.headers.authorization ?? '';
@@ -52,8 +42,8 @@ export const requireAuth = async (req, _res, next) => {
       customer: { select: { id: true } },
     },
   });
-  // PS-3: a password change ends every session started before it.
-  if (!user?.isActive || wasIssuedBefore(payload, user.passwordChangedAt)) {
+  // PS-3/PS-5: compare exact signed versions; roles still come only from the database.
+  if (!user?.isActive || !matchesPasswordVersion(payload, user)) {
     throw new HttpError(401, SESSION_ENDED_MESSAGE);
   }
 

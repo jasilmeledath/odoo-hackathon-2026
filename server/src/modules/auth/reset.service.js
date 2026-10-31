@@ -5,6 +5,7 @@ import { prisma } from '../../lib/prisma.js';
 import { HttpError } from '../../lib/errors.js';
 import { reportError } from '../../middleware/error.js';
 import { sendMail } from '../../lib/mail.js';
+import { nextPasswordChangedAt } from '../../lib/sessions.js';
 const RESET_LIFETIME_MS = 30 * 60 * 1000;
 const hashToken = (token) => createHash('sha256').update(token).digest('hex');
 export const RECOVERY_MESSAGE = 'If an active account exists, a reset link has been sent';
@@ -44,7 +45,7 @@ export async function resetPassword({ token, password }) {
     await transaction.$queryRaw`SELECT id FROM users WHERE id = ${record.userId} FOR UPDATE`;
     const user = await transaction.user.findUnique({
       where: { id: record.userId },
-      select: { isActive: true },
+      select: { isActive: true, passwordChangedAt: true },
     });
     const now = new Date();
     if (!user?.isActive) throw invalid();
@@ -55,7 +56,7 @@ export async function resetPassword({ token, password }) {
     if (!claimed.count) throw invalid();
     await transaction.user.update({
       where: { id: record.userId },
-      data: { passwordHash, passwordChangedAt: now },
+      data: { passwordHash, passwordChangedAt: nextPasswordChangedAt(user.passwordChangedAt) },
     });
     await transaction.passwordResetToken.updateMany({
       where: { userId: record.userId, usedAt: null },
