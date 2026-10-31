@@ -2,13 +2,12 @@
 import { Router } from 'express';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
-import { listQuerySchema } from '../../lib/pagination.js';
 import { idParamSchema } from '../../lib/validation.js';
-import { customerSchema } from './customers.schemas.js';
+import { customerListQuerySchema, customerSchema } from './customers.schemas.js';
 import { listCustomers, getCustomer, saveCustomer } from './customers.service.js';
 const router = Router();
 router.use(requireAuth, requireRole('ADMIN', 'INTERNAL'));
-router.get('/', validate(listQuerySchema, 'query'), async (req, res) =>
+router.get('/', validate(customerListQuerySchema, 'query'), async (req, res) =>
   res.json(await listCustomers(req.validQuery)),
 );
 router.post('/', validate(customerSchema), async (req, res) =>

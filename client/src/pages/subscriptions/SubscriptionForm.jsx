@@ -1,9 +1,10 @@
 // Create and edit a draft or quotation from live customer, plan and catalog data (PS-12).
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import SearchSelect from '../../components/SearchSelect.jsx';
 import { Alert, Field, PageHeader, Spinner } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
-import { today } from '../../lib/dates.js';
+import { addBillingPeriod, today } from '../../lib/dates.js';
 import { formatMoney, toInputDate } from '../../lib/format.js';
 
 const blankLine = () => ({
@@ -16,6 +17,12 @@ const blankLine = () => ({
   variantsLoaded: true,
 });
 const unwrapItems = (result) => result?.items ?? [];
+const MAX_LINES = 100;
+const MAX_QUANTITY = 100000;
+const describeCustomer = (customer) => ({
+  title: customer.companyName || customer.name,
+  detail: [customer.companyName && customer.name, customer.email].filter(Boolean).join(' · '),
+});
 export default function SubscriptionForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -29,7 +36,7 @@ export default function SubscriptionForm() {
     notes: '',
   });
   const [lines, setLines] = useState([blankLine()]);
-  const [customers, setCustomers] = useState([]);
+  const [customer, setCustomer] = useState(null);
   const [plans, setPlans] = useState([]);
   const [terms, setTerms] = useState([]);
   const [taxes, setTaxes] = useState([]);
@@ -43,16 +50,14 @@ export default function SubscriptionForm() {
   useEffect(() => {
     let active = true;
     Promise.all([
-      api('/customers', { query: { pageSize: 50 } }),
       api('/plans', { query: { pageSize: 50, isActive: true } }),
       api('/payment-terms', { query: { pageSize: 50, isActive: true } }),
       api('/taxes', { query: { pageSize: 50 } }),
       api('/products', { query: { pageSize: 50, isActive: true } }),
       editing ? api(`/subscriptions/${id}`) : Promise.resolve(null),
     ])
-      .then(([customerResult, planResult, termResult, taxResult, productResult, current]) => {
+      .then(([planResult, termResult, taxResult, productResult, current]) => {
         if (!active) return;
-        setCustomers(unwrapItems(customerResult).filter((customer) => customer.isActive));
         setPlans(unwrapItems(planResult));
         setTerms(unwrapItems(termResult).filter((term) => term.isActive));
         setTaxes(unwrapItems(taxResult).filter((tax) => tax.isActive));
@@ -61,6 +66,9 @@ export default function SubscriptionForm() {
           if (!['DRAFT', 'QUOTATION'].includes(current.status))
             throw new Error('Only draft or quotation subscriptions can be edited.');
           setSubscription(current);
+          setCustomer(
+            current.customer ?? { id: current.customerId, name: `Customer #${current.customerId}` },
+          );
           setForm({
             customerId: String(current.customerId),
             planId: String(current.planId),
@@ -131,6 +139,30 @@ export default function SubscriptionForm() {
     };
   }, [pendingVariantProducts]);
 
+  // Only active customers can be billed; the server does the matching so the list never grows the page.
+  const searchCustomers = useCallback(
+    async (q) => unwrapItems(await api('/customers', { query: { q, pageSize: 20, isActive: true } })),
+    [],
+  );
+  const handlePlanChange = (planId) => {
+    const plan = plans.find((item) => String(item.id) === planId);
+    setForm((current) => ({
+      ...current,
+      planId,
+      expiryDate: plan ? addBillingPeriod(current.startDate, plan.billingPeriod) : current.expiryDate,
+    }));
+  };
+  const handleStartChange = (startDate) => {
+    setForm((current) => {
+      const plan = plans.find((item) => String(item.id) === current.planId);
+      return {
+        ...current,
+        startDate,
+        expiryDate: plan ? addBillingPeriod(startDate, plan.billingPeriod) : current.expiryDate,
+      };
+    });
+  };
+
   const selectedPlan = plans.find((plan) => String(plan.id) === form.planId) ?? subscription?.plan;
   const totals = useMemo(
     () =>
@@ -180,10 +212,14 @@ export default function SubscriptionForm() {
       nextFields.expiryDate = 'Expiry date must be after the start date';
     if (
       lines.some(
-        (line) => !line.productId || !Number.isInteger(Number(line.quantity)) || Number(line.quantity) < 1,
+        (line) =>
+          !line.productId ||
+          !/^\d+$/.test(line.quantity) ||
+          Number(line.quantity) < 1 ||
+          Number(line.quantity) > MAX_QUANTITY,
       )
     )
-      nextFields.lines = 'Choose a product and enter a quantity of at least one for every line';
+      nextFields.lines = `Choose a product and enter a whole quantity from 1 to ${MAX_QUANTITY} for every line`;
     setFields(nextFields);
     setError('');
     if (Object.keys(nextFields).length) return;
@@ -230,31 +266,30 @@ export default function SubscriptionForm() {
       />
       <form noValidate onSubmit={handleSubmit} className="card space-y-6">
         <Alert>{error}</Alert>
+        <h2 className="form-section-title">Subscription details</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Customer" error={fields.customerId}>
-            <select
-              className="input"
-              value={form.customerId}
-              onChange={(event) => setForm({ ...form, customerId: event.target.value })}
-            >
-              <option value="">Choose a customer</option>
-              {customers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.companyName || customer.name}
-                </option>
-              ))}
-            </select>
-          </Field>
+          <SearchSelect
+            label="Customer"
+            placeholder="Search by name, company or email"
+            value={customer}
+            error={fields.customerId}
+            search={searchCustomers}
+            describe={describeCustomer}
+            onChange={(option) => {
+              setCustomer(option);
+              setForm({ ...form, customerId: String(option.id) });
+            }}
+          />
           <Field label="Plan" error={fields.planId}>
             <select
               className="input"
               value={form.planId}
-              onChange={(event) => setForm({ ...form, planId: event.target.value })}
+              onChange={(event) => handlePlanChange(event.target.value)}
             >
               <option value="">Choose a plan</option>
               {plans.map((plan) => (
                 <option key={plan.id} value={plan.id}>
-                  {plan.name} · {formatMoney(plan.price)}
+                  {plan.name} · {formatMoney(plan.price)} / {plan.billingPeriod.toLowerCase()}
                 </option>
               ))}
             </select>
@@ -278,20 +313,30 @@ export default function SubscriptionForm() {
               className="input"
               type="date"
               value={form.startDate}
-              onChange={(event) => setForm({ ...form, startDate: event.target.value })}
+              onChange={(event) => handleStartChange(event.target.value)}
             />
           </Field>
-          <Field label="Expiry date" error={fields.expiryDate}>
+          <Field
+            label="Expiry date"
+            error={fields.expiryDate}
+            hint={
+              selectedPlan
+                ? `Set from the ${selectedPlan.billingPeriod.toLowerCase()} plan; you can change it.`
+                : ''
+            }
+          >
             <input
               className="input"
               type="date"
+              min={form.startDate}
               value={form.expiryDate}
               onChange={(event) => setForm({ ...form, expiryDate: event.target.value })}
             />
           </Field>
-          <Field label="Notes">
-            <input
+          <Field label="Notes" wrapperClassName="sm:col-span-2" hint={`${form.notes.length} / 1000`}>
+            <textarea
               className="input"
+              rows={3}
               maxLength={1000}
               value={form.notes}
               onChange={(event) => setForm({ ...form, notes: event.target.value })}
@@ -299,9 +344,14 @@ export default function SubscriptionForm() {
           </Field>
         </div>
         <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Subscription lines</h2>
-            <button className="btn-secondary" type="button" onClick={() => setLines([...lines, blankLine()])}>
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="form-section-title flex-1">Subscription lines</h2>
+            <button
+              className="btn-secondary"
+              type="button"
+              disabled={lines.length >= MAX_LINES}
+              onClick={() => setLines([...lines, blankLine()])}
+            >
               Add line
             </button>
           </div>
@@ -309,7 +359,7 @@ export default function SubscriptionForm() {
           {lines.map((line, index) => (
             <div
               key={line.lineKey}
-              className="grid gap-3 rounded-lg border border-slate-200 p-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_7rem_auto]"
+              className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_7rem_auto]"
             >
               <Field label={`Product ${index + 1}`}>
                 <select
@@ -359,6 +409,7 @@ export default function SubscriptionForm() {
                   className="input"
                   type="number"
                   min="1"
+                  max={MAX_QUANTITY}
                   step="1"
                   value={line.quantity}
                   onChange={(event) => setLine(line.lineKey, { quantity: event.target.value })}

@@ -718,7 +718,7 @@ Create a CUSTOMER account and customer profile, or link the unclaimed profile wi
 
 ### GET /api/customers
 
-Search name, company and email case-insensitively with q (at most 100 characters). Standard page/pageSize pagination applies. **Auth:** Admin, Internal. Refs: PS-12.
+Search name, company and email case-insensitively with q (at most 100 characters). Filter by `isActive=true` or `isActive=false` before pagination. Standard page/pageSize pagination applies. **Auth:** Admin, Internal. Refs: PS-12.
 
 **Responses:** 200 { items, total, page, pageSize, pages }; 400 invalid query; 401 unauthenticated; 403 customer.
 
