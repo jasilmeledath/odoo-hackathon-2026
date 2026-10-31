@@ -5,9 +5,9 @@
 | Version | 1.0 |
 | Owner | Team lead (Jasil M) |
 | Last updated | 31 October 2026 |
-| Related documents | [Implementation Plan](implementation-plan.md) Â· [Data Model](data-model.md) Â· [API Reference](api.md) Â· [Engineering Standards](engineering-standards.md) |
+| Related documents | [Implementation Plan](implementation-plan.md) · [Data Model](data-model.md) · [API Reference](api.md) · [Engineering Standards](engineering-standards.md) |
 
-The chosen problem statement, split into numbered requirements. Commits reference these IDs (`Refs: PS-3`) and code tags business rules with them (`// PS-3: â€¦`).
+The chosen problem statement, split into numbered requirements. Commits reference these IDs (`Refs: PS-3`) and code tags business rules with them (`// PS-3: …`).
 
 ## Problem statement
 
@@ -27,8 +27,8 @@ Brightloop Software sells everything on subscription: software billed monthly or
 
 ## Requirements
 
-**Priority:** **P1** core flow, must work by the 12:30 PM checkpoint Â· **P2** stated in the problem, must work by the 3:30 PM checkpoint Â· **P3** extra, only if time allows.
-**Status:** Not started Â· In progress Â· Done Â· Dropped (with a reason).
+**Priority:** **P1** core flow, must work by the 12:30 PM checkpoint · **P2** stated in the problem, must work by the 3:30 PM checkpoint · **P3** extra, only if time allows.
+**Status:** Not started · In progress · Done · Dropped (with a reason).
 
 ### Access
 
@@ -56,7 +56,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 |---|---|---|---|---|
 | PS-11 | Quotation templates hold the plan and product lines and stay valid for a set number of days. A quotation can start from one | P2 | Manoj | Not started |
 | PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | In progress |
-| PS-13 | A subscription moves Draft â†’ Quotation â†’ Confirmed â†’ Active â†’ Closed, and the team can see where it stands and its history | P1 | Jayasurya | Not started |
+| PS-13 | A subscription moves Draft → Quotation → Confirmed → Active → Closed, and the team can see where it stands and its history | P1 | Jayasurya | Not started |
 | PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | Not started |
 
 ### Billing
@@ -65,7 +65,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 |---|---|---|---|---|
 | PS-15 | On billing day, invoices are created from due subscriptions with customer details, lines, taxes and totals filled in. Nothing is billed twice or skipped | P1 | Jasil | Not started |
 | PS-16 | Taxes on invoices are calculated automatically from the Admin's rules | P1 | Jasil | In progress |
-| PS-17 | An invoice moves Draft â†’ Confirmed â†’ Paid, and can be canceled | P1 | Jasil | In progress |
+| PS-17 | An invoice moves Draft → Confirmed → Paid, and can be canceled | P1 | Jasil | In progress |
 | PS-18 | The team can send or print any invoice | P2 | Jasil | Not started |
 
 ### Discounts
