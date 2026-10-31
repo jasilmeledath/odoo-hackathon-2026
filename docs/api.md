@@ -105,9 +105,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | ✓ |
 | POST | `/subscriptions` | Staff | Create a draft. `templateId` fills in the plan and lines | PS-11, PS-12 | |
 | PUT | `/subscriptions/:id` | Staff | Update, in Draft or Quotation only | PS-12 | |
-| POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation | PS-13 | |
-| POST | `/subscriptions/:id/confirm` | Staff | Quotation → Confirmed | PS-13 | |
-| POST | `/subscriptions/:id/activate` | Staff | Confirmed → Active | PS-13 | |
+| POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation, requires a line | PS-13 | ✓ |
+| POST | `/subscriptions/:id/confirm` | Staff | Unexpired Quotation → Confirmed | PS-13 | ✓ |
+| POST | `/subscriptions/:id/activate` | Staff | Confirmed → Active and schedule billing | PS-13 | ✓ |
 | POST | `/subscriptions/:id/pause` | Staff | Active → Paused, if the plan allows | PS-14 | |
 | POST | `/subscriptions/:id/resume` | Staff | Paused → Active | PS-14 | |
 | POST | `/subscriptions/:id/renew` | Staff | `{ expiryDate }`, if the plan allows | PS-14 | |
@@ -139,9 +139,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
 | GET | `/reports/summary` | Staff | Active subscriptions, monthly recurring revenue, revenue, outstanding and overdue, for `from` and `to` | PS-23, PS-24 | ✓ |
-| GET | `/reports/revenue` | Staff | Revenue by month, for the chart | PS-24 | |
+| GET | `/reports/revenue` | Staff | Payments received by month, including months with no revenue | PS-24 | ✓ |
 | GET | `/reports/renewals` | Staff | Active subscriptions expiring in 30 days or overdue for renewal | PS-23 | ✓ |
-| GET | `/reports/events` | Staff | Server-Sent Events stream that says when numbers change | PS-28 | |
+| GET | `/reports/events` | Staff | Server-Sent Events stream that signals committed invoice or payment changes | PS-28 | ✓ |
 
 ### Customer portal (`modules/portal`)
 
@@ -169,6 +169,22 @@ Checks the API and the database connection. **Auth:** none.
 
 **Responses:** `200` `{ "ok": true }` · `500` the database cannot be reached
 
+### GET /api/reports/events
+
+Open a staff-only Server-Sent Events stream. It sends `connected` once, then `changed` after an invoice or payment insert, update or delete commits in PostgreSQL. The event has no financial data; clients reload the relevant reports. The server sends heartbeat comments and removes the subscriber when the response closes. **Auth:** Admin, Internal. Refs: PS-28.
+
+**Responses:** `200` an event stream · `401` not logged in · `403` not staff
+
+### GET /api/reports/revenue
+
+Return monthly revenue as payments received, aggregated by PostgreSQL. Every month in the selected range is present, including months with no payments. **Auth:** Admin, Internal. Refs: PS-24.
+
+**Query** `from`, `to`: optional `YYYY-MM-DD` bounds. When omitted, the range defaults to the last 12 calendar months through today. `to` cannot be before `from`.
+
+**Response** `200`: `{ period: { from, to }, items: [{ month, label, amount }] }`. `month` is `YYYY-MM`; money is in paise.
+
+**Responses:** `200` the monthly totals · `400` invalid date (`fields.from`, `fields.to`) · `401` not logged in · `403` not staff
+
 ### GET /api/subscriptions/:id
 
 Read one subscription with its customer, plan rules, payment terms, lines and invoice summaries. **Auth:** Admin, Internal. Refs: PS-12, PS-13.
@@ -182,6 +198,24 @@ Read a subscription's activity timeline in chronological order, including the ac
 **Response** `200`: an array of `{ id, action, detail, createdAt, actor }` entries.
 
 **Responses:** `200` the timeline (an empty array when no activity exists) · `400` the id is not a positive integer · `401` not logged in · `403` not staff · `404` subscription not found
+
+### POST /api/subscriptions/:id/quote
+
+Move a draft subscription to Quotation. Requires at least one line. Quote expiry comes from the selected template's validity; without a template, validity defaults to 30 days. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not a draft or has no lines
+
+### POST /api/subscriptions/:id/confirm
+
+Move an unexpired quotation to Confirmed. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not a quotation or the quotation expired
+
+### POST /api/subscriptions/:id/activate
+
+Move a confirmed subscription to Active and set `nextInvoiceDate` to `startDate`. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not confirmed
 
 ### GET /api/subscriptions
 
