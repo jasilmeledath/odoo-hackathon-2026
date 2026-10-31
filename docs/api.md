@@ -117,15 +117,15 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/billing/due` | Staff | Subscriptions due, with a count and expected total | PS-15 | |
-| POST | `/billing/run` | Staff | Bill everything due. Returns `{ created, skipped, failed }` | PS-15, PS-16, PS-20 | |
-| POST | `/billing/subscriptions/:id` | Staff | Bill one subscription | PS-15 | |
+| GET | `/billing/due` | Staff | Subscriptions due, with a count and expected total | PS-15 |Yes |
+| POST | `/billing/run` | Staff | Bill everything due. Returns `{ created, skipped, failed }` | PS-15, PS-16, PS-20 |Yes |
+| POST | `/billing/subscriptions/:id` | Staff | Bill one subscription | PS-15 |Yes |
 | GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | ✓ |
 | GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | ✓ |
 | POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | ✓ |
-| POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 | |
-| POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 | |
-| POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 | |
+| POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 |Yes |
+| POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 |Yes |
+| POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 |Yes |
 
 ### Payments (`modules/payments`)
 
@@ -169,7 +169,7 @@ Authenticate an active account. **Auth:** public. Refs: PS-2.
 
 **Body:** `email` (valid email, at most 254 characters, trimmed and lowercased), `password` (required, at most 72 characters, preserved verbatim).
 
-**Response** `200`: `{ token, user }`. Token expires after eight hours and carries only the user ID plus JWT timestamps. User includes `id`, `name`, `email`, `role`, `customerId`; no password hash.
+**Response** `200`: `{ token, user }`. Token expires after eight hours and carries the user ID, a signed passwordVersion and standard JWT timestamps. User includes `id`, `name`, `email`, `role`, `customerId`; no password hash.
 
 **Responses:** `400` field validation; `401` identical message for unknown email, wrong password and inactive account.
 
@@ -249,6 +249,26 @@ List subscriptions, newest start date first. **Auth:** Admin, Internal. Refs: PS
 Filters combine with AND. **Response** `200`: `{ items, total, page, pageSize, pages }`. Each item includes subscription `id`, `number`, `status`, `startDate`, `expiryDate`, `recurringAmount`, `customer` (`id`, `name`, `companyName`) and `plan` (`id`, `name`, `billingPeriod`). Money is in paise.
 
 **Responses:** `200` the page of subscriptions · `400` invalid query (`fields.status`, `fields.customerId`, `fields.planId`) · `401` not logged in · `403` not staff
+
+### GET /api/staff
+
+List INTERNAL accounts with standard pagination and q search over name/email. **Auth:** Admin only. Refs: PS-5.
+
+**Responses:** 200 paginated public account fields; 400 query validation; 401 unauthenticated; 403 Internal/Customer. Password hashes are never returned.
+
+### POST /api/staff
+
+Create an INTERNAL account; caller-supplied role is ignored. **Auth:** Admin only. Refs: PS-5.
+
+**Body:** name required, at most 120; email required, valid, at most 254, normalized; password follows signup (9+ characters, uppercase/lowercase/special, at most 72 UTF-8 bytes); isActive boolean defaults true.
+
+**Responses:** 201 public account; 400 per-field validation; 409 duplicate email (fields.email); 401/403 unauthorized.
+
+### PATCH /api/staff/:id
+
+Update an INTERNAL account. Name/email/isActive use POST rules; password is optional and when present must satisfy the same rule. Admin and Customer records cannot be edited here. **Auth:** Admin only. Refs: PS-5.
+
+**Responses:** 200 public account; 400 validation; 404 missing/non-staff account; 409 duplicate email (fields.email); 401/403 unauthorized. Deactivation takes effect on the next authenticated request. Password changes update passwordChangedAt monotonically under an account lock. Tokens carry an exact signed passwordVersion that must match the database; old sessions end even when changes occur in the same second or millisecond.
 
 ### GET /api/reports/summary
 
@@ -436,22 +456,79 @@ The plan form converts validated rupee prices to paise at submission, mirrors
 quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
 
-### GET /api/staff
 
-List INTERNAL accounts with standard pagination and q search over name/email. **Auth:** Admin only. Refs: PS-5.
+### Billing execution (PS-15)
 
-**Responses:** 200 paginated public account fields; 400 query validation; 401 unauthenticated; 403 Internal/Customer. Password hashes are never returned.
+`POST /api/billing/run` bills all due active subscriptions in batches of 100 IDs.
+`POST /api/billing/subscriptions/:id` bills one existing subscription.
+Both require Admin/Internal, accept an empty JSON object, and use today's IST
+business date. Responses are `{ created, skipped, failed }`, counted per period.
+A second run creates nothing. Missing single-subscription IDs return `404`;
+invalid IDs/bodies return `400`, missing authentication `401`, customers `403`.
+Each period locks its subscription, snapshots active lines and taxes, creates a
+Draft invoice, advances its cursor and logs the actor in one transaction.
+Failures roll back the period and do not stop later subscriptions. Financial
+amounts that exceed PostgreSQL limits fail without moving the cursor.
 
-### POST /api/staff
 
-Create an INTERNAL account; caller-supplied role is ignored. **Auth:** Admin only. Refs: PS-5.
+Billing automatically chooses the eligible discount with the largest saving,
+with the lower rule ID breaking ties. Date bounds are inclusive. A conditional
+count/version update claims one use per invoice; if another transaction takes
+that use, the invoice is recalculated without that rule. The usage increment
+rolls back with invoice creation. Product-scoped rules cover only their products.
 
-**Body:** name required, at most 120; email required, valid, at most 254, normalized; password follows signup (9+ characters, uppercase/lowercase/special, at most 72 UTF-8 bytes); isActive boolean defaults true.
 
-**Responses:** 201 public account; 400 per-field validation; 409 duplicate email (fields.email); 401/403 unauthorized.
+### GET /api/billing/due
 
-### PATCH /api/staff/:id
+**Auth:** Admin/Internal. Standard `q`, `page`, `pageSize` validation and
+pagination apply. Returns `{ items, total, page, pageSize, pages,
+expectedSubtotalAmount }`. Search matches subscription number or customer name.
+The database sums recurring pre-tax amounts for one next period per matching
+subscription. The UI labels this as an estimate before tax/discount and explains
+that catch-up can create multiple invoices. Run billing always processes the
+whole queue, including rows outside the current filter.
 
-Update an INTERNAL account. Name/email/isActive use POST rules; password is optional and when present must satisfy the same rule. Admin and Customer records cannot be edited here. **Auth:** Admin only. Refs: PS-5.
 
-**Responses:** 200 public account; 400 validation; 404 missing/non-staff account; 409 duplicate email (fields.email); 401/403 unauthorized. Deactivation takes effect on the next authenticated request. Password changes update passwordChangedAt.
+### POST /api/invoices/:id/cancel
+
+**Auth:** Admin/Internal. Returns the updated invoice. `404` for absent records,
+`400` for invalid IDs and `409` for paid/canceled invoices or any payment history.
+In one transaction, lock the subscription and invoice, cancel once, return one
+discount usage, rewind the cursor if necessary and write the timeline. Paused or
+closed subscriptions retain their status and remain excluded from billing.
+
+
+### POST /api/invoices/:id/send
+
+**Auth:** Admin/Internal. Send snapshot line items, dates, totals and balance to
+the customer's current registered email through the existing mail helper.
+Returns `200` with the updated invoice and `sentAt`; `404` missing, `400` invalid
+ID, `502` mail delivery failure with a clear retry message. Failed delivery does
+not set `sentAt` or log success. Without SMTP, the same message is printed in the
+server terminal. Successful delivery updates `sentAt` and logs `SENT` together.
+SMTP delivery and database recording are separate operations; after a database
+failure, check delivery before retrying to avoid duplicate mail.
+Invoice detail provides a print action; print styles hide navigation and actions.
+
+
+### POST /api/invoices/confirm-all
+
+**Auth:** Admin/Internal. Body `{ invoiceIds }`: 1–100 distinct positive integer
+IDs, bounded to PostgreSQL identifiers. Invalid or duplicate IDs return `400`.
+Returns `{ confirmed, skipped, failed }`. Each Draft is confirmed through the
+same transaction/audit rules as the individual action. Stale/non-Draft and
+missing invoices count as skipped. Unexpected errors count as failed and are
+logged without preventing later IDs. The list selects only current-page Drafts,
+disables pending controls and shows the result counts.
+
+
+### Scheduled subscription processing (PS-14, PS-15)
+
+At API startup and hourly, process due Confirmed → Active transitions, close
+expired Active subscriptions only when their plan has `closesAtExpiry`, then run
+billing. Other expired subscriptions remain Active and period starts at/after
+expiry are never billed. Transitions are conditional, paginated in batches of 100,
+and audited with no actor for system work. Phase/record failures are logged and
+do not stop the server or later phases. In-process runs never overlap; database
+state guards and billing locks handle multiple API instances. Shutdown stops the
+timer and waits for in-flight work before disconnecting PostgreSQL.
