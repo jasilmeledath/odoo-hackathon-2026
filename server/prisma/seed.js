@@ -2,11 +2,13 @@
 // to exercise lists and reports. Set SEED_SUBSCRIPTIONS=5000 to test PS-25.
 // This is the only place sample data may live, and it replaces all existing data.
 import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../src/generated/prisma/client.js';
 import { addDays, addPeriod, today } from '../src/lib/dates.js';
 import { applyPercent, toMonthlyAmount } from '../src/lib/money.js';
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 const DEMO_PASSWORD = 'Demo@12345';
 const BCRYPT_COST = 10;

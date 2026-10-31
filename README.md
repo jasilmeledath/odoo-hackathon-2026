@@ -14,7 +14,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
-*Filled in as each requirement lands. Track progress in [docs/requirements.md](docs/requirements.md).*
+- Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
+- Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
 
 ## Screenshots
 
@@ -39,7 +40,7 @@ Database design is the heart of this project. [docs/data-model.md](docs/data-mod
 
 ## Getting started
 
-**Prerequisites:** Node.js 20.6 or later, PostgreSQL 14 or later, and Git.
+**Prerequisites:** Node.js 20.19 or later (or 22.12 or later), PostgreSQL 14 or later, and Git.
 
 1. Clone the repository:
 
@@ -75,6 +76,10 @@ Database design is the heart of this project. [docs/data-model.md](docs/data-mod
 
    ```bash
    npx prisma migrate deploy
+   ```
+
+   ```bash
+   npm run db:generate
    ```
 
    ```bash
@@ -132,6 +137,12 @@ server/
     lib/               shared helpers
 docs/                  requirements, plan, database, API and team standards
 ```
+
+## Checks
+
+From `server/`, run `npm test` for billing and catalog validation regressions.
+The test runner uses the same tsx loader as the API for generated Prisma enums.
+From `client/`, run `npm run build` to check the frontend.
 
 ## API
 
