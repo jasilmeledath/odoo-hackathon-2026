@@ -36,25 +36,25 @@ Brightloop Software sells everything on subscription: software billed monthly or
 |---|---|---|---|---|
 | PS-1 | A customer signs up with email and password. Each email belongs to one account. The password must be **more than eight characters** with an uppercase letter, a lowercase letter and a special character | P1 | Yadhu | Done |
 | PS-2 | Users log in and stay logged in with a token that expires | P1 | Yadhu | Done |
-| PS-3 | A forgotten password is reset through a link sent to the registered email | P1 | Yadhu | Not started |
+| PS-3 | A forgotten password is reset through a link sent to the registered email | P1 | Yadhu | Done |
 | PS-4 | Three roles see different things. Customers see only their own records, and any other record returns `404` | P1 | Yadhu | Not started |
-| PS-5 | Only the Admin can add a staff member, and sign-up can never create staff | P1 | Yadhu | Not started |
+| PS-5 | Only the Admin can add a staff member, and sign-up can never create staff | P1 | Yadhu | Done |
 
 ### Catalog
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-6 | The Admin manages products: name, type, sales price, cost price and notes | P1 | Manoj | Done |
-| PS-7 | A product has variants, each adding an extra price (choosing the Odoo brand adds 560) | P1 | Manoj | Not started |
-| PS-8 | The Admin manages plans: price, billing period (daily, weekly, monthly, yearly), minimum quantity and the dates it is available | P1 | Manoj | In progress |
-| PS-9 | Plan by plan, the Admin decides whether it closes by itself at the end, and whether it can be closed early, paused or renewed | P1 | Manoj | Not started |
+| PS-7 | A product has variants, each adding an extra price (choosing the Odoo brand adds 560) | P1 | Manoj | Done |
+| PS-8 | The Admin manages plans: price, billing period (daily, weekly, monthly, yearly), minimum quantity and the dates it is available | P1 | Manoj | Done |
+| PS-9 | Plan by plan, the Admin decides whether it closes by itself at the end, and whether it can be closed early, paused or renewed | P1 | Manoj | Done |
 | PS-10 | The Admin sets tax rules, and taxes are calculated from them automatically | P1 | Manoj | Done |
 
 ### Subscriptions
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-11 | Quotation templates hold the plan and product lines and stay valid for a set number of days. A quotation can start from one | P2 | Manoj | Not started |
+| PS-11 | Quotation templates hold the plan and product lines and stay valid for a set number of days. A quotation can start from one | P2 | Manoj | In progress |
 | PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | Done |
 | PS-13 | A subscription moves Draft → Quotation → Confirmed → Active → Closed, and the team can see where it stands and its history | P1 | Jayasurya | In progress |
 | PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | In progress |
@@ -72,7 +72,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-19 | Only the Admin creates discount rules: fixed or percentage, minimum purchase or quantity, start and end dates, usage limit, and scope (specific products or the whole subscription) | P2 | Manoj | Not started |
+| PS-19 | Only the Admin creates discount rules: fixed or percentage, minimum purchase or quantity, start and end dates, usage limit, and scope (specific products or the whole subscription) | P2 | Manoj | In progress |
 | PS-20 | A discount that applies appears on the next invoice by itself, and stops when it expires or runs out | P2 | Jasil | Done |
 
 ### Payments and reporting
@@ -139,3 +139,5 @@ Anything the problem statement leaves open, and what we decided.
 | A-21 | When does Confirmed become Active? | On the start date through the daily job, or earlier by staff |
 | A-22 | What is revenue? | Payments received in the period. Invoiced and outstanding amounts are shown separately. Monthly recurring revenue is before tax and discount |
 | A-23 | Currencies, companies and time zones? | Indian rupees, one company, business days in IST |
+
+| A-24 | How are future or disabled discounts displayed? | User approved Scheduled and Inactive on 31 October. Derive state in this order: Inactive, Expired, Used up, Scheduled, Active. Both date boundaries are inclusive in IST; retain the Active, Expired and Used up filters. |
