@@ -449,3 +449,10 @@ Each period locks its subscription, snapshots active lines and taxes, creates a
 Draft invoice, advances its cursor and logs the actor in one transaction.
 Failures roll back the period and do not stop later subscriptions. Financial
 amounts that exceed PostgreSQL limits fail without moving the cursor.
+
+
+Billing automatically chooses the eligible discount with the largest saving,
+with the lower rule ID breaking ties. Date bounds are inclusive. A conditional
+count/version update claims one use per invoice; if another transaction takes
+that use, the invoice is recalculated without that rule. The usage increment
+rolls back with invoice creation. Product-scoped rules cover only their products.
