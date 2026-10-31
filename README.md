@@ -14,7 +14,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
-*Filled in as each requirement lands. Track progress in [docs/requirements.md](docs/requirements.md).*
+- Add staff-only paginated payment search with combined method/date/text filters and invoice links. (PS-21).
 
 ## Screenshots
 
