@@ -65,21 +65,21 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/taxes` | Staff | List | PS-10 | |
-| POST | `/taxes` | Admin | Create | PS-10 | |
-| PUT | `/taxes/:id` | Admin | Update or deactivate | PS-10 | |
-| GET | `/payment-terms` | Staff | List | PS-12 | |
-| POST | `/payment-terms` | Admin | Create | PS-12 | |
-| PUT | `/payment-terms/:id` | Admin | Update or deactivate | PS-12 | |
-| GET | `/products` | Staff | List, filtered by `type`, `isActive`, `q` | PS-6 | |
-| GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | |
+| GET | `/taxes` | Staff | List | PS-10 | Yes |
+| POST | `/taxes` | Admin | Create | PS-10 | Yes |
+| PUT | `/taxes/:id` | Admin | Update or deactivate | PS-10 | Yes |
+| GET | `/payment-terms` | Staff | List | PS-12 | Yes |
+| POST | `/payment-terms` | Admin | Create | PS-12 | Yes |
+| PUT | `/payment-terms/:id` | Admin | Update or deactivate | PS-12 | Yes |
+| GET | `/products` | Staff | List, filtered by `type`, `isActive`, `q` | PS-6 | Yes |
+| GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | Yes |
 | POST | `/products` | Admin | Create | PS-6 | |
 | PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | |
 | POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | |
 | PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | |
 | DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | |
-| GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | |
-| GET | `/plans/:id` | Staff | One plan | PS-8 | |
+| GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | Yes |
+| GET | `/plans/:id` | Staff | One plan | PS-8 | Yes |
 | POST | `/plans` | Admin | Create | PS-8, PS-9 | |
 | PUT | `/plans/:id` | Admin | Update or deactivate | PS-8, PS-9 | |
 
@@ -100,9 +100,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/subscriptions` | Staff | List, filtered by `status`, `customerId`, `planId`, `q` | PS-12, PS-13 | |
-| GET | `/subscriptions/:id` | Staff | Subscription with lines, totals and invoices | PS-12 | |
-| GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | |
+| GET | `/subscriptions` | Staff | List, filtered by `status`, `customerId`, `planId`, `q` | PS-12, PS-13 | ✓ |
+| GET | `/subscriptions/:id` | Staff | Subscription with lines, totals and invoices | PS-12 | ✓ |
+| GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | ✓ |
 | POST | `/subscriptions` | Staff | Create a draft. `templateId` fills in the plan and lines | PS-11, PS-12 | |
 | PUT | `/subscriptions/:id` | Staff | Update, in Draft or Quotation only | PS-12 | |
 | POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation | PS-13 | |
@@ -120,9 +120,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/billing/due` | Staff | Subscriptions due, with a count and expected total | PS-15 | |
 | POST | `/billing/run` | Staff | Bill everything due. Returns `{ created, skipped, failed }` | PS-15, PS-16, PS-20 | |
 | POST | `/billing/subscriptions/:id` | Staff | Bill one subscription | PS-15 | |
-| GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | |
-| GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | |
-| POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | |
+| GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | ✓ |
+| GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | ✓ |
+| POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | ✓ |
 | POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 | |
 | POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 | |
 | POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 | |
@@ -138,9 +138,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/reports/summary` | Staff | Active subscriptions, monthly recurring revenue, revenue, outstanding and overdue, for `from` and `to` | PS-23, PS-24 | |
+| GET | `/reports/summary` | Staff | Active subscriptions, monthly recurring revenue, revenue, outstanding and overdue, for `from` and `to` | PS-23, PS-24 | ✓ |
 | GET | `/reports/revenue` | Staff | Payments received by month, including months with no revenue | PS-24 | ✓ |
-| GET | `/reports/renewals` | Staff | Subscriptions expiring soon or already expired | PS-23 | |
+| GET | `/reports/renewals` | Staff | Active subscriptions expiring in 30 days or overdue for renewal | PS-23 | ✓ |
 | GET | `/reports/events` | Staff | Server-Sent Events stream that says when numbers change | PS-28 | |
 
 ### Customer portal (`modules/portal`)
@@ -179,5 +179,167 @@ Return monthly revenue as payments received, aggregated by PostgreSQL. Every mon
 
 **Responses:** `200` the monthly totals · `400` invalid date (`fields.from`, `fields.to`) · `401` not logged in · `403` not staff
 
+### GET /api/subscriptions/:id
+
+Read one subscription with its customer, plan rules, payment terms, lines and invoice summaries. **Auth:** Admin, Internal. Refs: PS-12, PS-13.
+
+**Responses:** `200` the subscription with `lines`, `invoices`, `customer`, `plan` and `paymentTerm` · `400` the id is not a positive integer · `401` not logged in · `403` not staff · `404` subscription not found
+
+### GET /api/subscriptions/:id/activity
+
+Read a subscription's activity timeline in chronological order, including the actor when recorded. Scheduler actions have a null actor and are displayed as System. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Response** `200`: an array of `{ id, action, detail, createdAt, actor }` entries.
+
+**Responses:** `200` the timeline (an empty array when no activity exists) · `400` the id is not a positive integer · `401` not logged in · `403` not staff · `404` subscription not found
+
+### GET /api/subscriptions
+
+List subscriptions, newest start date first. **Auth:** Admin, Internal. Refs: PS-12, PS-13.
+
+**Query**
+
+| Field | Type | Rules |
+|---|---|---|
+| `page`, `pageSize` | number | Page from 1. Page size 1 to 50, default 10 |
+| `status` | string | `DRAFT`, `QUOTATION`, `CONFIRMED`, `ACTIVE`, `PAUSED` or `CLOSED` |
+| `customerId`, `planId` | number | Positive record IDs |
+| `q` | string | At most 100 characters; matches subscription number, customer name/company or plan name, ignoring case |
+
+Filters combine with AND. **Response** `200`: `{ items, total, page, pageSize, pages }`. Each item includes subscription `id`, `number`, `status`, `startDate`, `expiryDate`, `recurringAmount`, `customer` (`id`, `name`, `companyName`) and `plan` (`id`, `name`, `billingPeriod`). Money is in paise.
+
+**Responses:** `200` the page of subscriptions · `400` invalid query (`fields.status`, `fields.customerId`, `fields.planId`) · `401` not logged in · `403` not staff
+
+### GET /api/reports/summary
+
+Read finance totals and the ten oldest overdue invoices. Revenue is the sum of payments received in the requested period; invoiced and outstanding balances are reported separately. Overdue is calculated from confirmed invoices past their due date. **Auth:** Admin, Internal. Refs: PS-23, PS-24.
+
+**Query** `from`, `to`: optional `YYYY-MM-DD` issue/payment date bounds. When omitted, the period defaults to the first day of the current IST month through today. `to` cannot be before `from`.
+
+**Response** `200`: `{ period, activeSubscriptionCount, monthlyRecurringAmount, invoicedAmount, revenueAmount, outstandingAmount, overdueAmount, overdueInvoices }`. `overdueInvoices` contains at most ten oldest overdue entries with `balanceAmount`. Money is in paise.
+
+**Responses:** `200` the summary · `400` invalid date (`fields.from`, `fields.to`) · `401` not logged in · `403` not staff
+
+### GET /api/reports/renewals
+
+List active subscriptions expiring within 30 days and active subscriptions already past expiry whose plan does not close automatically (A-20). Results are ordered by expiry date, oldest first. **Auth:** Admin, Internal. Refs: PS-23.
+
+**Query** `page`, `pageSize`: standard pagination; `q`: at most 100 characters, matching the subscription number, customer name/company, or plan name.
+
+**Response** `200`: `{ items, total, page, pageSize, pages }`. Each item includes the subscription number, expiry date, recurring amount, customer, and plan renewal flags.
+
+**Responses:** `200` the page of renewals · `400` invalid pagination/search query · `401` not logged in · `403` not staff
+
+### GET /api/invoices
+
+List invoices, newest first, with the balance and whether each is overdue. **Auth:** Admin, Internal. Refs: PS-17, PS-22.
+
+**Query**
+
+| Field | Type | Rules |
+|---|---|---|
+| `page`, `pageSize` | number | Page from 1. Page size 1 to 50, default 10 |
+| `status` | string | `DRAFT`, `CONFIRMED`, `PAID` or `CANCELED`. `CONFIRMED` means outstanding |
+| `isOverdue` | string | `true`: confirmed with a due date before today. `false`: everything else. Worked out when asked, never stored (A-15) |
+| `customerId` | number | An existing customer |
+| `from`, `to` | string | `YYYY-MM-DD`, filter on the issue date. `to` must not be before `from` |
+| `q` | string | At most 100 chars. Matches the invoice number or customer name, ignoring case |
+
+Filters combine with AND, so `status=PAID&isOverdue=true` returns nothing.
+
+**Response** `200`: `{ items, total, page, pageSize, pages }`. Each item has `id`, `number`, `status`, `billingName`, `issueDate`, `dueDate`, `totalAmount`, `paidAmount`, `balanceAmount`, `isOverdue`, `sentAt` and `subscription` (`id`, `number`). Money is in paise.
+
+**Responses:** `200` the page of invoices · `400` validation (`fields.to`, `fields.status`) · `401` not logged in · `403` not staff
+
+### GET /api/invoices/:id
+
+One invoice with its lines, payments, subscription and discount. **Auth:** Admin, Internal. Refs: PS-17.
+
+**Response** `200`: the invoice with `lines` (description, quantity, `unitPrice`, `amount`, `discountAmount`, `taxName`, `taxRatePercent`, `taxAmount`), `payments` (newest first, with `recordedBy`), `subscription` (`id`, `number`), `discount` (`id`, `name`, or `null`), `balanceAmount` and `isOverdue`. Money is in paise.
+
+**Responses:** `200` the invoice · `400` the id is not a number · `401` not logged in · `403` not staff · `404` invoice not found
+
+### POST /api/invoices/:id/confirm
+
+Confirm a draft invoice. **Auth:** Admin, Internal. Refs: PS-17.
+
+The status is checked inside the update, so two people confirming at once cannot both succeed. The change is logged on the invoice and subscription timelines.
+
+**Responses:** `200` the confirmed invoice, as in `GET /api/invoices/:id` · `400` the id is not a number · `401` not logged in · `403` not staff · `404` invoice not found · `409` the invoice is not a `DRAFT`
 <!-- Add one entry per route, grouped by module, in the format from
 docs/documentation-rules.md §5. Add it in the same commit as the route. -->
+
+### Catalog read endpoints (PS-6, PS-8, PS-10, PS-12)
+
+**Auth:** Admin and Internal for all six routes. Missing authentication returns
+`401`; a Customer receives `403` before query validation.
+
+#### GET `/api/taxes`
+
+List tax identifiers, names, decimal-string rates and active flags. Refs: PS-10.
+
+#### GET `/api/payment-terms`
+
+List payment-term identifiers, names, due days and active flags. Refs: PS-12.
+
+#### GET `/api/products`
+
+List product identifiers, names, types, sales/cost prices, tax IDs and active
+flags. Optional filters: `type` (SOFTWARE, ADD_ON, SERVICE), `isActive`. Refs: PS-6.
+
+#### GET `/api/products/:id`
+
+Read one product with notes, variants and plans; absent IDs return `404`.
+Refs: PS-6, PS-7.
+
+#### GET `/api/plans`
+
+List plans with price, billing period, quantity, dates and behaviour switches.
+Optional filters: `availableOn`, `isActive`. Refs: PS-8, PS-9.
+
+#### GET `/api/plans/:id`
+
+Read one plan; absent IDs return `404`. Refs: PS-8, PS-9.
+
+#### Shared catalog query and response rules
+
+Lists accept `page`, `pageSize` (maximum 50) and case-insensitive name search
+`q` (maximum 100 characters). Filters combine with AND. `isActive` accepts
+only the strings `true` or `false`; omission includes both states.
+`availableOn` is a real calendar date in `YYYY-MM-DD` format and returns
+active plans whose start date is on/before that day and whose end date is
+null or on/after it. Both boundaries are inclusive. Dates in plan responses,
+including product-detail plans, are `YYYY-MM-DD`; money remains integer paise.
+
+**Responses:** `200` the record or standard paginated envelope; `400` invalid
+query/ID with per-field messages; `401` unauthenticated; `403` wrong role;
+`404` unknown product or plan. No schema or migration changes are required.
+### Tax and payment-term writes (PS-10, PS-12)
+
+**Auth:** Admin only. Internal and Customer users receive `403`.
+
+#### POST `/api/taxes`
+
+Create a tax rule. **Body:** `name` (trimmed, 1 to 60 characters), `ratePercent`
+(number, 0 to 100 inclusive, at most two decimal places), optional `isActive`
+(boolean, defaults to true). **Response:** `201` the saved rule. Refs: PS-10.
+
+#### PUT `/api/taxes/:id`
+
+Update a rule using the same body. Set `isActive: false` to deactivate it
+without deleting history. **Response:** `200` the saved rule. Refs: PS-10.
+
+#### POST `/api/payment-terms`
+
+Create payment terms. **Body:** `name` (trimmed, 1 to 60 characters), `dueDays`
+(integer, 0 to 2147483647), optional `isActive` (boolean, defaults to true).
+**Response:** `201` the saved record. Refs: PS-12.
+
+#### PUT `/api/payment-terms/:id`
+
+Update payment terms using the same body. Deactivate with `isActive: false`;
+records are never deleted by these routes. **Response:** `200`. Refs: PS-12.
+
+**Errors for all four routes:** `400` invalid body or ID with field messages;
+`401` unauthenticated; `403` wrong role; `409` duplicate name with
+`fields.name`; update also returns `404` for an absent ID. No schema change.

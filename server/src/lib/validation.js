@@ -5,8 +5,14 @@ import { z } from 'zod';
 
 const MAX_MONEY_PAISE = 1_000_000_000; // Rs 1 crore: leaves room below the INTEGER column limit
 
+const MAX_DATABASE_ID = 2_147_483_647; // PostgreSQL SERIAL identifiers
+
 export const idParamSchema = z.object({
-  id: z.coerce.number({ error: 'Invalid id' }).int().positive('Invalid id'),
+  id: z.coerce
+    .number({ error: 'Invalid id' })
+    .int()
+    .positive('Invalid id')
+    .max(MAX_DATABASE_ID, 'Invalid id'),
 });
 
 export const requiredText = (label, max = 120) =>
