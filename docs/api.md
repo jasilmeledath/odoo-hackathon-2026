@@ -594,6 +594,13 @@ Draft invoice, advances its cursor and logs the actor in one transaction.
 Failures roll back the period and do not stop later subscriptions. Financial
 amounts that exceed PostgreSQL limits fail without moving the cursor.
 
+Scale fixture billing observation (not a complete PS-25 page check): against a
+local 5,000-subscription fixture, 4,000 active subscriptions were made due.
+Processing completed in 9.8 seconds: 3,169 invoices created, 831 skipped, and
+0 failed. Skipped periods already had an invoice, confirming the duplicate
+billing guard. Page coverage and readiness limitations are in the performance
+section of the data model.
+
 
 Billing automatically chooses the eligible discount with the largest saving,
 with the lower rule ID breaking ties. Date bounds are inclusive. A conditional
