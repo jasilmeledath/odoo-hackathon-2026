@@ -1,6 +1,31 @@
-// Billing run and the list of what is due (PS-15, PS-20).
+// Staff-only billing actions; calculations and persistence live in the services.
 import { Router } from 'express';
-
+import { listQuerySchema } from '../../lib/pagination.js';
+import { listDueSubscriptions } from './billingDue.service.js';
+import { STAFF_ROLES } from '../../lib/constants.js';
+import { idParamSchema } from '../../lib/validation.js';
+import { requireAuth, requireRole } from '../../middleware/auth.js';
+import { validate } from '../../middleware/validate.js';
+import { HttpError } from '../../lib/errors.js';
+import { prisma } from '../../lib/prisma.js';
+import { billingRunSchema } from './billing.schemas.js';
+import { billSubscription, runBilling } from './billingRun.service.js';
 const router = Router();
-
+router.use(requireAuth, requireRole(...STAFF_ROLES));
+router.get('/due', validate(listQuerySchema, 'query'), async (req, res) =>
+  res.json(await listDueSubscriptions(req.validQuery)),
+);
+router.post('/run', validate(billingRunSchema), async (req, res) =>
+  res.json(await runBilling({ actor: req.user })),
+);
+router.post(
+  '/subscriptions/:id',
+  validate(idParamSchema, 'params'),
+  validate(billingRunSchema),
+  async (req, res) => {
+    if (!(await prisma.subscription.findUnique({ where: { id: req.validParams.id }, select: { id: true } })))
+      throw new HttpError(404, 'Subscription not found');
+    res.json(await billSubscription(req.validParams.id, { actor: req.user }));
+  },
+);
 export default router;
