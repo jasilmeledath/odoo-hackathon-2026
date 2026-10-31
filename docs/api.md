@@ -66,11 +66,11 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
 | GET | `/taxes` | Staff | List | PS-10 | Yes |
-| POST | `/taxes` | Admin | Create | PS-10 | |
-| PUT | `/taxes/:id` | Admin | Update or deactivate | PS-10 | |
+| POST | `/taxes` | Admin | Create | PS-10 | Yes |
+| PUT | `/taxes/:id` | Admin | Update or deactivate | PS-10 | Yes |
 | GET | `/payment-terms` | Staff | List | PS-12 | Yes |
-| POST | `/payment-terms` | Admin | Create | PS-12 | |
-| PUT | `/payment-terms/:id` | Admin | Update or deactivate | PS-12 | |
+| POST | `/payment-terms` | Admin | Create | PS-12 | Yes |
+| PUT | `/payment-terms/:id` | Admin | Update or deactivate | PS-12 | Yes |
 | GET | `/products` | Staff | List, filtered by `type`, `isActive`, `q` | PS-6 | Yes |
 | GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | Yes |
 | POST | `/products` | Admin | Create | PS-6 | |
@@ -290,3 +290,32 @@ including product-detail plans, are `YYYY-MM-DD`; money remains integer paise.
 **Responses:** `200` the record or standard paginated envelope; `400` invalid
 query/ID with per-field messages; `401` unauthenticated; `403` wrong role;
 `404` unknown product or plan. No schema or migration changes are required.
+### Tax and payment-term writes (PS-10, PS-12)
+
+**Auth:** Admin only. Internal and Customer users receive `403`.
+
+#### POST `/api/taxes`
+
+Create a tax rule. **Body:** `name` (trimmed, 1 to 60 characters), `ratePercent`
+(number, 0 to 100 inclusive, at most two decimal places), optional `isActive`
+(boolean, defaults to true). **Response:** `201` the saved rule. Refs: PS-10.
+
+#### PUT `/api/taxes/:id`
+
+Update a rule using the same body. Set `isActive: false` to deactivate it
+without deleting history. **Response:** `200` the saved rule. Refs: PS-10.
+
+#### POST `/api/payment-terms`
+
+Create payment terms. **Body:** `name` (trimmed, 1 to 60 characters), `dueDays`
+(integer, 0 to 2147483647), optional `isActive` (boolean, defaults to true).
+**Response:** `201` the saved record. Refs: PS-12.
+
+#### PUT `/api/payment-terms/:id`
+
+Update payment terms using the same body. Deactivate with `isActive: false`;
+records are never deleted by these routes. **Response:** `200`. Refs: PS-12.
+
+**Errors for all four routes:** `400` invalid body or ID with field messages;
+`401` unauthenticated; `403` wrong role; `409` duplicate name with
+`fields.name`; update also returns `404` for an absent ID. No schema change.
