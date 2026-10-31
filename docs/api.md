@@ -121,8 +121,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | POST | `/billing/run` | Staff | Bill everything due. Returns `{ created, skipped, failed }` | PS-15, PS-16, PS-20 | |
 | POST | `/billing/subscriptions/:id` | Staff | Bill one subscription | PS-15 | |
 | GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | ✓ |
-| GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | |
-| POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | |
+| GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | ✓ |
+| POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | ✓ |
 | POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 | |
 | POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 | |
 | POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 | |
@@ -227,5 +227,20 @@ Filters combine with AND, so `status=PAID&isOverdue=true` returns nothing.
 
 **Responses:** `200` the page of invoices · `400` validation (`fields.to`, `fields.status`) · `401` not logged in · `403` not staff
 
+### GET /api/invoices/:id
+
+One invoice with its lines, payments, subscription and discount. **Auth:** Admin, Internal. Refs: PS-17.
+
+**Response** `200`: the invoice with `lines` (description, quantity, `unitPrice`, `amount`, `discountAmount`, `taxName`, `taxRatePercent`, `taxAmount`), `payments` (newest first, with `recordedBy`), `subscription` (`id`, `number`), `discount` (`id`, `name`, or `null`), `balanceAmount` and `isOverdue`. Money is in paise.
+
+**Responses:** `200` the invoice · `400` the id is not a number · `401` not logged in · `403` not staff · `404` invoice not found
+
+### POST /api/invoices/:id/confirm
+
+Confirm a draft invoice. **Auth:** Admin, Internal. Refs: PS-17.
+
+The status is checked inside the update, so two people confirming at once cannot both succeed. The change is logged on the invoice and subscription timelines.
+
+**Responses:** `200` the confirmed invoice, as in `GET /api/invoices/:id` · `400` the id is not a number · `401` not logged in · `403` not staff · `404` invoice not found · `409` the invoice is not a `DRAFT`
 <!-- Add one entry per route, grouped by module, in the format from
 docs/documentation-rules.md §5. Add it in the same commit as the route. -->
