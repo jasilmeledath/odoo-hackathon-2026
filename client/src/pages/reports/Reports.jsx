@@ -1,4 +1,4 @@
-// Period-filtered finance summary and subscription renewals (PS-24).
+// Period-filtered finance summary, revenue chart and subscription renewals (PS-24).
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Alert, Field, PageHeader, Spinner } from '../../components/ui.jsx';
@@ -6,6 +6,7 @@ import { formatDate, formatMoney } from '../../lib/format.js';
 import { useApi } from '../../lib/useApi.js';
 import { validateDateRange } from '../../lib/validators.js';
 import ReportRenewals from './ReportRenewals.jsx';
+import RevenueChart from './RevenueChart.jsx';
 
 function ReportFilters({ values, onApply }) {
   const [form, setForm] = useState(values);
@@ -141,6 +142,9 @@ export default function Reports() {
       <ReportFilters key={JSON.stringify(filterValues)} values={filterValues} onApply={applyFilters} />
       <Alert>{[error, renewalsError].filter(Boolean).join(' ')}</Alert>
       {loading ? <Spinner /> : summary ? <SummaryCards summary={summary} /> : null}
+      <div className="mt-8">
+        <RevenueChart />
+      </div>
       <div className="mt-8">
         {renewalsLoading ? (
           <Spinner />
