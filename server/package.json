@@ -12,7 +12,8 @@
     "db:generate": "prisma generate",
     "db:seed": "node --import=tsx --env-file=.env prisma/seed.js",
     "db:reset": "prisma migrate reset --force && npm run db:generate && npm run db:seed",
-    "prisma:seed": "node --import=tsx --env-file=.env prisma/seed.js"
+    "prisma:seed": "node --import=tsx --env-file=.env prisma/seed.js",
+    "test:integration": "node --import=tsx --test \"test/*.test.js\""
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",
