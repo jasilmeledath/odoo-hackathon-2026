@@ -93,8 +93,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | PUT | `/templates/:id` | Admin | Update with lines | PS-11 | |
 | GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`) | PS-19 | Yes |
 | GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | Yes |
-| POST | `/discounts` | Admin | Create | PS-19 | |
-| PUT | `/discounts/:id` | Admin | Update or deactivate | PS-19 | |
+| POST | `/discounts` | Admin | Create | PS-19 | Yes |
+| PUT | `/discounts/:id` | Admin | Update or deactivate | PS-19 | Yes |
 
 ### Subscriptions (`modules/subscriptions`)
 
@@ -581,3 +581,30 @@ numeric percentage and dates as YYYY-MM-DD.
 
 Responses: `200`; `400` invalid query/ID, `401` unauthenticated, `403`
 not staff, `404` missing discount. No schema or migration changes.
+### Discount writes (PS-19)
+
+#### POST /api/discounts / PUT /api/discounts/:id
+
+**Auth:** Admin. Responses: `201` created or `200` updated with derived state
+and linked products. Product links are replaced atomically on update.
+
+| Field | Type | Rules |
+|---|---|---|
+| name | string | Trimmed, 1-120 characters, unique |
+| type | string | FIXED or PERCENT |
+| fixedAmount | number/null | Positive integer paise up to 1000000000 for FIXED; null otherwise |
+| percent | number/null | Above 0, at most 100, up to 2 decimals for PERCENT; null otherwise |
+| scope | string | PRODUCT or SUBSCRIPTION |
+| productIds | array | 1-100 distinct existing IDs for PRODUCT; empty for SUBSCRIPTION |
+| minPurchaseAmount | number | Integer paise, 0-1000000000, default 0 |
+| minQuantity | number | Integer, 0-2147483647, default 0 |
+| startDate / endDate | string | YYYY-MM-DD; end on/after start |
+| usageLimit | number/null | Integer, 1-2147483647; null means unlimited |
+| isActive | boolean | Default true; deactivate to retain history |
+
+`usageCount` is read-only and rejected in input. A row lock serializes updates
+with billing claims; the limit cannot be lower than the current usage count.
+
+Errors: `400` field errors or invalid/read-only input, `401` unauthenticated,
+`403` not Admin, `404` missing discount, `409` duplicate name with
+`fields.name` or concurrently removed product choices. No schema changes.
