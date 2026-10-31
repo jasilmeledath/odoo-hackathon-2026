@@ -42,9 +42,21 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Screenshots
 
-![Product catalog](docs/screenshots/products-desktop.png)
+**Finance dashboard:** recurring revenue, payments and overdue invoices (PS-23).
 
-![Discount rules on mobile](docs/screenshots/discounts-mobile.png)
+![Finance dashboard with live subscription and payment totals](docs/screenshots/dashboard-desktop.png)
+
+**Subscription workflow:** customer plans, lifecycle statuses and recurring amounts (PS-12, PS-13).
+
+![Subscription workflow showing Draft, Quotation, Active, Paused and Closed records](docs/screenshots/subscriptions-desktop.png)
+
+**Form validation:** required-name and invalid-price feedback before a product is saved (PS-6).
+
+![Product form showing missing-name, sub-paise sales-price and negative-cost validation errors](docs/screenshots/product-validation-desktop.png)
+
+**Mobile view:** discount administration at 375 px (PS-19).
+
+![Discount rule editor and catalog on a 375 px mobile screen](docs/screenshots/discounts-mobile.png)
 
 ## Tech stack
 
