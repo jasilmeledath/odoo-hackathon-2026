@@ -41,3 +41,23 @@
     display: none !important;
   }
 }
+
+@media print {
+  body {
+    background: white;
+  }
+  .invoice-document .card {
+    box-shadow: none;
+    overflow: visible;
+    break-inside: avoid;
+  }
+  .invoice-document table {
+    font-size: 10pt;
+  }
+  .invoice-document thead {
+    display: table-header-group;
+  }
+  .invoice-document tr {
+    break-inside: avoid;
+  }
+}
