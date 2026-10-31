@@ -1,4 +1,4 @@
-// Customer-owned subscription terms, lines and quotation acceptance (PS-26, PS-27).
+// Customer-owned subscription terms, lines and actions (PS-26, PS-27).
 import { useState } from 'react';
 import { api } from '../../lib/api.js';
 import { Link, useParams } from 'react-router-dom';
@@ -97,8 +97,6 @@ export default function PortalSubscriptionDetail() {
               </div>
             ))}
           </dl>
-          <Alert>{actionError}</Alert>
-          <Alert tone="success">{notice}</Alert>
           {actions.length > 0 && (
             <section className="card flex flex-wrap gap-3" aria-label="Manage subscription">
               {actions.map((action) => (
