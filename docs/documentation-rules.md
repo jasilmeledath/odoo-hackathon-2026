@@ -22,10 +22,13 @@ The evaluator opens the repository before running the app. Documentation is how 
 | [`docs/data-model.md`](data-model.md) | The complete database documentation: design decisions, ER diagram, every table and column, constraints, lifecycles, setup | Whoever changes `schema.prisma` | In the same commit as each migration |
 | [`docs/engineering-standards.md`](engineering-standards.md) | How we write code | Lead | Done (before the event) |
 | [`docs/naming-conventions.md`](naming-conventions.md) | How we name things | Lead | Done (before the event) |
+| [`docs/journal/README.md`](journal/README.md) and `docs/journal/` entries | Required append-only history of repository and database work | Every contributor | In the same PR as each task |
 | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Git, commit and pull request rules | Lead | Done (before the event) |
 | `.env.example` (in `server/` and `client/` if needed) | Every environment variable, with a placeholder value and a comment | Whoever adds the variable | In the same commit as the variable |
 
-Nothing else. No separate design doc, no meeting notes, no changelog: the commit history is our changelog.
+The work journal is the only additional documentation folder. Do not add separate
+design docs, meeting notes or a changelog; Git history remains the source of exact
+changes, and the journal records concise context.
 
 ## 2. When docs change
 
@@ -50,7 +53,7 @@ A docs-only change uses the `docs` type: `docs(api): document review endpoint er
 - **Use tables** for anything with repeated fields (routes, env vars, requirements) and **numbered lists** for steps.
 - **Link instead of repeating.** If something is explained in another doc, link to its section.
 - Use sentence-case headings. No emojis in docs or commit messages.
-- Every doc (except the README) starts with the small metadata table: version, owner, last updated, related documents.
+- Every living document (except the README) starts with the small metadata table: version, owner, last updated, related documents. Append-only journal entries use the required journal template instead; their date, contributor, task, decisions, database impact and checks are recorded in the entry fields.
 - Write relative links (`docs/api.md`) so they work on GitHub.
 - **No secrets**, real phone numbers or personal data in docs. Use `@demo.test` emails.
 

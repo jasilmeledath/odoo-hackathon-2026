@@ -83,10 +83,7 @@ const buildRenewalConditions = (query, currentDate, throughDate) => {
   const conditions = [
     { status: 'ACTIVE', expiryDate: { lte: throughDate } },
     {
-      OR: [
-        { expiryDate: { gte: currentDate } },
-        { plan: { is: { closesAtExpiry: false } } },
-      ],
+      OR: [{ expiryDate: { gte: currentDate } }, { plan: { is: { closesAtExpiry: false } } }],
     },
   ];
   if (query.q) {
