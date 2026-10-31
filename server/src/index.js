@@ -1,6 +1,7 @@
 // App setup and route mounting only. Every module's router is already mounted,
 // so owners work inside src/modules/<module>/ and rarely touch this file.
 import express from 'express';
+import { startScheduler, stopScheduler } from './lib/scheduler.js';
 import cors from 'cors';
 import authRoutes from './modules/auth/auth.routes.js';
 import staffRoutes from './modules/staff/staff.routes.js';
@@ -58,6 +59,7 @@ app.use(errorHandler);
 
 const port = Number(process.env.PORT) || 4000;
 startDashboardListener();
+startScheduler();
 const server = app.listen(port, () => console.info(`API on http://localhost:${port}`));
 
 let isShuttingDown = false;
@@ -65,6 +67,7 @@ const shutdown = async () => {
   if (isShuttingDown) return;
   isShuttingDown = true;
   await new Promise((resolve) => server.close(resolve));
+  await stopScheduler();
   await Promise.all([stopDashboardListener(), prisma.$disconnect()]);
 };
 
