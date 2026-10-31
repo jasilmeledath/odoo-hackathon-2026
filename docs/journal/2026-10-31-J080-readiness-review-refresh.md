@@ -1,4 +1,4 @@
-# J-079: Refresh readiness after review
+# J-080: Refresh readiness after review
 
 - Date: 2026-10-31
 - Contributor/agent: Jasil M with Codex
