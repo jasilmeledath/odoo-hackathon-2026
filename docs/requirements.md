@@ -34,7 +34,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-1 | A customer signs up with email and password. Each email belongs to one account. The password must be **more than eight characters** with an uppercase letter, a lowercase letter and a special character | P1 | Yadhu | Not started |
+| PS-1 | A customer signs up with email and password. Each email belongs to one account. The password must be **more than eight characters** with an uppercase letter, a lowercase letter and a special character | P1 | Yadhu | Done |
 | PS-2 | Users log in and stay logged in with a token that expires | P1 | Yadhu | Done |
 | PS-3 | A forgotten password is reset through a link sent to the registered email | P1 | Yadhu | Not started |
 | PS-4 | Three roles see different things. Customers see only their own records, and any other record returns `404` | P1 | Yadhu | Not started |

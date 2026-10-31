@@ -43,7 +43,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | |
+| POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | Yes |
 | POST | `/auth/login` | Public | Returns `{ token, user }` | PS-2 | Yes |
 | GET | `/auth/me` | Any | The current user | PS-2 | Yes |
 | POST | `/auth/forgot-password` | Public | Emails a reset link. Always answers `200` | PS-3 | |
@@ -435,6 +435,7 @@ or migration change. Refs: PS-8, PS-9.
 The plan form converts validated rupee prices to paise at submission, mirrors
 quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
+
 
 
 ### Billing execution (PS-15)
