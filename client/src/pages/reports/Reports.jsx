@@ -1,10 +1,11 @@
 // Period-filtered finance summary and subscription renewals (PS-24).
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Alert, EmptyState, Field, PageHeader, Spinner } from '../../components/ui.jsx';
+import { Alert, Field, PageHeader, Spinner } from '../../components/ui.jsx';
 import { formatDate, formatMoney } from '../../lib/format.js';
 import { useApi } from '../../lib/useApi.js';
 import { validateDateRange } from '../../lib/validators.js';
+import ReportRenewals from './ReportRenewals.jsx';
 
 function ReportFilters({ values, onApply }) {
   const [form, setForm] = useState(values);
@@ -82,18 +83,6 @@ function SummaryCards({ summary }) {
     { label: 'Overdue', value: formatMoney(summary.overdueAmount), path: '/invoices?isOverdue=true' },
   ];
 
-  const hasData = [
-    summary.activeSubscriptionCount,
-    summary.monthlyRecurringAmount,
-    summary.invoicedAmount,
-    summary.revenueAmount,
-    summary.outstandingAmount,
-    summary.overdueAmount,
-  ].some((value) => value > 0);
-  if (!hasData) {
-    return <EmptyState title="No report data for this period">Try a different date range.</EmptyState>;
-  }
-
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {cards.map((card) => (
@@ -111,66 +100,31 @@ function SummaryCards({ summary }) {
   );
 }
 
-function Renewals({ items }) {
-  return (
-    <section>
-      <h2 className="mb-3 text-lg font-semibold text-slate-900">Subscriptions to review</h2>
-      {items.length === 0 ? (
-        <EmptyState title="No renewals in this window">No active subscriptions are due for renewal soon.</EmptyState>
-      ) : (
-        <div className="card overflow-x-auto">
-          <table className="w-full min-w-[560px] text-left text-sm">
-            <thead className="text-slate-500">
-              <tr>
-                <th className="py-2 pr-4 font-medium">Subscription</th>
-                <th className="py-2 pr-4 font-medium">Customer</th>
-                <th className="py-2 pr-4 font-medium">Plan</th>
-                <th className="py-2 pr-4 font-medium">Expires</th>
-                <th className="py-2 font-medium">Renewal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((subscription) => (
-                <tr key={subscription.id} className="border-t border-slate-100">
-                  <td className="py-3 pr-4 font-medium">
-                    <Link
-                      to={`/subscriptions/${subscription.id}`}
-                      className="text-brand-600 hover:underline"
-                    >
-                      {subscription.number}
-                    </Link>
-                  </td>
-                  <td className="py-3 pr-4">
-                    {subscription.customer.companyName || subscription.customer.name}
-                  </td>
-                  <td className="py-3 pr-4">{subscription.plan.name}</td>
-                  <td className="py-3 pr-4 whitespace-nowrap">{formatDate(subscription.expiryDate)}</td>
-                  <td className="py-3">{subscription.plan.canRenew ? 'Available' : 'Not allowed by plan'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
-  );
-}
-
 export default function Reports() {
   const [searchParams, setSearchParams] = useSearchParams();
   const filterValues = { from: searchParams.get('from') ?? '', to: searchParams.get('to') ?? '' };
   const summaryQuery = Object.fromEntries(Object.entries(filterValues).filter(([, value]) => value));
   const { data: summary, loading, error } = useApi('/reports/summary', summaryQuery);
-  const { data: renewals, loading: renewalsLoading, error: renewalsError } = useApi('/reports/renewals', {
-    pageSize: 10,
-  });
+  const renewalPage = Number(searchParams.get('page') ?? 1);
+  const {
+    data: renewals,
+    loading: renewalsLoading,
+    error: renewalsError,
+  } = useApi('/reports/renewals', { page: renewalPage, pageSize: 10 });
 
   const applyFilters = (filters) => {
     const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('page');
     for (const [name, value] of Object.entries(filters)) {
       if (value) nextParams.set(name, value);
       else nextParams.delete(name);
     }
+    setSearchParams(nextParams);
+  };
+
+  const handleRenewalsPageChange = (page) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('page', String(page));
     setSearchParams(nextParams);
   };
 
@@ -188,7 +142,16 @@ export default function Reports() {
       <Alert>{[error, renewalsError].filter(Boolean).join(' ')}</Alert>
       {loading ? <Spinner /> : summary ? <SummaryCards summary={summary} /> : null}
       <div className="mt-8">
-        {renewalsLoading ? <Spinner /> : renewals ? <Renewals items={renewals.items} /> : null}
+        {renewalsLoading ? (
+          <Spinner />
+        ) : renewals ? (
+          <ReportRenewals
+            items={renewals.items}
+            page={renewals.page}
+            pages={renewals.pages}
+            onPageChange={handleRenewalsPageChange}
+          />
+        ) : null}
       </div>
     </>
   );
