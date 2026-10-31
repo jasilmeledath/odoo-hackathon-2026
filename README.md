@@ -168,7 +168,7 @@ GitHub Actions runs the pipeline in `.github/workflows`:
 | `main-source-guard.yml` | Pull requests into `main` | Fails unless the pull request comes from `develop` |
 | `cd.yml` | Push to `main` (the merge of `develop`) | Re-runs CI, builds a release artifact, then deploys through the `production` environment |
 
-The deploy job skips a step when its secret is missing. Set these under Settings, Secrets and variables, Actions:
+The deploy job skips a step when its secret is missing, and only runs on `main`. Set these as secrets of the `production` environment (Settings, Environments), not as repository secrets. Limit that environment's deployment branches to `main` and add required reviewers:
 
 - `DATABASE_URL`: production database. When set, the deploy runs `prisma migrate deploy`.
 - `DEPLOY_HOOK_URL`: deploy hook of the hosting provider. When set, the deploy calls it.

@@ -23,6 +23,7 @@ jobs:
   build:
     name: Build release
     needs: ci
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -59,13 +60,16 @@ jobs:
   deploy:
     name: Deploy to production
     needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Add required reviewers to this environment in GitHub to gate each deploy.
+    # Store DATABASE_URL and DEPLOY_HOOK_URL as secrets of this environment, limit its
+    # deployment branches to main and add required reviewers. Each secret is passed
+    # only to the one step that uses it.
     environment: production
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+      HAS_DATABASE: ${{ secrets.DATABASE_URL != '' }}
+      HAS_DEPLOY_HOOK: ${{ secrets.DEPLOY_HOOK_URL != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -73,15 +77,21 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: server/package-lock.json
-      - name: Apply database migrations
-        if: env.DATABASE_URL != ''
+      - name: Install server dependencies without running package scripts
+        if: env.HAS_DATABASE == 'true'
         working-directory: server
-        run: |
-          npm ci
-          npx prisma migrate deploy
+        run: npm ci --ignore-scripts
+      - name: Apply database migrations
+        if: env.HAS_DATABASE == 'true'
+        working-directory: server
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate deploy
       - name: Trigger the hosting provider deploy hook
-        if: env.DEPLOY_HOOK_URL != ''
+        if: env.HAS_DEPLOY_HOOK == 'true'
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
         run: curl --fail --silent --show-error -X POST "$DEPLOY_HOOK_URL"
       - name: Nothing to deploy to
-        if: env.DATABASE_URL == '' && env.DEPLOY_HOOK_URL == ''
+        if: env.HAS_DATABASE != 'true' && env.HAS_DEPLOY_HOOK != 'true'
         run: echo "::notice::No DATABASE_URL or DEPLOY_HOOK_URL secret is set, so only the release artifact was built."
