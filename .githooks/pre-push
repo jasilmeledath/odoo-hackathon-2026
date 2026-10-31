@@ -1,5 +1,5 @@
 #!/bin/sh
-# Keep main PR-only; the local promotion command validates develop and opens its PR.
+# Run the local CI gate before every branch push and keep main PR-only.
 set -eu
 
 while read -r local_ref local_sha remote_ref remote_sha; do
@@ -8,5 +8,8 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     exit 1
   fi
 done
+
+printf '%s\n' 'Running local CI before push...'
+npm run ci:local
 
 exit 0
