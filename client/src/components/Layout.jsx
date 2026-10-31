@@ -1,9 +1,10 @@
 // The app shell: sidebar on desktop, top bar with a menu on mobile. Menus follow
 // the way the business works, and each role only sees what it can use (PS-4).
 import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth.jsx';
 import { formatLabel } from '../lib/format.js';
+import { useDashboardEvents } from '../lib/useDashboardEvents.js';
 
 const APP_NAME = 'Brightloop';
 
@@ -54,7 +55,9 @@ const menuFor = (role) => {
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const { pathname } = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  useDashboardEvents(pathname === '/');
 
   const nav = (
     <nav className="flex flex-col gap-5">
