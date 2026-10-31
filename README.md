@@ -14,6 +14,10 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
+- Customers can create Customer-only accounts with password validation and atomic billing-profile linking (PS-1, PS-5).
+- Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
+- Staff can record part and final payments from invoices with transactional balance protection (PS-21, PS-22).
+
 - Startup/hourly processing activates due subscriptions, closes plans at expiry when configured, and generates due invoices (PS-14, PS-15).
 
 - Staff can generate recurring Draft invoices with tax snapshots, catch-up billing and duplicate protection (PS-15, PS-16).
@@ -21,6 +25,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 - Active accounts log in with expiring tokens and role-based navigation (PS-2).
 - Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
 - Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
+
+- Add staff-only paginated payment search with combined method/date/text filters and invoice links. (PS-21).
 
 - Add Admin-only staff search/create/edit with password validation, field conflicts and immediate deactivation. (PS-5).
 
@@ -151,9 +157,9 @@ From `server/`, run `npm test` for billing and catalog validation regressions.
 The test runner uses the same tsx loader as the API for generated Prisma enums.
 From `client/`, run `npm run build` to check the frontend.
 
-### Local develop-to-main promotion
+### CI and local develop-to-main promotion
 
-The local gate replaces GitHub Actions for promotion checks and keeps `main` PR-only. Install the root Prettier dependency and enable the repository hooks once:
+CI runs locally through Git hooks. Install the dependencies and enable the repository hooks once in each clone:
 
 ```bash
 npm install
@@ -163,7 +169,13 @@ npm install
 git config core.hooksPath .githooks
 ```
 
-Set `server/.env` to a local PostgreSQL account that can create databases. From a clean, up-to-date `develop` branch, run the checks without opening a PR:
+Set `server/.env` to a local PostgreSQL account that can create databases. With the hook enabled, feature-branch pushes run Prettier and the server tests; pushes to `develop` run the full gate. Any failed check stops the push, and direct pushes to `main` are blocked. To run the fast checks manually:
+
+```bash
+npm run ci:fast
+```
+
+From a clean, up-to-date `develop` branch, run the full gate manually without opening a PR:
 
 ```bash
 npm run ci:local
@@ -175,7 +187,7 @@ To rerun the checks and create or locate the `develop`-to-`main` PR:
 npm run promote:main
 ```
 
-The gate checks tracked source formatting, creates a disposable local database, applies migrations, runs `server` tests, and builds the client. It removes the temporary database afterward. The promotion command requires local `develop` to match `origin/develop`; the pre-push hook blocks direct pushes to `main`. Review and merge the generated PR through the normal flow. The `gh` CLI must be installed and authenticated to create that PR.
+The full gate checks tracked source formatting, creates a disposable local database, applies migrations, runs `server` tests, and builds the client. It removes the temporary database afterward. `npm run promote:main` is the team process for promotion: it requires the current branch to be `develop`, a clean working tree, and local `develop` to match `origin/develop`; it then runs the full gate and opens the `develop`-to-`main` PR with the checked commit SHA in its description. Do not merge that PR unless the local promotion command passed for the same commit. The `gh` CLI must be installed and authenticated to create the PR.
 
 ## API
 
