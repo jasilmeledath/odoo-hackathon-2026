@@ -818,14 +818,18 @@ npx prisma migrate deploy
 ```
 
 ```bash
+npm run db:generate
+```
+
+```bash
 npm run db:seed
 ```
 
 | Task | Command (in `server/`) |
 |---|---|
-| Apply teammates' migrations after pulling | `npx prisma migrate dev` |
-| Change the schema | Edit `schema.prisma`, then `npx prisma migrate dev --name <what_changed>` |
-| Add a check constraint or partial index | `npx prisma migrate dev --create-only --name <what_changed>`, add the SQL, then `npx prisma migrate dev` |
+| Apply teammates' migrations after pulling | `npx prisma migrate dev`, then `npm run db:generate` |
+| Change the schema | Edit `schema.prisma`, then `npx prisma migrate dev --name <what_changed>` and `npm run db:generate` |
+| Add a check constraint or partial index | `npx prisma migrate dev --create-only --name <what_changed>`, add the SQL, then run `npx prisma migrate dev` and `npm run db:generate` |
 | Reset to fresh demo data | `npm run db:reset` |
 | Test at scale | `SEED_SUBSCRIPTIONS=5000 npm run db:seed` |
 | Browse the data | `npx prisma studio` |
