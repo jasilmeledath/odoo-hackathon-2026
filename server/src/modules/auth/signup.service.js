@@ -24,7 +24,7 @@ export async function register({ name, email, password }) {
     });
     return {
       token: signToken(user),
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, customerId: user.customerId },
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
     };
   } catch (error) {
     if (error.code === 'P2002') throw duplicateEmail();

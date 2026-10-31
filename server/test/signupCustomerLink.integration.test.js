@@ -37,7 +37,8 @@ test('signing up with a staff-made customer email does not link that customer', 
   });
   assert.equal(response.status, 201);
   const { token, user } = await response.json();
-  assert.equal(user.customerId, null);
+  // The response never says whether a customer record exists for this email.
+  assert.equal('customerId' in user, false);
 
   const linked = await prisma.customer.findUnique({ where: { id: customer.id } });
   assert.equal(linked.userId, null);
