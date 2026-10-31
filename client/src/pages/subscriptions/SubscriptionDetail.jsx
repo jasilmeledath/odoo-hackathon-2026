@@ -80,7 +80,9 @@ export default function SubscriptionDetail() {
       <Alert>{actionError}</Alert>
       <Alert tone="success">{actionNotice}</Alert>
       {subscription.status === 'DRAFT' && subscription.lines.length === 0 && (
-        <p className="text-sm text-slate-500">Add at least one subscription line before sending a quotation.</p>
+        <p className="text-sm text-slate-500">
+          Add at least one subscription line before sending a quotation.
+        </p>
       )}
       <StatusBar status={subscription.status} />
       <SubscriptionSummary subscription={subscription} />
