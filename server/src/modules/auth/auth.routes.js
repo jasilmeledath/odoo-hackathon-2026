@@ -5,8 +5,15 @@ import { validate } from '../../middleware/validate.js';
 import { loginSchema } from './auth.schemas.js';
 import { login } from './auth.service.js';
 
+import { signupSchema } from './signup.schemas.js';
+import { register } from './signup.service.js';
+
 const router = Router();
 router.post('/login', validate(loginSchema), async (req, res) => res.json(await login(req.body)));
 router.get('/me', requireAuth, (req, res) => res.json({ user: req.user }));
+
+router.post('/register', validate(signupSchema), async (req, res) =>
+  res.status(201).json(await register(req.body)),
+);
 
 export default router;

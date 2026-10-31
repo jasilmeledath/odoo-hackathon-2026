@@ -1,5 +1,6 @@
 // Product writes use rupee inputs and convert once at the API edge (PS-6).
 import { useState } from 'react';
+import ProductVariants from './ProductVariants.jsx';
 import { Alert, Field } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
 import { formatLabel, formatMoney, toPaise, toRupees } from '../../lib/format.js';
@@ -121,6 +122,7 @@ export default function ProductForm({ product, onSaved, onCancel }) {
         />
         Active
       </label>
+      {product && <ProductVariants productId={product.id} disabled={isSaving} />}
       <div className="flex flex-wrap gap-2">
         <button className="btn-primary" disabled={isSaving}>
           {isSaving ? 'Saving...' : 'Save product'}

@@ -1,13 +1,17 @@
 // Shared UI pieces. Use these instead of restyling each screen.
 import { formatLabel } from '../lib/format.js';
 
-export function Field({ label, error, hint, children }) {
+export function Field({ label, inputId, error, errorId, hint, children }) {
   return (
     <div>
-      <label className="label">{label}</label>
+      <label className="label" htmlFor={inputId}>
+        {label}
+      </label>
       {children}
       {error ? (
-        <p className="mt-1 text-xs text-red-600">{error}</p>
+        <p id={errorId} className="mt-1 text-xs text-red-600" role={errorId ? 'alert' : undefined}>
+          {error}
+        </p>
       ) : (
         hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>
       )}

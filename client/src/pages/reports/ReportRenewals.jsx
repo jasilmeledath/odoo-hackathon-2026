@@ -17,11 +17,21 @@ export default function ReportRenewals({ items, page, pages, onPageChange }) {
             <table className="w-full min-w-[560px] text-left text-sm">
               <thead className="text-slate-500">
                 <tr>
-                  <th className="py-2 pr-4 font-medium">Subscription</th>
-                  <th className="py-2 pr-4 font-medium">Customer</th>
-                  <th className="py-2 pr-4 font-medium">Plan</th>
-                  <th className="py-2 pr-4 font-medium">Expires</th>
-                  <th className="py-2 font-medium">Renewal</th>
+                  <th scope="col" className="py-2 pr-4 font-medium">
+                    Subscription
+                  </th>
+                  <th scope="col" className="py-2 pr-4 font-medium">
+                    Customer
+                  </th>
+                  <th scope="col" className="py-2 pr-4 font-medium">
+                    Plan
+                  </th>
+                  <th scope="col" className="py-2 pr-4 font-medium">
+                    Expires
+                  </th>
+                  <th scope="col" className="py-2 font-medium">
+                    Renewal
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -30,7 +40,7 @@ export default function ReportRenewals({ items, page, pages, onPageChange }) {
                     <td className="py-3 pr-4 font-medium">
                       <Link
                         to={`/subscriptions/${subscription.id}`}
-                        className="text-brand-600 hover:underline"
+                        className="text-brand-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
                       >
                         {subscription.number}
                       </Link>
