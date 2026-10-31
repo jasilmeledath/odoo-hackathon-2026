@@ -62,9 +62,9 @@ Tasks are in build order. Module folders are `server/src/modules/<module>/` and 
 
 | # | Task | Refs | Notes |
 |---|---|---|---|
-| 1 | Login API and page | PS-2 | Return `{ token, user }`. Include `customerId` in the token through `signToken`. Refuse inactive users |
+| 1 | Login API and page | PS-2 | Return `{ token, user }`. `signToken` only stores the user id: `requireAuth` reads the role and `customerId` from the database on every request. Refuse inactive users |
 | 2 | Sign-up API and page | PS-1, PS-5 | Password rule below. In one transaction, create the user and customer, or link an existing customer with that email. Never read `role` from the body |
-| 3 | Forgot and reset password | PS-3 | A-2. Generate 32 random bytes with `crypto`, and store the SHA-256 hash in `password_reset_tokens` |
+| 3 | Forgot and reset password | PS-3 | A-2. Generate 32 random bytes with `crypto`, and store the SHA-256 hash in `password_reset_tokens`. Set `passwordChangedAt` on reset, which ends older sessions |
 | 4 | Customers list, form and detail | PS-12 | |
 | 5 | Staff list and form, Admin only | PS-5 | |
 | 6 | Payments API and page, and record payment from an invoice | PS-21, PS-22 | Rules below |

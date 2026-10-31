@@ -203,6 +203,7 @@ One row per login. Who may sign in lives here; who we bill lives in `customers`.
 | `is_active` | BOOLEAN | Yes | `true` |  |
 | `created_at` | TIMESTAMPTZ | Yes | `now` |  |
 | `updated_at` | TIMESTAMPTZ | Yes |  |  |
+| `password_changed_at` | TIMESTAMPTZ | No |  |  |
 
 **Indexes:** `(role)`
 
@@ -683,6 +684,7 @@ stateDiagram-v2
 | **One account per email** (PS-1) | A unique index on `users.email`, plus `users_email_lowercase_check`, so `A@x.com` and `a@x.com` cannot both exist. |
 | **A discount cannot be overused** (PS-20) | `discounts_usage_check` keeps `usage_count` at or below `usage_limit`. |
 | **Gapless document numbers** | `document_counters` is incremented inside the creating transaction. The row lock lasts until commit, and a rollback gives the number back. A plain database sequence would leave gaps, which accounting does not accept. |
+| **Access ends at once** (PS-3, PS-4) | A login token only holds the user id. Each request reads `role`, `is_active` and the customer link from the database, and refuses tokens issued before `password_changed_at`. Demoting or deactivating someone, or resetting a password, applies immediately. |
 | **History survives** | `RESTRICT` on customers, plans, products, subscriptions, invoices and payments. Deleting a customer who has invoices is refused. |
 | **Issued invoices stay the same** | Billing name, address, descriptions, prices and tax rates are copied at creation. |
 

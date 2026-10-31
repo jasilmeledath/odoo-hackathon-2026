@@ -225,7 +225,7 @@ Validation is a named Odoo criterion. Every input is validated **twice**: on the
 - Passwords are hashed with bcrypt (cost 10). Never log them, return them or store them in plain text. The API strips `passwordHash` before responding.
 - Every route except sign-up, login, password reset and health requires auth. Role checks happen on the server.
 - A customer only reaches their own records: every portal query filters by `req.user.customerId`, and anything else returns `404`.
-- The role is never read from a request body. Password reset tokens are stored only as hashes, are single use and expire.
+- The role is never read from a request body or a login token. `requireAuth` loads the user on every request, so deactivating someone or changing their role applies at once, and a password change ends older sessions. Password reset tokens are stored only as hashes, are single use and expire.
 - Prisma's parameterised queries only. Never build SQL from strings.
 - CORS allows only the client origin. JSON body size is limited.
 
