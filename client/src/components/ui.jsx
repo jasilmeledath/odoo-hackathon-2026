@@ -1,13 +1,17 @@
 // Shared UI pieces. Use these instead of restyling each screen.
 import { formatLabel } from '../lib/format.js';
 
-export function Field({ label, error, hint, children }) {
+export function Field({ label, inputId, error, errorId, hint, children }) {
   return (
     <div>
-      <label className="label">{label}</label>
+      <label className="label" htmlFor={inputId}>
+        {label}
+      </label>
       {children}
       {error ? (
-        <p className="mt-1 text-xs text-red-600">{error}</p>
+        <p id={errorId} className="mt-1 text-xs text-red-600" role={errorId ? 'alert' : undefined}>
+          {error}
+        </p>
       ) : (
         hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>
       )}
@@ -75,17 +79,27 @@ export const EmptyState = ({ title, children }) => (
   </div>
 );
 
-export function Pagination({ page, pages, onChange }) {
+export function Pagination({ page, pages, onChange, disabled = false }) {
   if (pages <= 1) return null;
   return (
     <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
-      <button className="btn-secondary" disabled={page <= 1} onClick={() => onChange(page - 1)}>
+      <button
+        className="btn-secondary"
+        type="button"
+        disabled={disabled || page <= 1}
+        onClick={() => onChange(page - 1)}
+      >
         Previous
       </button>
       <span>
         Page {page} of {pages}
       </span>
-      <button className="btn-secondary" disabled={page >= pages} onClick={() => onChange(page + 1)}>
+      <button
+        className="btn-secondary"
+        type="button"
+        disabled={disabled || page >= pages}
+        onClick={() => onChange(page + 1)}
+      >
         Next
       </button>
     </div>

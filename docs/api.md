@@ -75,9 +75,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | Yes |
 | POST | `/products` | Admin | Create | PS-6 | Yes |
 | PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | Yes |
-| POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | |
-| PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | |
-| DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | |
+| POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | Yes |
+| PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | Yes |
+| DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | Yes |
 | GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | Yes |
 | GET | `/plans/:id` | Staff | One plan | PS-8 | Yes |
 | POST | `/plans` | Admin | Create | PS-8, PS-9 | Yes |
@@ -87,14 +87,16 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/templates` | Staff | List | PS-11 | |
-| GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | |
-| POST | `/templates` | Admin | Create with lines | PS-11 | |
-| PUT | `/templates/:id` | Admin | Update with lines | PS-11 | |
+| GET | `/templates` | Staff | List | PS-11 | Yes |
+| GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | Yes |
+| POST | `/templates` | Admin | Create with lines | PS-11 | Yes |
+| PUT | `/templates/:id` | Admin | Update with lines | PS-11 | Yes |
 | GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`) | PS-19 | Yes |
 | GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | Yes |
 | POST | `/discounts` | Admin | Create | PS-19 | Yes |
 | PUT | `/discounts/:id` | Admin | Update or deactivate | PS-19 | Yes |
+
+
 
 ### Subscriptions (`modules/subscriptions`)
 
@@ -131,8 +133,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | |
+| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | Yes |
 | POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | Yes |
+
 
 ### Reports (`modules/reports`)
 
@@ -437,6 +440,47 @@ quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
 
 
+### Product variants (PS-7)
+
+**Auth:** Admin for all writes. Product/variant IDs are validated and updates
+and removals are scoped to the parent product.
+
+#### POST `/api/products/:id/variants`
+
+**Body:** `attribute` and `value` (trimmed, 1 to 60 characters), `extraPrice`
+(integer paise, 0 to 1000000000). **Response:** `201` the variant.
+
+#### PUT `/api/products/:id/variants/:variantId`
+
+Update with the same body. **Response:** `200` the saved variant.
+
+#### DELETE `/api/products/:id/variants/:variantId`
+
+Remove an unused variant. **Response:** `204`. Used subscription variants
+return `409` explaining why they cannot be removed. The check and delete
+run inside one transaction with a variant-row lock, preventing a race
+with concurrent foreign-key references.
+
+**Errors:** `400` invalid body/IDs with fields; `401` unauthenticated;
+`403` wrong role; `404` missing parent/variant or mismatched parent;
+`409` duplicate product/attribute/value with `fields.value`, or used removal.
+No schema or migration changes.
+
+The Plans page connects the validated form with URL-backed name, active-state
+and available-on filters; it displays product names, prices, billing periods
+and sale dates from paginated API results. Internal staff have read-only UI.
+
+### GET /api/payments
+
+Search payments with combined filters. **Auth:** Admin, Internal. Refs: PS-21.
+
+**Query:** page/pageSize use standard pagination; method is a native PaymentMethod enum; from/to are optional valid YYYY-MM-DD inclusive payment-date bounds; to must be on or after from; q at most 100 characters matches invoice number, billing name or note case-insensitively. All supplied filters combine with AND.
+
+**Response:** 200 { items, total, page, pageSize, pages }, ordered by payment date then ID descending. Items include payment fields, invoice { id, number, billingName } and recordedBy { id, name }. Amounts are paise.
+
+**Responses:** 400 invalid filters with field errors; 401 unauthenticated; 403 customer. Empty searches return an empty items array, not an error. Each UI row links to its invoice detail.
+
+
 ### Billing execution (PS-15)
 
 `POST /api/billing/run` bills all due active subscriptions in batches of 100 IDs.
@@ -512,6 +556,46 @@ and audited with no actor for system work. Phase/record failures are logged and
 do not stop the server or later phases. In-process runs never overlap; database
 state guards and billing locks handle multiple API instances. Shutdown stops the
 timer and waits for in-flight work before disconnecting PostgreSQL.
+
+### Quotation templates (PS-11)
+
+**Auth:** Staff reads; Admin writes (A-7). No new schema or migrations.
+
+#### GET /api/templates
+
+Paginated, case-insensitive name search through `q`. Returns template summaries,
+the plan and `_count.lines`. Uses the shared page and pageSize limits.
+
+#### GET /api/templates/:id
+
+Returns the template with ordered lines, product/variant names and current
+`unitPrice` in paise. The plan price replaces its own product's sales price;
+other lines use sales price, then add the variant extra price (A-5). No prices
+are stored on templates or their lines.
+
+#### POST /api/templates / PUT /api/templates/:id
+
+| Field | Type | Rules |
+|---|---|---|
+| name | string | Trimmed, 1-120 characters, unique |
+| planId | number | Existing plan |
+| validityDays | number | Integer, 1-2147483647 |
+| notes | string/null | Optional, at most 1000 characters |
+| isActive | boolean | Default true; deactivate to retain history |
+| lines | array | 1-100 lines, replaced atomically on update |
+| lines[].productId | number | Existing product |
+| lines[].variantId | number/null | Optional; must belong to the selected product |
+| lines[].quantity | number | Integer, 1-2147483647 |
+
+Responses: `201` created, `200` updated; `400` invalid fields (line keys such as
+`lines.0.variantId`), `401` unauthenticated, `403` forbidden, `404` missing
+template, `409` duplicate name or concurrently removed catalog references.
+Line inputs reject price fields rather than accepting a stale snapshot.
+The Quotation templates page supports URL-backed name search, pagination,
+Admin-only editing and staff previews with current prices. The editor converts
+no prices into snapshots. Subscription creation from a template remains a
+separately owned workflow; PS-11 stays In progress until that integration.
+
 
 
 ### POST /api/auth/register
@@ -608,3 +692,4 @@ with billing claims; the limit cannot be lower than the current usage count.
 Errors: `400` field errors or invalid/read-only input, `401` unauthenticated,
 `403` not Admin, `404` missing discount, `409` duplicate name with
 `fields.name` or concurrently removed product choices. No schema changes.
+
