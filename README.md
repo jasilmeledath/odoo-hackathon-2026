@@ -14,7 +14,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
-*Filled in as each requirement lands. Track progress in [docs/requirements.md](docs/requirements.md).*
+- Add Admin-only staff search/create/edit with password validation, field conflicts and immediate deactivation. (PS-5).
 
 ## Screenshots
 
