@@ -3,13 +3,16 @@ import { prisma } from '../../lib/prisma.js';
 import { paginate } from '../../lib/pagination.js';
 import { HttpError } from '../../lib/errors.js';
 export function listCustomers(query) {
-  const where = query.q
-    ? {
-        OR: ['name', 'companyName', 'email'].map((field) => ({
-          [field]: { contains: query.q, mode: 'insensitive' },
-        })),
-      }
-    : {};
+  const where = {
+    ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
+    ...(query.q
+      ? {
+          OR: ['name', 'companyName', 'email'].map((field) => ({
+            [field]: { contains: query.q, mode: 'insensitive' },
+          })),
+        }
+      : {}),
+  };
   return paginate(prisma.customer, { where, orderBy: { id: 'desc' } }, query);
 }
 export async function getCustomer(id) {
