@@ -6,7 +6,7 @@ import { paginate } from '../../lib/pagination.js';
 import { prisma } from '../../lib/prisma.js';
 import { nextBillingDateAfterPause } from './subscriptionLifecycle.js';
 import { nextNumber } from '../../lib/numbering.js';
-import { toMonthlyAmount } from '../../lib/money.js';
+import { calculateSubscriptionAmounts } from './subscriptionAmounts.js';
 
 const NOT_FOUND_MESSAGE = 'Subscription not found';
 const DEFAULT_QUOTATION_VALIDITY_DAYS = 30;
@@ -220,14 +220,7 @@ const prepareSubscriptionLines = async (tx, lines, plan, startDate) => {
     });
   }
 
-  const recurringAmount = preparedLines.reduce((total, line) => total + line.amount, 0);
-  const monthlyRecurringAmount = toMonthlyAmount(recurringAmount, plan.billingPeriod);
-  if (recurringAmount > MAX_DATABASE_INTEGER || monthlyRecurringAmount > MAX_DATABASE_INTEGER) {
-    throw new HttpError(400, 'The subscription total is too large', {
-      lines: 'Reduce line quantities or prices',
-    });
-  }
-  return { lines: preparedLines, recurringAmount, monthlyRecurringAmount };
+  return { lines: preparedLines, ...calculateSubscriptionAmounts(preparedLines, plan.billingPeriod) };
 };
 
 const loadActiveReferences = async (tx, data) => {

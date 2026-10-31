@@ -14,6 +14,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
+- Customers switch existing subscription add-ons on and off, with protected plan products and recalculated recurring totals (PS-27).
+
 - Customers can create Customer-only accounts with password validation and atomic billing-profile linking (PS-1, PS-5).
 - Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
 - Add customer-only subscription and invoice lists and details, scoped queries, URL search, payment history and balance display. (PS-26).

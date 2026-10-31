@@ -155,7 +155,7 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 | GET | `/portal/subscriptions` | Customer | Own subscriptions | PS-26 | Yes |
 | GET | `/portal/subscriptions/:id` | Customer | One subscription with lines | PS-26 | Yes |
 | POST | `/portal/subscriptions/:id/accept` | Customer | Accept a quotation | PS-27 | |
-| PATCH | `/portal/subscriptions/:id/lines/:lineId` | Customer | `{ isActive }`: switch an add-on on or off | PS-27 | |
+| PATCH | `/portal/subscriptions/:id/lines/:lineId` | Customer | `{ isActive }`: switch an add-on on or off | PS-27 | Yes |
 | POST | `/portal/subscriptions/:id/pause` | Customer | Pause, if the plan allows | PS-27 | |
 | POST | `/portal/subscriptions/:id/resume` | Customer | Resume | PS-27 | |
 | POST | `/portal/subscriptions/:id/close` | Customer | Close, if the plan allows | PS-27 | |
@@ -826,3 +826,25 @@ checked with real Admin/Internal login at 375px and 1280px. Wide tables scroll
 inside their cards; the shell can shrink without page overflow. Invalid or
 incomplete prices do not show a calculated margin. Invalid input, empty/error
 states and read-only staff controls are verified. No API or schema changes.
+
+
+### PATCH /api/portal/subscriptions/:id/lines/:lineId
+
+Switch an existing owned subscription add-on on or off. **Auth:** Customer. Refs: PS-27.
+
+Both path parameters must be positive integer IDs. The JSON body requires a strict boolean
+`isActive`; strings and omitted values return `400` with field messages. Ownership comes from
+the authenticated database user, never from request data.
+
+- `200`: the refreshed customer-safe subscription detail. Plan data includes `productId` and
+  line product data includes `id` so the client can identify the protected plan product.
+- `400`: malformed input, disabling the plan product, or totals outside the integer money range.
+- `401` / `403`: missing authentication / a non-Customer role.
+- `404`: missing or foreign subscription, line, or customer profile.
+- `409`: a closed subscription cannot be changed.
+
+The service locks the owned subscription row and atomically updates the line, recurring amount,
+monthly recurring amount and activity record. Concurrent toggles cannot overwrite each other's
+totals. Existing saved line prices and quantities are preserved. Repeating the current state
+does not create duplicate activity. Staff edits and customer toggles share the recurring-total
+calculation. This endpoint changes existing lines only; it does not create products or lines.

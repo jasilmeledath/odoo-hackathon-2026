@@ -1,10 +1,13 @@
 // Customer-owned subscription terms and lines (PS-26).
+import { useState } from 'react';
+import PortalAddonSwitch from './PortalAddonSwitch.jsx';
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi.js';
 import { Alert, EmptyState, PageHeader, Spinner, StatusBadge } from '../../components/ui.jsx';
 import { formatDate, formatMoney, formatLabel } from '../../lib/format.js';
 export default function PortalSubscriptionDetail() {
   const { id } = useParams();
+  const [message, setMessage] = useState('');
   const { data, loading, error, reload } = useApi('/portal/subscriptions/' + id);
   return (
     <div className="space-y-5 break-words">
@@ -41,6 +44,7 @@ export default function PortalSubscriptionDetail() {
             ))}
           </dl>
           {data.notes && <p className="card whitespace-pre-line">{data.notes}</p>}
+          <Alert tone="success">{message}</Alert>
           <h2 className="text-lg font-semibold">Subscription lines</h2>
           {!data.lines.length ? (
             <EmptyState title="No subscription lines" />
@@ -73,7 +77,22 @@ export default function PortalSubscriptionDetail() {
                       <td className="p-3">
                         {line.tax ? line.tax.name + ' (' + line.tax.ratePercent + '%)' : 'No tax'}
                       </td>
-                      <td className="p-3">{line.isActive ? 'Yes' : 'No'}</td>
+                      <td className="p-3">
+                        {line.product.id !== data.plan.productId && data.status !== 'CLOSED' ? (
+                          <PortalAddonSwitch
+                            subscriptionId={data.id}
+                            line={line}
+                            onChanged={async () => {
+                              await reload();
+                              setMessage('Add-on updated');
+                            }}
+                          />
+                        ) : line.isActive ? (
+                          'Yes'
+                        ) : (
+                          'No'
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

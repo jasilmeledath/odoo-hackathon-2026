@@ -10,7 +10,7 @@ const SUBSCRIPTION_FIELDS = {
   startDate: true,
   expiryDate: true,
   recurringAmount: true,
-  plan: { select: { name: true, billingPeriod: true } },
+  plan: { select: { name: true, billingPeriod: true, productId: true } },
 };
 const INVOICE_FIELDS = {
   id: true,
@@ -61,7 +61,7 @@ export async function getSubscription(customerId, id) {
           unitPrice: true,
           amount: true,
           isActive: true,
-          product: { select: { name: true } },
+          product: { select: { id: true, name: true } },
           variant: { select: { attribute: true, value: true } },
           tax: { select: { name: true, ratePercent: true } },
         },
