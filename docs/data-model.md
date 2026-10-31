@@ -164,6 +164,62 @@ erDiagram
         int recorded_by_id FK
         int amount
     }
+    password_reset_tokens {
+        int id PK
+        int user_id FK
+        char token_hash UK
+        timestamptz expires_at
+        timestamptz used_at
+    }
+    taxes {
+        int id PK
+        varchar name UK
+        numeric rate_percent
+        boolean is_active
+    }
+    payment_terms {
+        int id PK
+        varchar name UK
+        int due_days
+        boolean is_active
+    }
+    product_variants {
+        int id PK
+        int product_id FK
+        varchar attribute
+        varchar value
+        int extra_price
+    }
+    quotation_templates {
+        int id PK
+        varchar name UK
+        int plan_id FK
+        int validity_days
+        boolean is_active
+    }
+    quotation_template_lines {
+        int id PK
+        int template_id FK
+        int product_id FK
+        int variant_id FK
+        int quantity
+    }
+    discount_products {
+        int discount_id PK,FK
+        int product_id PK,FK
+    }
+    activity_logs {
+        int id PK
+        int subscription_id FK
+        int invoice_id FK
+        int actor_id FK
+        activity_action action
+        timestamptz created_at
+    }
+    document_counters {
+        varchar key PK
+        int value
+    }
 ```
 
 ## 4. Enumerated types
