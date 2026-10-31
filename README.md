@@ -10,35 +10,33 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Demo video
 
-*Link added after submission.*
+No demo video is included in this repository.
 
 ## Features
 
-- Customers can create Customer-only accounts with password validation and atomic billing-profile linking (PS-1, PS-5).
+- Customers can sign up and reset passwords; staff accounts and role access are managed by Admins (PS-1–PS-5).
 - Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
-- Staff can record part and final payments from invoices with transactional balance protection (PS-21, PS-22).
-
-- Startup/hourly processing activates due subscriptions, closes plans at expiry when configured, and generates due invoices (PS-14, PS-15).
-
-- Staff can generate recurring Draft invoices with tax snapshots, catch-up billing and duplicate protection (PS-15, PS-16).
-
-- Active accounts log in with expiring tokens and role-based navigation (PS-2).
-- Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
-- Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
-
-- Admins manage quotation templates with validated lines; staff preview current plan, product and variant prices (PS-11).
-
-- Admins configure plans with billing periods, sale dates, minimum quantities and subscription behaviour switches; staff can browse and filter plans (PS-8, PS-9).
-
-- Add staff-only paginated payment search with combined method/date/text filters and invoice links. (PS-21).
-
-- Add Admin-only staff search/create/edit with password validation, field conflicts and immediate deactivation. (PS-5).
-
-- Add forgot/reset pages, 30-minute hashed recovery tokens and immediate session invalidation, including the same-second boundary. (PS-3).
+- Admins manage products, variants, plans, taxes, payment terms, discounts and quotation templates (PS-6–PS-11, PS-19).
+- Staff create numbered subscriptions with validated lines, current prices, variants and taxes, then send and confirm quotations (PS-12–PS-13).
+- Staff can activate subscriptions, pause and resume billing, renew the same subscription, or close early when the plan allows it (PS-13–PS-14).
+- Scheduled processing activates subscriptions on their start dates, closes configured plans at expiry, and generates due invoices (PS-14–PS-16).
+- Invoices can be reviewed, confirmed, sent, canceled when unpaid, and paid in full or in part with transactional balance protection (PS-17–PS-22).
+- The finance dashboard and reports show active subscriptions, monthly recurring revenue, payments, invoices, amounts owed, overdue balances and renewals (PS-23–PS-24).
+- Dashboard data refreshes when invoices or payments change (PS-28).
+- Staff can search payments and browse paginated customer and catalog records.
 
 ## Screenshots
 
-*Added at 4:45 PM from `docs/screenshots/`.*
+| Page | Mobile | Desktop |
+|---|---|---|
+| Login | [375 px](docs/screenshots/login-375.png) | [1280 px](docs/screenshots/login-1280.png) |
+| Customer directory | [375 px](docs/screenshots/customers-375.png) | [1280 px](docs/screenshots/customers-1280.png) |
+| Customer form | [375 px](docs/screenshots/customer-form-375.png) | [1280 px](docs/screenshots/customer-form-1280.png) |
+| Plans | [Mobile](docs/screenshots/plans-mobile.png) | [Desktop](docs/screenshots/plans-desktop.png) |
+| Product variants | [Mobile](docs/screenshots/products-mobile.png) | [Desktop](docs/screenshots/products-desktop.png) |
+| Quotation templates | [Mobile](docs/screenshots/templates-mobile.png) | [Desktop](docs/screenshots/templates-desktop.png) |
+| Record payment | [375 px](docs/screenshots/record-payment-375.png) | [1280 px](docs/screenshots/record-payment-1280.png) |
+| Staff | [375 px](docs/screenshots/staff-375.png) | [1280 px](docs/screenshots/staff-1280.png) |
 
 ## Tech stack
 
@@ -201,7 +199,10 @@ See [docs/api.md](docs/api.md).
 
 ## Known limitations
 
-*Filled in honestly at 4:45 PM.*
+- Customer portal API flows are not implemented yet (PS-26 and PS-27).
+- Starting a subscription from a quotation template is still in progress (PS-11).
+- Page-level performance at 5,000 subscriptions is still being measured; the timings in [docs/data-model.md](docs/data-model.md#9-performance) cover queries, not full page loads (PS-25).
+- Login and password-reset rate limiting is not implemented yet (PS-29).
 
 ## Team
 
