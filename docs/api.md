@@ -37,7 +37,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/health` | Public | Checks the API and the database connection | | Yes |
+| GET | `/health` | Public | Checks the API and the database connection | Yes |
 
 ### Auth (`modules/auth`)
 
@@ -56,10 +56,10 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/staff` | Admin | List staff | PS-5 | |
 | POST | `/staff` | Admin | Add a staff member | PS-5 | |
 | PATCH | `/staff/:id` | Admin | Change details or `isActive` | PS-5 | |
-| GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | |
-| POST | `/customers` | Staff | Create a customer | PS-12 | |
-| GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | |
-| PUT | `/customers/:id` | Staff | Update | PS-12 | |
+| GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | Yes |
+| POST | `/customers` | Staff | Create a customer | PS-12 | Yes |
+| GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | Yes |
+| PUT | `/customers/:id` | Staff | Update | PS-12 | Yes |
 
 ### Catalog (`modules/taxes`, `modules/terms`, `modules/products`, `modules/plans`)
 
@@ -290,3 +290,29 @@ including product-detail plans, are `YYYY-MM-DD`; money remains integer paise.
 **Responses:** `200` the record or standard paginated envelope; `400` invalid
 query/ID with per-field messages; `401` unauthenticated; `403` wrong role;
 `404` unknown product or plan. No schema or migration changes are required.
+
+### GET /api/customers
+
+Search name, company and email case-insensitively with q (at most 100 characters). Standard page/pageSize pagination applies. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** 200 { items, total, page, pageSize, pages }; 400 invalid query; 401 unauthenticated; 403 customer.
+
+### POST /api/customers
+
+Create a customer without creating a login. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Body:** name required, at most 120 characters; email required, valid and at most 254; companyName optional, at most 160; phone optional, a 10-digit Indian mobile starting 6–9; address optional, at most 500; isActive boolean, defaults true. Strings are trimmed and emails lowercased.
+
+**Responses:** 201 customer; 400 field validation; 409 duplicate customer email with fields.email; 401/403 unauthorized.
+
+### GET /api/customers/:id
+
+Return the customer plus subscriptions and invoices grouped by status. Each summary contains _count._all and database-side _sum values (recurringAmount for subscriptions; totalAmount/paidAmount for invoices). Money is paise. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** 200 profile and summaries; 400 invalid ID; 404 missing customer; 401/403 unauthorized.
+
+### PUT /api/customers/:id
+
+Replace the editable customer fields using the POST body rules. Does not modify a linked login. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** 200 customer; 400 field validation; 404 missing customer; 409 duplicate email (fields.email); 401/403 unauthorized.

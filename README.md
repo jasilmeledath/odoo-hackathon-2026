@@ -14,7 +14,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
-*Filled in as each requirement lands. Track progress in [docs/requirements.md](docs/requirements.md).*
+- Add staff-only customer search, create/edit forms and detail summaries aggregated by status. (PS-12).
 
 ## Screenshots
 
