@@ -230,6 +230,8 @@ Read one subscription with its customer, plan rules, payment terms, lines and in
 
 Create a numbered Draft. The request body contains `customerId`, `planId`, `paymentTermId`, `startDate`, `expiryDate`, optional `notes`, and at least one `lines` entry with `productId`, optional `variantId` and optional `taxId`, and `quantity`. Prices and amounts are read from the database: the plan price applies to its product line; other products use their current sales price; variant extra price is added. The server calculates line amounts and both recurring totals in paise. The plan must be available on `startDate`, and `minQuantity` applies to the plan product only. **Auth:** Admin, Internal. Refs: PS-12.
 
+The client form defaults `startDate` to the current IST business date. API callers must still provide `startDate` explicitly.
+
 **Responses:** `201` the created subscription · `400` invalid fields or unavailable references (`fields` identifies the invalid field) · `401` not logged in · `403` not staff
 
 ### PUT /api/subscriptions/:id
