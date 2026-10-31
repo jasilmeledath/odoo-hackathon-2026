@@ -118,8 +118,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
 | GET | `/billing/due` | Staff | Subscriptions due, with a count and expected total | PS-15 | |
-| POST | `/billing/run` | Staff | Bill everything due. Returns `{ created, skipped, failed }` | PS-15, PS-16, PS-20 | |
-| POST | `/billing/subscriptions/:id` | Staff | Bill one subscription | PS-15 | |
+| POST | `/billing/run` | Staff | Bill everything due. Returns `{ created, skipped, failed }` | PS-15, PS-16, PS-20 |Yes |
+| POST | `/billing/subscriptions/:id` | Staff | Bill one subscription | PS-15 |Yes |
 | GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | ✓ |
 | GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | ✓ |
 | POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | ✓ |
@@ -435,3 +435,17 @@ or migration change. Refs: PS-8, PS-9.
 The plan form converts validated rupee prices to paise at submission, mirrors
 quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
+
+
+### Billing execution (PS-15)
+
+`POST /api/billing/run` bills all due active subscriptions in batches of 100 IDs.
+`POST /api/billing/subscriptions/:id` bills one existing subscription.
+Both require Admin/Internal, accept an empty JSON object, and use today's IST
+business date. Responses are `{ created, skipped, failed }`, counted per period.
+A second run creates nothing. Missing single-subscription IDs return `404`;
+invalid IDs/bodies return `400`, missing authentication `401`, customers `403`.
+Each period locks its subscription, snapshots active lines and taxes, creates a
+Draft invoice, advances its cursor and logs the actor in one transaction.
+Failures roll back the period and do not stop later subscriptions. Financial
+amounts that exceed PostgreSQL limits fail without moving the cursor.

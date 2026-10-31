@@ -14,6 +14,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
+- Staff can generate recurring Draft invoices with tax snapshots, catch-up billing and duplicate protection (PS-15, PS-16).
+
 - Active accounts log in with expiring tokens and role-based navigation (PS-2).
 - Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
 - Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
@@ -191,3 +193,16 @@ See [docs/api.md](docs/api.md).
 ## Contributing
 
 Team rules are in [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/engineering-standards.md](docs/engineering-standards.md). Tasks and the timeline are in [docs/implementation-plan.md](docs/implementation-plan.md).
+
+
+### Database integration tests
+
+Use a separately created, migrated and seeded local database. Set
+`TEST_DATABASE_URL` to its PostgreSQL connection URL, then run from `server/`:
+
+```bash
+npm run test:integration
+```
+
+These tests create and remove their own fixture subscriptions. Do not point them
+at production data. They exercise transactional billing and concurrent runs.
