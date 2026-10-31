@@ -1,4 +1,4 @@
-// Customer-only HTTP reads; tenant identity never comes from query or body (PS-26).
+// Customer-only portal HTTP; tenant identity never comes from caller input (PS-26, PS-27).
 import { Router } from 'express';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
@@ -13,6 +13,7 @@ import {
   getSubscription,
   listInvoices,
   getInvoice,
+  manageOwnSubscription,
   acceptQuotation,
 } from './portal.service.js';
 const router = Router();
@@ -23,6 +24,15 @@ router.get('/subscriptions', validate(portalSubscriptionQuerySchema, 'query'), a
 router.get('/subscriptions/:id', validate(idParamSchema, 'params'), async (req, res) =>
   res.json(await getSubscription(req.user.customerId, req.validParams.id)),
 );
+for (const action of ['pause', 'resume', 'close']) {
+  router.post(
+    '/subscriptions/:id/' + action,
+    validate(idParamSchema, 'params'),
+    validate(portalActionSchema),
+    async (req, res) =>
+      res.json(await manageOwnSubscription(req.validParams.id, action.toUpperCase(), req.user)),
+  );
+}
 router.get('/invoices', validate(portalInvoiceQuerySchema, 'query'), async (req, res) =>
   res.json(await listInvoices(req.user.customerId, req.validQuery)),
 );

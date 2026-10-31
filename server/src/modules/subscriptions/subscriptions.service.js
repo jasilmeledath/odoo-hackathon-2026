@@ -404,9 +404,10 @@ const assertPlanAllows = (plan, flag, action) => {
 
 export const manageSubscription = async (id, action, actor, payload = {}) => {
   await prisma.$transaction(async (tx) => {
+    const where = await lockSubscriptionForActor(tx, id, actor);
     const businessDate = today();
     const subscription = await tx.subscription.findUnique({
-      where: { id },
+      where,
       select: {
         id: true,
         number: true,
@@ -492,7 +493,10 @@ export const manageSubscription = async (id, action, actor, payload = {}) => {
       throw new HttpError(400, 'Choose a valid subscription action');
     }
 
-    const { count } = await tx.subscription.updateMany({ where: { id, status: subscription.status }, data });
+    const { count } = await tx.subscription.updateMany({
+      where: { ...where, status: subscription.status },
+      data,
+    });
     if (count !== 1) {
       throw new HttpError(
         409,

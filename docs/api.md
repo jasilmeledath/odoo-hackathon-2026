@@ -156,9 +156,9 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 | GET | `/portal/subscriptions/:id` | Customer | One subscription with lines | PS-26 | Yes |
 | POST | `/portal/subscriptions/:id/accept` | Customer | Accept a quotation | PS-27 | Yes |
 | PATCH | `/portal/subscriptions/:id/lines/:lineId` | Customer | `{ isActive }`: switch an add-on on or off | PS-27 | |
-| POST | `/portal/subscriptions/:id/pause` | Customer | Pause, if the plan allows | PS-27 | |
-| POST | `/portal/subscriptions/:id/resume` | Customer | Resume | PS-27 | |
-| POST | `/portal/subscriptions/:id/close` | Customer | Close, if the plan allows | PS-27 | |
+| POST | `/portal/subscriptions/:id/pause` | Customer | Pause, if the plan allows | PS-27 | Yes |
+| POST | `/portal/subscriptions/:id/resume` | Customer | Resume | PS-27 | Yes |
+| POST | `/portal/subscriptions/:id/close` | Customer | Close, if the plan allows | PS-27 | Yes |
 | GET | `/portal/invoices` | Customer | Own invoices | PS-26 | Yes |
 | GET | `/portal/invoices/:id` | Customer | One invoice with lines and payments | PS-26 | Yes |
 
@@ -835,6 +835,26 @@ checked with real Admin/Internal login at 375px and 1280px. Wide tables scroll
 inside their cards; the shell can shrink without page overflow. Invalid or
 incomplete prices do not show a calculated margin. Invalid input, empty/error
 states and read-only staff controls are verified. No API or schema changes.
+
+### POST /api/portal/subscriptions/:id/pause, /resume and /close
+
+Customer-only actions on an owned subscription (PS-27). Body is empty or
+`{}`; unknown fields are rejected. The subscriptions service locks and scopes
+ownership inside the transaction, enforces plan rules and allowed states,
+and records activity. Responses use the portal's safe detail projection.
+The detail includes plan `canPause` and `canCloseEarly` for button visibility.
+
+Pause requires Active plus canPause. Resume requires Paused plus canPause;
+the existing anchored schedule skips paused time. Close requires Active or
+Paused plus canCloseEarly; it records CLOSED_EARLY and clears future billing.
+Existing invoices and money remain unchanged. The UI confirms closing first,
+prevents duplicate submits, and refreshes status with success/error feedback.
+Those controls ship in the separate lifecycle UI PR after this API change.
+
+Responses: `200` updated detail; `400` invalid ID/body; `401` missing
+session; `403` non-Customer; `404` missing profile/record or foreign owner;
+`409` invalid state or a plan that disallows the action. PS-27 remains In
+progress until the separately assigned acceptance and add-on flows integrate.
 
 ### POST /api/portal/subscriptions/:id/accept
 
