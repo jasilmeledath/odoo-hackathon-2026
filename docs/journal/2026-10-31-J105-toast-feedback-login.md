@@ -1,4 +1,4 @@
-# J-099: Toast feedback system and login redesign
+# J-105: Toast feedback system and login redesign
 
 - Date: 2026-10-31
 - Contributor/agent: Jasil M with Claude
@@ -8,4 +8,4 @@
 - Database and migrations: None.
 - Checks and results: `ci:fast` 73 tests pass; client build OK. In the browser: logout shows "You have been logged out."; a wrong password shows the error toast; the eye button shows and hides the password; a correct login shows "Welcome back, <name>."
 - Coverage: Login, logout, sign-up, forgot and reset password, customer, staff, payment, product, product variant, plan, discount, template, tax and payment term saves; invoice confirm, cancel, send and bulk confirm; billing run; subscription create, update and lifecycle actions; invoice date-range filter errors; validation failures on each form.
-- Follow-ups: The subscription form change conflicts with PR #124 in `SubscriptionForm.jsx`, so whichever merges second needs a small rebase. Subscription lifecycle messages still say "status updated" for pause and resume; per-action wording is a later polish.
+- Follow-ups: The customer-search conflict with merged PR #124 is resolved; its server-side active filter is retained. Subscription lifecycle toasts now use action-specific wording.

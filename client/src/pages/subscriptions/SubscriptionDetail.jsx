@@ -14,6 +14,16 @@ import {
 } from './SubscriptionDetailSections.jsx';
 import SubscriptionLifecycleActions from './SubscriptionLifecycleActions.jsx';
 
+const SUCCESS_MESSAGE_BY_ACTION = {
+  quote: 'Quotation sent.',
+  confirm: 'Quotation confirmed.',
+  activate: 'Subscription activated.',
+  pause: 'Subscription paused.',
+  resume: 'Subscription resumed.',
+  renew: 'Subscription renewed.',
+  close: 'Subscription closed.',
+};
+
 export default function SubscriptionDetail() {
   const { id } = useParams();
   const { data: subscription, loading, error, reload } = useApi(`/subscriptions/${id}`);
@@ -28,7 +38,7 @@ export default function SubscriptionDetail() {
     setActionNotice('');
     try {
       await api(`/subscriptions/${id}/${action}`, { method: 'POST', body });
-      const message = action === 'renew' ? 'Subscription renewed.' : 'Subscription status updated.';
+      const message = SUCCESS_MESSAGE_BY_ACTION[action] ?? 'Subscription updated.';
       setActionNotice(message);
       toast.success(message);
       window.dispatchEvent(new Event('subscription:changed'));

@@ -14,6 +14,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
+- Customers switch existing subscription add-ons on and off, with protected plan products and recalculated recurring totals (PS-27).
+
 - Customers can create Customer-only accounts with password validation and atomic billing-profile linking (PS-1, PS-5).
 - Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
 - Add customer-only subscription and invoice lists and details, scoped queries, URL search, payment history and balance display. (PS-26).
@@ -39,6 +41,9 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 - Add forgot/reset pages, 30-minute hashed recovery tokens and immediate session invalidation, including the same-second boundary. (PS-3).
 
 - Admins manage fixed/percentage discounts, scope-specific products, minimums, dates and usage limits; staff filter current rule states (PS-19).
+
+- Customers pause, resume and close their own subscriptions when the plan allows, with closing confirmation and server-side checks (PS-27).
+- Customers accept their own unexpired quotations in the portal, with transaction-safe ownership and status checks (PS-27).
 
 ## Screenshots
 

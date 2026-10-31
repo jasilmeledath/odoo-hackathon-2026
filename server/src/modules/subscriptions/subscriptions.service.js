@@ -6,11 +6,24 @@ import { paginate } from '../../lib/pagination.js';
 import { prisma } from '../../lib/prisma.js';
 import { nextBillingDateAfterPause } from './subscriptionLifecycle.js';
 import { nextNumber } from '../../lib/numbering.js';
-import { toMonthlyAmount } from '../../lib/money.js';
+import { calculateSubscriptionAmounts } from './subscriptionAmounts.js';
 
 const NOT_FOUND_MESSAGE = 'Subscription not found';
 const DEFAULT_QUOTATION_VALIDITY_DAYS = 30;
 const MAX_DATABASE_INTEGER = 2_147_483_647;
+
+// PS-27: ownership and state changes share a row lock, including staff transfers.
+const lockSubscriptionForActor = async (tx, id, actor) => {
+  const isCustomer = actor.role === 'CUSTOMER';
+  const customerId = actor.customerId;
+  if (isCustomer && (!Number.isInteger(customerId) || customerId <= 0))
+    throw new HttpError(404, NOT_FOUND_MESSAGE);
+  const rows = isCustomer
+    ? await tx.$queryRaw`SELECT id FROM subscriptions WHERE id = ${id} AND customer_id = ${customerId} FOR UPDATE`
+    : await tx.$queryRaw`SELECT id FROM subscriptions WHERE id = ${id} FOR UPDATE`;
+  if (!rows.length) throw new HttpError(404, NOT_FOUND_MESSAGE);
+  return isCustomer ? { id, customerId } : { id };
+};
 
 const TRANSITIONS = {
   QUOTE: { from: 'DRAFT', to: 'QUOTATION' },
@@ -220,14 +233,7 @@ const prepareSubscriptionLines = async (tx, lines, plan, startDate) => {
     });
   }
 
-  const recurringAmount = preparedLines.reduce((total, line) => total + line.amount, 0);
-  const monthlyRecurringAmount = toMonthlyAmount(recurringAmount, plan.billingPeriod);
-  if (recurringAmount > MAX_DATABASE_INTEGER || monthlyRecurringAmount > MAX_DATABASE_INTEGER) {
-    throw new HttpError(400, 'The subscription total is too large', {
-      lines: 'Reduce line quantities or prices',
-    });
-  }
-  return { lines: preparedLines, recurringAmount, monthlyRecurringAmount };
+  return { lines: preparedLines, ...calculateSubscriptionAmounts(preparedLines, plan.billingPeriod) };
 };
 
 const loadActiveReferences = async (tx, data) => {
@@ -331,9 +337,10 @@ export const updateSubscription = async (id, data, actor) => {
 
 export const transitionSubscription = async (id, action, actor) => {
   await prisma.$transaction(async (tx) => {
+    const where = await lockSubscriptionForActor(tx, id, actor);
     const businessDate = today();
     const subscription = await tx.subscription.findUnique({
-      where: { id },
+      where,
       select: {
         id: true,
         number: true,
@@ -363,7 +370,7 @@ export const transitionSubscription = async (id, action, actor) => {
     if (action === 'ACTIVATE') data.nextInvoiceDate = subscription.startDate;
 
     const { count } = await tx.subscription.updateMany({
-      where: { id, status: subscription.status },
+      where: { ...where, status: subscription.status },
       data,
     });
     if (count !== 1) {
@@ -390,9 +397,10 @@ const assertPlanAllows = (plan, flag, action) => {
 
 export const manageSubscription = async (id, action, actor, payload = {}) => {
   await prisma.$transaction(async (tx) => {
+    const where = await lockSubscriptionForActor(tx, id, actor);
     const businessDate = today();
     const subscription = await tx.subscription.findUnique({
-      where: { id },
+      where,
       select: {
         id: true,
         number: true,
@@ -478,7 +486,10 @@ export const manageSubscription = async (id, action, actor, payload = {}) => {
       throw new HttpError(400, 'Choose a valid subscription action');
     }
 
-    const { count } = await tx.subscription.updateMany({ where: { id, status: subscription.status }, data });
+    const { count } = await tx.subscription.updateMany({
+      where: { ...where, status: subscription.status },
+      data,
+    });
     if (count !== 1) {
       throw new HttpError(
         409,
