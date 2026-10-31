@@ -21,6 +21,7 @@ import DiscountList from './pages/discounts/DiscountList.jsx';
 import TemplateList from './pages/templates/TemplateList.jsx';
 import SubscriptionList from './pages/subscriptions/SubscriptionList.jsx';
 import SubscriptionDetail from './pages/subscriptions/SubscriptionDetail.jsx';
+import SubscriptionForm from './pages/subscriptions/SubscriptionForm.jsx';
 import BillingRun from './pages/billing/BillingRun.jsx';
 import InvoiceDetail from './pages/invoices/InvoiceDetail.jsx';
 import InvoiceList from './pages/invoices/InvoiceList.jsx';
@@ -61,6 +62,8 @@ export default function App() {
             <Route path="/customers/:id/edit" element={<CustomerForm />} />
 
             <Route path="/subscriptions" element={<SubscriptionList />} />
+            <Route path="/subscriptions/new" element={<SubscriptionForm />} />
+            <Route path="/subscriptions/:id/edit" element={<SubscriptionForm />} />
 
             <Route path="/subscriptions/:id" element={<SubscriptionDetail />} />
 
