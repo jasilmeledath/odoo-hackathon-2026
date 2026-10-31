@@ -4,11 +4,27 @@ import { STAFF_ROLES } from '../../lib/constants.js';
 import { idParamSchema } from '../../lib/validation.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
-import { getSubscription, getSubscriptionActivity } from './subscriptions.service.js';
+import {
+  getSubscription,
+  getSubscriptionActivity,
+  transitionSubscription,
+} from './subscriptions.service.js';
 
 const router = Router();
 
 router.use(requireAuth, requireRole(...STAFF_ROLES));
+
+router.post('/:id/quote', validate(idParamSchema, 'params'), async (req, res) => {
+  res.json(await transitionSubscription(req.validParams.id, 'QUOTE', req.user));
+});
+
+router.post('/:id/confirm', validate(idParamSchema, 'params'), async (req, res) => {
+  res.json(await transitionSubscription(req.validParams.id, 'CONFIRM', req.user));
+});
+
+router.post('/:id/activate', validate(idParamSchema, 'params'), async (req, res) => {
+  res.json(await transitionSubscription(req.validParams.id, 'ACTIVATE', req.user));
+});
 
 router.get('/:id/activity', validate(idParamSchema, 'params'), async (req, res) => {
   res.json(await getSubscriptionActivity(req.validParams.id));

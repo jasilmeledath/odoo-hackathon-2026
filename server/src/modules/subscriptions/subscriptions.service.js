@@ -1,8 +1,26 @@
 // Subscription detail and activity queries (PS-12, PS-13).
+import { addDays, today, toDateOnly } from '../../lib/dates.js';
+import { logActivity } from '../../lib/activity.js';
 import { HttpError } from '../../lib/errors.js';
 import { prisma } from '../../lib/prisma.js';
 
 const NOT_FOUND_MESSAGE = 'Subscription not found';
+const DEFAULT_QUOTATION_VALIDITY_DAYS = 30;
+
+const TRANSITIONS = {
+  QUOTE: { from: 'DRAFT', to: 'QUOTATION' },
+  CONFIRM: { from: 'QUOTATION', to: 'CONFIRMED' },
+  ACTIVATE: { from: 'CONFIRMED', to: 'ACTIVE' },
+};
+
+export const assertTransition = (currentStatus, action) => {
+  const transition = TRANSITIONS[action];
+  if (!transition || transition.from !== currentStatus) {
+    const actionName = typeof action === 'string' ? action.toLowerCase() : 'change status for';
+    throw new HttpError(409, `Cannot ${actionName} a subscription in ${currentStatus.toLowerCase()} status`);
+  }
+  return transition;
+};
 
 const DETAIL_INCLUDE = {
   customer: { select: { id: true, name: true, companyName: true, email: true, phone: true, address: true } },
@@ -54,4 +72,56 @@ export const getSubscriptionActivity = async (id) => {
       actor: { select: { id: true, name: true } },
     },
   });
+};
+
+export const transitionSubscription = async (id, action, actor) => {
+  await prisma.$transaction(async (tx) => {
+    const businessDate = today();
+    const subscription = await tx.subscription.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        number: true,
+        status: true,
+        startDate: true,
+        quotationExpiryDate: true,
+        template: { select: { validityDays: true } },
+        lines: { select: { id: true } },
+      },
+    });
+    if (!subscription) throw new HttpError(404, NOT_FOUND_MESSAGE);
+
+    const transition = assertTransition(subscription.status, action);
+    const data = { status: transition.to };
+    if (action === 'QUOTE') {
+      if (subscription.lines.length === 0) {
+        throw new HttpError(409, 'Add at least one active line before sending a quotation');
+      }
+      const validityDays = subscription.template?.validityDays ?? DEFAULT_QUOTATION_VALIDITY_DAYS;
+      data.quotationExpiryDate = addDays(businessDate, validityDays);
+    }
+    if (action === 'CONFIRM' && subscription.quotationExpiryDate) {
+      if (toDateOnly(subscription.quotationExpiryDate) < businessDate) {
+        throw new HttpError(409, 'This quotation has expired and cannot be confirmed');
+      }
+    }
+    if (action === 'ACTIVATE') data.nextInvoiceDate = subscription.startDate;
+
+    const { count } = await tx.subscription.updateMany({
+      where: { id, status: subscription.status },
+      data,
+    });
+    if (count !== 1) {
+      throw new HttpError(409, 'The subscription changed while this action was being processed. Refresh and try again');
+    }
+
+    await logActivity(tx, {
+      subscriptionId: id,
+      action: 'STATUS_CHANGED',
+      detail: `Subscription ${subscription.number} moved from ${subscription.status} to ${transition.to}`,
+      actorId: actor.id,
+    });
+  });
+
+  return getSubscription(id);
 };

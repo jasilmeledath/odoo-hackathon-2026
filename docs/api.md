@@ -105,9 +105,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | ✓ |
 | POST | `/subscriptions` | Staff | Create a draft. `templateId` fills in the plan and lines | PS-11, PS-12 | |
 | PUT | `/subscriptions/:id` | Staff | Update, in Draft or Quotation only | PS-12 | |
-| POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation | PS-13 | |
-| POST | `/subscriptions/:id/confirm` | Staff | Quotation → Confirmed | PS-13 | |
-| POST | `/subscriptions/:id/activate` | Staff | Confirmed → Active | PS-13 | |
+| POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation, requires a line | PS-13 | ✓ |
+| POST | `/subscriptions/:id/confirm` | Staff | Unexpired Quotation → Confirmed | PS-13 | ✓ |
+| POST | `/subscriptions/:id/activate` | Staff | Confirmed → Active and schedule billing | PS-13 | ✓ |
 | POST | `/subscriptions/:id/pause` | Staff | Active → Paused, if the plan allows | PS-14 | |
 | POST | `/subscriptions/:id/resume` | Staff | Paused → Active | PS-14 | |
 | POST | `/subscriptions/:id/renew` | Staff | `{ expiryDate }`, if the plan allows | PS-14 | |
@@ -182,6 +182,24 @@ Read a subscription's activity timeline in chronological order, including the ac
 **Response** `200`: an array of `{ id, action, detail, createdAt, actor }` entries.
 
 **Responses:** `200` the timeline (an empty array when no activity exists) · `400` the id is not a positive integer · `401` not logged in · `403` not staff · `404` subscription not found
+
+### POST /api/subscriptions/:id/quote
+
+Move a draft subscription to Quotation. Requires at least one line. Quote expiry comes from the selected template's validity; without a template, validity defaults to 30 days. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not a draft or has no lines
+
+### POST /api/subscriptions/:id/confirm
+
+Move an unexpired quotation to Confirmed. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not a quotation or the quotation expired
+
+### POST /api/subscriptions/:id/activate
+
+Move a confirmed subscription to Active and set `nextInvoiceDate` to `startDate`. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not confirmed
 
 <!-- Add one entry per route, grouped by module, in the format from
 docs/documentation-rules.md §5. Add it in the same commit as the route. -->
