@@ -45,7 +45,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-6 | The Admin manages products: name, type, sales price, cost price and notes | P1 | Manoj | Done |
-| PS-7 | A product has variants, each adding an extra price (choosing the Odoo brand adds 560) | P1 | Manoj | Not started |
+| PS-7 | A product has variants, each adding an extra price (choosing the Odoo brand adds 560) | P1 | Manoj | Done |
 | PS-8 | The Admin manages plans: price, billing period (daily, weekly, monthly, yearly), minimum quantity and the dates it is available | P1 | Manoj | Done |
 | PS-9 | Plan by plan, the Admin decides whether it closes by itself at the end, and whether it can be closed early, paused or renewed | P1 | Manoj | Done |
 | PS-10 | The Admin sets tax rules, and taxes are calculated from them automatically | P1 | Manoj | Done |

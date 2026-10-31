@@ -1,7 +1,7 @@
 // Product price and input boundaries preserve the paise contract (PS-6).
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateProduct } from '../../../../client/src/lib/validators.js';
+import { validateProduct, validateVariant } from '../../../../client/src/lib/validators.js';
 import { toPaise } from '../../../../client/src/lib/format.js';
 import { productSchema, variantSchema, variantParamsSchema } from './products.schemas.js';
 
@@ -53,4 +53,13 @@ test('variant values are trimmed and extra prices stay whole paise', () => {
 test('variant IDs and parent IDs must fit PostgreSQL integers', () => {
   assert.deepEqual(variantParamsSchema.parse({ id: '1', variantId: '2' }), { id: 1, variantId: 2 });
   assert.equal(variantParamsSchema.safeParse({ id: '1', variantId: '2147483648' }).success, false);
+});
+
+test('variant currency inputs match server limits before paise conversion', () => {
+  const form = { attribute: 'Brand', value: 'Odoo', extraPrice: '560' };
+  assert.deepEqual(validateVariant(form), {});
+  assert.equal(variantSchema.parse({ ...form, extraPrice: toPaise(form.extraPrice) }).extraPrice, 56000);
+  for (const extraPrice of ['', null, '-1', '0.001', '10000000.01', 'Infinity'])
+    assert.ok(validateVariant({ ...form, extraPrice }).extraPrice);
+  assert.ok(validateVariant({ ...form, value: 'x'.repeat(61) }).value);
 });
