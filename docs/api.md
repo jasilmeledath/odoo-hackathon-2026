@@ -110,10 +110,10 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation, requires a line | PS-13 | ✓ |
 | POST | `/subscriptions/:id/confirm` | Staff | Unexpired Quotation → Confirmed | PS-13 | ✓ |
 | POST | `/subscriptions/:id/activate` | Staff | Confirmed → Active and schedule billing | PS-13 | ✓ |
-| POST | `/subscriptions/:id/pause` | Staff | Active → Paused, if the plan allows | PS-14 | |
-| POST | `/subscriptions/:id/resume` | Staff | Paused → Active | PS-14 | |
-| POST | `/subscriptions/:id/renew` | Staff | `{ expiryDate }`, if the plan allows | PS-14 | |
-| POST | `/subscriptions/:id/close` | Staff | Close early, if the plan allows | PS-14 | |
+| POST | `/subscriptions/:id/pause` | Staff | Active → Paused, if the plan allows | PS-14 | ✓ |
+| POST | `/subscriptions/:id/resume` | Staff | Paused → Active at the next scheduled billing boundary | PS-14 | ✓ |
+| POST | `/subscriptions/:id/renew` | Staff | Extend the same subscription with `{ expiryDate }`, if the plan allows | PS-14 | ✓ |
+| POST | `/subscriptions/:id/close` | Staff | Close an Active or Paused subscription early, if the plan allows | PS-14 | ✓ |
 
 ### Billing and invoices (`modules/billing`, `modules/invoices`)
 
@@ -251,6 +251,24 @@ Move an unexpired quotation to Confirmed. **Auth:** Admin, Internal. Refs: PS-13
 Move a confirmed subscription to Active and set `nextInvoiceDate` to `startDate`. **Auth:** Admin, Internal. Refs: PS-13.
 
 **Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not confirmed
+
+### POST /api/subscriptions/:id/pause and `/resume`
+
+Pause is allowed for Active subscriptions only when the plan's `canPause` flag is enabled. A Paused subscription is excluded from billing. Resume requires Paused status and the same plan flag; its next invoice date advances on the original billing schedule to the first period boundary on or after today, so paused periods are not charged. **Auth:** Admin, Internal. Refs: PS-14, A-18.
+
+**Responses:** `200` the updated subscription · `401` not logged in · `403` not staff · `404` subscription not found · `409` the plan disallows the action or the status is invalid
+
+### POST /api/subscriptions/:id/renew
+
+Extend the expiry date of the same Active subscription. The body is `{ "expiryDate": "YYYY-MM-DD" }`; the new date must be after both the current expiry and today. When billing had stopped at expiry, the next invoice date resumes at the next scheduled boundary derived from the last non-canceled invoice (or the subscription start date if none exists). The plan's `canRenew` flag must be enabled. **Auth:** Admin, Internal. Refs: PS-14, A-19.
+
+**Responses:** `200` the updated subscription · `400` invalid date (`fields.expiryDate`) · `401` not logged in · `403` not staff · `404` subscription not found · `409` the plan disallows renewal or the subscription is not Active
+
+### POST /api/subscriptions/:id/close
+
+Close an Active or Paused subscription early when the plan's `canCloseEarly` flag is enabled. The next invoice date is cleared and future billing stops; existing invoices and history remain. The change is recorded as `CLOSED` with close reason `CLOSED_EARLY`. **Auth:** Admin, Internal. Refs: PS-14.
+
+**Responses:** `200` the updated subscription · `401` not logged in · `403` not staff · `404` subscription not found · `409` the plan disallows early closing or the subscription status is invalid
 
 ### GET /api/subscriptions
 
