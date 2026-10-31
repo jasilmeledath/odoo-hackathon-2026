@@ -87,10 +87,10 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/templates` | Staff | List | PS-11 | |
-| GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | |
-| POST | `/templates` | Admin | Create with lines | PS-11 | |
-| PUT | `/templates/:id` | Admin | Update with lines | PS-11 | |
+| GET | `/templates` | Staff | List | PS-11 | Yes |
+| GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | Yes |
+| POST | `/templates` | Admin | Create with lines | PS-11 | Yes |
+| PUT | `/templates/:id` | Admin | Update with lines | PS-11 | Yes |
 | GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`) | PS-19 | |
 | GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | |
 | POST | `/discounts` | Admin | Create | PS-19 | |
