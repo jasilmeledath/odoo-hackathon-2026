@@ -437,9 +437,6 @@ quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
 
 
-
-
-
 ### Billing execution (PS-15)
 
 `POST /api/billing/run` bills all due active subscriptions in batches of 100 IDs.
@@ -515,3 +512,50 @@ and audited with no actor for system work. Phase/record failures are logged and
 do not stop the server or later phases. In-process runs never overlap; database
 state guards and billing locks handle multiple API instances. Shutdown stops the
 timer and waits for in-flight work before disconnecting PostgreSQL.
+
+
+### POST /api/auth/register
+
+Create a CUSTOMER account and customer profile, or link the unclaimed profile with the same normalized email (A-4). **Auth:** public. Refs: PS-1, PS-5.
+
+**Body:** name (required, at most 120 characters); email (valid, at most 254 characters, normalized); password (at least 9 characters with uppercase, lowercase and special character; at most 72 UTF-8 bytes). A digit is not required. Caller-supplied role and unknown properties are ignored. Each failed password rule appears on its own line in fields.password.
+
+**Responses:** 201 { token, user }; 400 per-field validation; 409 duplicate account or already claimed profile (fields.email). Creation/linking is one transaction and the role is always CUSTOMER. Password hashes are never returned. Token format and eight-hour expiry use the shared auth helper.
+
+
+### GET /api/customers
+
+Search name, company and email case-insensitively with q (at most 100 characters). Standard page/pageSize pagination applies. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** 200 { items, total, page, pageSize, pages }; 400 invalid query; 401 unauthenticated; 403 customer.
+
+### POST /api/customers
+
+Create a customer without creating a login. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Body:** name required, at most 120 characters; email required, valid and at most 254; companyName optional, at most 160; phone optional, a 10-digit Indian mobile starting 6–9; address optional, at most 500; isActive boolean, defaults true. Strings are trimmed and emails lowercased.
+
+**Responses:** 201 customer; 400 field validation; 409 duplicate customer email with fields.email; 401/403 unauthorized.
+
+### GET /api/customers/:id
+
+Return the customer plus subscriptions and invoices grouped by status. Each summary contains _count._all and database-side _sum values (recurringAmount for subscriptions; totalAmount/paidAmount for invoices). Money is paise. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** 200 profile and summaries; 400 invalid ID; 404 missing customer; 401/403 unauthorized.
+
+### PUT /api/customers/:id
+
+Replace the editable customer fields using the POST body rules. Does not modify a linked login. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** 200 customer; 400 field validation; 404 missing customer; 409 duplicate email (fields.email); 401/403 unauthorized.
+
+
+### POST /api/payments
+
+Record payment against a CONFIRMED invoice. **Auth:** Admin, Internal. Refs: PS-21, PS-22.
+
+**Body:** invoiceId positive integer; method CASH/BANK_TRANSFER/UPI/CARD/CHEQUE; amount positive whole paise at most 1,000,000,000 and not above balance; paymentDate valid YYYY-MM-DD not after today in IST; note optional, at most 500 characters.
+
+**Response:** 201 { payment, invoice }, including invoice.balanceAmount. Part payments leave CONFIRMED; full settlement sets PAID and paidAt. Row locking serializes concurrent requests. Payment insertion, balance update and PAYMENT_RECORDED activity happen in one transaction.
+
+**Responses:** 400 field validation or overpayment (fields.amount states current balance); 404 invoice missing; 409 invoice not CONFIRMED; 401 unauthenticated; 403 customer. The invoice-detail form converts rupees to paise at the UI boundary and refreshes invoice/payment history after success.
