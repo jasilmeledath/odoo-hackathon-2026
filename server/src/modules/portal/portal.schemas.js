@@ -18,3 +18,6 @@ export const portalAddonSchema = z.object({
   isActive: z.boolean({ error: 'Choose whether the add-on is active' }),
 });
 export const portalAddonParamsSchema = idParamSchema.extend({ lineId: idParamSchema.shape.id });
+
+// PS-27: an action accepts no ownership, status or pricing overrides.
+export const portalActionSchema = z.object({}).strict().default({});
