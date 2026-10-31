@@ -14,7 +14,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
-*Filled in as each requirement lands. Track progress in [docs/requirements.md](docs/requirements.md).*
+- Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
 
 ## Screenshots
 
