@@ -384,6 +384,11 @@ A choice on a product, such as Brand: Odoo, with the amount it adds to the price
 
 - `product_variants_extra_price_check`: `extra_price >= 0`
 
+The variant deletion service locks the variant row before checking
+subscription references and deleting in one transaction (PS-7). This
+application guard is needed because the existing nullable variant
+foreign key uses SET NULL; the lock serializes new references with deletion.
+
 #### `plans`
 
 How one product is sold: price per period, billing period, minimum quantity, when it can be sold, and what may happen to subscriptions on it. Refs: PS-8, PS-9.
