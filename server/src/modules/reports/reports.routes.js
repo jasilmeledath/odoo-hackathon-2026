@@ -41,7 +41,6 @@ router.get('/events', (_req, res) => {
   };
   res.on('close', closeStream);
 });
-
 router.get('/revenue', validate(revenueQuerySchema, 'query'), async (req, res) => {
   res.json(await getMonthlyRevenue(req.validQuery));
 });

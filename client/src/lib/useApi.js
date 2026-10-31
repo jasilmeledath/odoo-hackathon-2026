@@ -27,5 +27,11 @@ export function useApi(path, query) {
     return () => window.removeEventListener('dashboard:changed', load);
   }, [load, path]);
 
+  useEffect(() => {
+    if (!path.endsWith('/activity')) return undefined;
+    window.addEventListener('subscription:changed', load);
+    return () => window.removeEventListener('subscription:changed', load);
+  }, [load, path]);
+
   return { ...state, reload: load };
 }
