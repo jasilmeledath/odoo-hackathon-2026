@@ -1,6 +1,7 @@
 // Template validation protects references and prevents accidental price snapshots (PS-11).
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { validateTemplate } from '../../../../client/src/lib/validators.js';
 import { templateSchema } from './templates.schemas.js';
 
 const template = {
@@ -35,4 +36,13 @@ test('template lines reject prices and invalid quantities or variant IDs', () =>
       templateSchema.safeParse({ ...template, lines: [{ ...template.lines[0], ...change }] }).success,
       false,
     );
+});
+
+test('template client errors mirror line paths and numeric boundaries', () => {
+  const form = { ...template, notes: '', validityDays: '30' };
+  assert.deepEqual(validateTemplate(form), {});
+  assert.equal(validateTemplate({ ...form, validityDays: '' }).validityDays, 'Validity days is required');
+  assert.equal(validateTemplate({ ...form, lines: [] }).lines, 'Add at least one line');
+  for (const quantity of ['0', '0.1', '2147483648'])
+    assert.ok(validateTemplate({ ...form, lines: [{ productId: 1, quantity }] })['lines.0.quantity']);
 });

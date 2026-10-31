@@ -75,17 +75,27 @@ export const EmptyState = ({ title, children }) => (
   </div>
 );
 
-export function Pagination({ page, pages, onChange }) {
+export function Pagination({ page, pages, onChange, disabled = false }) {
   if (pages <= 1) return null;
   return (
     <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
-      <button className="btn-secondary" disabled={page <= 1} onClick={() => onChange(page - 1)}>
+      <button
+        className="btn-secondary"
+        type="button"
+        disabled={disabled || page <= 1}
+        onClick={() => onChange(page - 1)}
+      >
         Previous
       </button>
       <span>
         Page {page} of {pages}
       </span>
-      <button className="btn-secondary" disabled={page >= pages} onClick={() => onChange(page + 1)}>
+      <button
+        className="btn-secondary"
+        type="button"
+        disabled={disabled || page >= pages}
+        onClick={() => onChange(page + 1)}
+      >
         Next
       </button>
     </div>
