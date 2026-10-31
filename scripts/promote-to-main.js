@@ -38,9 +38,9 @@ try {
     fail(`Promotion must start from develop; current branch is ${branch || '(detached HEAD)'}.`);
   }
 
-  const workingTree = gitOutput(['status', '--porcelain', '--untracked-files=no']);
+  const workingTree = gitOutput(['status', '--porcelain']);
   if (workingTree) {
-    fail('Commit or discard tracked changes on develop before promoting.');
+    fail('Commit or remove all changes, including untracked files, before promoting.');
   }
 
   process.stdout.write('Fetching current develop and main refs...\n');
@@ -74,14 +74,6 @@ try {
     process.exit(existingPrResult.status ?? 1);
   }
 
-  const existingPrs = JSON.parse(existingPrResult.stdout);
-  if (existingPrs.length > 0) {
-    process.stdout.write(
-      `Checks passed for ${sourceSha}. Review the existing promotion PR: ${existingPrs[0].url}\n`,
-    );
-    process.exit(0);
-  }
-
   const body = [
     'Promote the reviewed develop branch to main.',
     '',
@@ -93,6 +85,17 @@ try {
     '',
     'This PR was prepared by `npm run promote:main`; review it before merging.',
   ].join('\n');
+
+  const existingPrs = JSON.parse(existingPrResult.stdout);
+  if (existingPrs.length > 0) {
+    const editResult = run('gh', ['pr', 'edit', String(existingPrs[0].number), '--body', body]);
+    if (editResult.status !== 0) process.exit(editResult.status ?? 1);
+    process.stdout.write(
+      `Checks passed for ${sourceSha}. Updated the promotion PR description: ${existingPrs[0].url}\n`,
+    );
+    process.exit(0);
+  }
+
   const createResult = run('gh', [
     'pr',
     'create',

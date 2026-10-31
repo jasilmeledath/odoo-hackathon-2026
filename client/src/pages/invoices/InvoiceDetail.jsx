@@ -3,6 +3,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { Alert, EmptyState, PageHeader, Spinner } from '../../components/ui.jsx';
 import InvoiceActions from './InvoiceActions.jsx';
+import InvoicePaymentSection from '../payments/InvoicePaymentSection.jsx';
 import { formatDate, formatLabel, formatMoney } from '../../lib/format.js';
 import { useApi } from '../../lib/useApi.js';
 
@@ -142,6 +143,7 @@ export default function InvoiceDetail() {
       />
       <p className="hidden print:block">Status: {formatLabel(invoice.status)}</p>
       <Alert>{error}</Alert>
+      <InvoicePaymentSection key={invoice.id} invoice={invoice} onRecorded={reload} />
       <Summary invoice={invoice} />
       <LineTable lines={invoice.lines} />
       <Totals invoice={invoice} />
