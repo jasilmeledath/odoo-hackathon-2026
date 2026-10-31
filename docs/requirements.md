@@ -36,18 +36,18 @@ Brightloop Software sells everything on subscription: software billed monthly or
 |---|---|---|---|---|
 | PS-1 | A customer signs up with email and password. Each email belongs to one account. The password must be **more than eight characters** with an uppercase letter, a lowercase letter and a special character | P1 | Yadhu | Done |
 | PS-2 | Users log in and stay logged in with a token that expires | P1 | Yadhu | Done |
-| PS-3 | A forgotten password is reset through a link sent to the registered email | P1 | Yadhu | Not started |
+| PS-3 | A forgotten password is reset through a link sent to the registered email | P1 | Yadhu | Done |
 | PS-4 | Three roles see different things. Customers see only their own records, and any other record returns `404` | P1 | Yadhu | Not started |
-| PS-5 | Only the Admin can add a staff member, and sign-up can never create staff | P1 | Yadhu | Not started |
+| PS-5 | Only the Admin can add a staff member, and sign-up can never create staff | P1 | Yadhu | Done |
 
 ### Catalog
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-6 | The Admin manages products: name, type, sales price, cost price and notes | P1 | Manoj | Done |
-| PS-7 | A product has variants, each adding an extra price (choosing the Odoo brand adds 560) | P1 | Manoj | Not started |
-| PS-8 | The Admin manages plans: price, billing period (daily, weekly, monthly, yearly), minimum quantity and the dates it is available | P1 | Manoj | In progress |
-| PS-9 | Plan by plan, the Admin decides whether it closes by itself at the end, and whether it can be closed early, paused or renewed | P1 | Manoj | Not started |
+| PS-7 | A product has variants, each adding an extra price (choosing the Odoo brand adds 560) | P1 | Manoj | Done |
+| PS-8 | The Admin manages plans: price, billing period (daily, weekly, monthly, yearly), minimum quantity and the dates it is available | P1 | Manoj | Done |
+| PS-9 | Plan by plan, the Admin decides whether it closes by itself at the end, and whether it can be closed early, paused or renewed | P1 | Manoj | Done |
 | PS-10 | The Admin sets tax rules, and taxes are calculated from them automatically | P1 | Manoj | Done |
 
 ### Subscriptions
@@ -55,9 +55,9 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-11 | Quotation templates hold the plan and product lines and stay valid for a set number of days. A quotation can start from one | P2 | Manoj | In progress |
-| PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | In progress |
+| PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | Done |
 | PS-13 | A subscription moves Draft → Quotation → Confirmed → Active → Closed, and the team can see where it stands and its history | P1 | Jayasurya | In progress |
-| PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | In progress |
+| PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | Done |
 
 ### Billing
 
@@ -79,7 +79,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-21 | A payment is recorded with method, amount, date and note against the right invoice | P1 | Yadhu | In progress |
+| PS-21 | A payment is recorded with method, amount, date and note against the right invoice | P1 | Yadhu | Done |
 | PS-22 | The team can see which invoices are paid, outstanding and overdue at any moment | P1 | Yadhu | Done |
 | PS-23 | The finance lead sees active subscriptions, revenue, payments, amounts owed and overdue invoices in one place | P1 | Jayasurya | In progress |
 | PS-24 | Reports have filters and a summary view | P2 | Jayasurya | In progress |

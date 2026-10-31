@@ -1,11 +1,12 @@
 // Period-filtered finance summary, revenue chart and subscription renewals (PS-24).
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Alert, Field, PageHeader, Spinner } from '../../components/ui.jsx';
+import { Field, PageHeader, Spinner } from '../../components/ui.jsx';
 import { formatDate, formatMoney } from '../../lib/format.js';
 import { useApi } from '../../lib/useApi.js';
 import { validateDateRange } from '../../lib/validators.js';
 import ReportRenewals from './ReportRenewals.jsx';
+import ReportLoadError from './ReportLoadError.jsx';
 import RevenueChart from './RevenueChart.jsx';
 
 function ReportFilters({ values, onApply }) {
@@ -29,24 +30,43 @@ function ReportFilters({ values, onApply }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="card mb-6 grid gap-4 sm:grid-cols-[1fr_1fr_auto]">
-      <Field label="From">
-        <input className="input" type="date" name="from" value={form.from} onChange={handleChange} />
-      </Field>
-      <Field label="To" error={error}>
+    <form noValidate onSubmit={handleSubmit} className="card mb-6 grid gap-4 sm:grid-cols-[1fr_1fr_auto]">
+      <Field label="From" inputId="report-from">
         <input
+          id="report-from"
+          className="input"
+          type="date"
+          name="from"
+          value={form.from}
+          onChange={handleChange}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? 'report-date-range-error' : undefined}
+        />
+      </Field>
+      <Field label="To" inputId="report-to" error={error} errorId="report-date-range-error">
+        <input
+          id="report-to"
           className={`input ${error ? 'input-error' : ''}`}
           type="date"
           name="to"
           value={form.to}
           onChange={handleChange}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? 'report-date-range-error' : undefined}
         />
       </Field>
       <div className="flex items-end gap-2">
-        <button className="btn-primary" type="submit">
+        <button
+          className="btn-primary min-h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          type="submit"
+        >
           Apply
         </button>
-        <button className="btn-secondary" type="button" onClick={handleClear}>
+        <button
+          className="btn-secondary min-h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          type="button"
+          onClick={handleClear}
+        >
           Clear
         </button>
       </div>
@@ -90,7 +110,7 @@ function SummaryCards({ summary }) {
         <Link
           key={card.label}
           to={card.path}
-          className="card block transition hover:border-brand-300 hover:shadow-md"
+          className="card block transition hover:border-brand-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         >
           <p className="text-sm text-slate-500">{card.label}</p>
           <p className="mt-2 text-2xl font-semibold text-slate-900">{card.value}</p>
@@ -105,12 +125,13 @@ export default function Reports() {
   const [searchParams, setSearchParams] = useSearchParams();
   const filterValues = { from: searchParams.get('from') ?? '', to: searchParams.get('to') ?? '' };
   const summaryQuery = Object.fromEntries(Object.entries(filterValues).filter(([, value]) => value));
-  const { data: summary, loading, error } = useApi('/reports/summary', summaryQuery);
+  const { data: summary, loading, error, reload: reloadSummary } = useApi('/reports/summary', summaryQuery);
   const renewalPage = Number(searchParams.get('page') ?? 1);
   const {
     data: renewals,
     loading: renewalsLoading,
     error: renewalsError,
+    reload: reloadRenewals,
   } = useApi('/reports/renewals', { page: renewalPage, pageSize: 10 });
 
   const applyFilters = (filters) => {
@@ -140,7 +161,8 @@ export default function Reports() {
         }
       />
       <ReportFilters key={JSON.stringify(filterValues)} values={filterValues} onApply={applyFilters} />
-      <Alert>{[error, renewalsError].filter(Boolean).join(' ')}</Alert>
+      <ReportLoadError message={error} onRetry={reloadSummary} retryLabel="Retry summary" />
+      <ReportLoadError message={renewalsError} onRetry={reloadRenewals} retryLabel="Retry renewals" />
       {loading ? <Spinner /> : summary ? <SummaryCards summary={summary} /> : null}
       <div className="mt-8">
         <RevenueChart />
