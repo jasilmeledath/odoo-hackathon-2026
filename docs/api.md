@@ -91,7 +91,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | Yes |
 | POST | `/templates` | Admin | Create with lines | PS-11 | Yes |
 | PUT | `/templates/:id` | Admin | Update with lines | PS-11 | Yes |
-| GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`) | PS-19 | Yes |
+| GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`, `SCHEDULED`, `INACTIVE`) | PS-19 | Yes |
 | GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | Yes |
 | POST | `/discounts` | Admin | Create | PS-19 | Yes |
 | PUT | `/discounts/:id` | Admin | Update or deactivate | PS-19 | Yes |
@@ -154,7 +154,7 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 |---|---|---|---|---|---|
 | GET | `/portal/subscriptions` | Customer | Own subscriptions | PS-26 | Yes |
 | GET | `/portal/subscriptions/:id` | Customer | One subscription with lines | PS-26 | Yes |
-| POST | `/portal/subscriptions/:id/accept` | Customer | Accept a quotation | PS-27 | |
+| POST | `/portal/subscriptions/:id/accept` | Customer | Accept a quotation | PS-27 | Yes |
 | PATCH | `/portal/subscriptions/:id/lines/:lineId` | Customer | `{ isActive }`: switch an add-on on or off | PS-27 | |
 | POST | `/portal/subscriptions/:id/pause` | Customer | Pause, if the plan allows | PS-27 | Yes |
 | POST | `/portal/subscriptions/:id/resume` | Customer | Resume | PS-27 | Yes |
@@ -855,3 +855,19 @@ Responses: `200` updated detail; `400` invalid ID/body; `401` missing
 session; `403` non-Customer; `404` missing profile/record or foreign owner;
 `409` invalid state or a plan that disallows the action. PS-27 remains In
 progress until the separately assigned acceptance and add-on flows integrate.
+
+### POST /api/portal/subscriptions/:id/accept
+
+Accept the authenticated customer's own Quotation through the subscriptions
+service and its shared `assertTransition()` (PS-27). Body is empty or `{}`;
+unknown fields are rejected. A scoped row lock keeps ownership, expiry,
+status and activity recording in the same transaction. The response uses
+the portal's safe detail projection, never staff-only customer fields.
+
+Responses: `200` Confirmed subscription; `400` invalid ID/body; `401`
+unauthenticated; `403` non-Customer; `404` missing profile/subscription or
+another customer's record; `409` expired quotation or invalid current state.
+The expiry date is inclusive in IST. The portal shows pending, error and
+success feedback and refreshes status after acceptance. Activation follows
+the existing staff/scheduler workflow. PS-27 remains In progress until the
+other separately assigned customer actions are integrated.

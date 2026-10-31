@@ -4,6 +4,7 @@ import { prisma } from '../../lib/prisma.js';
 import { paginate } from '../../lib/pagination.js';
 import { HttpError } from '../../lib/errors.js';
 import { manageSubscription } from '../subscriptions/subscriptions.service.js';
+import { transitionSubscription } from '../subscriptions/subscriptions.service.js';
 import { withComputedFields } from '../invoices/invoices.service.js';
 const SUBSCRIPTION_FIELDS = {
   id: true,
@@ -131,4 +132,11 @@ export async function getInvoice(customerId, id) {
   });
   if (!invoice) throw new HttpError(404, 'Invoice not found');
   return withComputedFields(invoice);
+}
+
+// PS-27: the subscription service owns expiry, transitions, locking and history.
+export async function acceptQuotation(id, actor) {
+  assertCustomerProfile(actor.customerId);
+  await transitionSubscription(id, 'CONFIRM', { ...actor, role: 'CUSTOMER' });
+  return getSubscription(actor.customerId, id);
 }
