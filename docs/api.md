@@ -73,8 +73,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | PUT | `/payment-terms/:id` | Admin | Update or deactivate | PS-12 | Yes |
 | GET | `/products` | Staff | List, filtered by `type`, `isActive`, `q` | PS-6 | Yes |
 | GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | Yes |
-| POST | `/products` | Admin | Create | PS-6 | |
-| PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | |
+| POST | `/products` | Admin | Create | PS-6 | Yes |
+| PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | Yes |
 | POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | |
 | PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | |
 | DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | |
@@ -367,3 +367,24 @@ records are never deleted by these routes. **Response:** `200`. Refs: PS-12.
 **Errors for all four routes:** `400` invalid body or ID with field messages;
 `401` unauthenticated; `403` wrong role; `409` duplicate name with
 `fields.name`; update also returns `404` for an absent ID. No schema change.
+
+
+### Product writes (PS-6)
+
+#### POST `/api/products`
+
+Create a product. **Auth:** Admin. **Body:** `name` (1 to 120 trimmed
+characters), `type` (SOFTWARE, ADD_ON or SERVICE), `salesPrice` and `costPrice`
+(integer paise, 0 to 1000000000), optional `notes` (up to 1000 characters
+or null), optional `isActive` (boolean, default true). **Response:** `201`
+the saved product. Refs: PS-6.
+
+#### PUT `/api/products/:id`
+
+Update a product with the same body. Deactivate using `isActive: false`
+without deleting history. **Auth:** Admin. **Response:** `200` the saved
+product. Refs: PS-6.
+
+**Errors:** `400` invalid input with field messages; `401` unauthenticated;
+`403` wrong role; `409` duplicate name with `fields.name`; update returns
+`404` for an absent ID. Money remains whole paise. No schema change.
