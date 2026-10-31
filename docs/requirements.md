@@ -48,7 +48,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | PS-7 | A product has variants, each adding an extra price (choosing the Odoo brand adds 560) | P1 | Manoj | Not started |
 | PS-8 | The Admin manages plans: price, billing period (daily, weekly, monthly, yearly), minimum quantity and the dates it is available | P1 | Manoj | In progress |
 | PS-9 | Plan by plan, the Admin decides whether it closes by itself at the end, and whether it can be closed early, paused or renewed | P1 | Manoj | Not started |
-| PS-10 | The Admin sets tax rules, and taxes are calculated from them automatically | P1 | Manoj | In progress |
+| PS-10 | The Admin sets tax rules, and taxes are calculated from them automatically | P1 | Manoj | Done |
 
 ### Subscriptions
 
@@ -56,7 +56,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 |---|---|---|---|---|
 | PS-11 | Quotation templates hold the plan and product lines and stay valid for a set number of days. A quotation can start from one | P2 | Manoj | Not started |
 | PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | In progress |
-| PS-13 | A subscription moves Draft → Quotation → Confirmed → Active → Closed, and the team can see where it stands and its history | P1 | Jayasurya | Not started |
+| PS-13 | A subscription moves Draft → Quotation → Confirmed → Active → Closed, and the team can see where it stands and its history | P1 | Jayasurya | In progress |
 | PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | Not started |
 
 ### Billing
