@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --import=tsx --watch --env-file=.env src/index.js",
     "start": "node --import=tsx --env-file=.env src/index.js",
-    "test": "node --test src/",
+    "test": "node --test \"src/**/*.test.js\"",
     "db:migrate": "prisma migrate dev && npm run db:generate",
     "db:generate": "prisma generate",
     "db:seed": "node --import=tsx --env-file=.env prisma/seed.js",
