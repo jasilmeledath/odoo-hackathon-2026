@@ -14,6 +14,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
+- Startup/hourly processing activates due subscriptions, closes plans at expiry when configured, and generates due invoices (PS-14, PS-15).
+
 - Staff can generate recurring Draft invoices with tax snapshots, catch-up billing and duplicate protection (PS-15, PS-16).
 
 - Active accounts log in with expiring tokens and role-based navigation (PS-2).
