@@ -87,10 +87,10 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/templates` | Staff | List | PS-11 | |
-| GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | |
-| POST | `/templates` | Admin | Create with lines | PS-11 | |
-| PUT | `/templates/:id` | Admin | Update with lines | PS-11 | |
+| GET | `/templates` | Staff | List | PS-11 | Yes |
+| GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | Yes |
+| POST | `/templates` | Admin | Create with lines | PS-11 | Yes |
+| PUT | `/templates/:id` | Admin | Update with lines | PS-11 | Yes |
 | GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`) | PS-19 | Yes |
 | GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | Yes |
 | POST | `/discounts` | Admin | Create | PS-19 | Yes |
@@ -608,3 +608,38 @@ with billing claims; the limit cannot be lower than the current usage count.
 Errors: `400` field errors or invalid/read-only input, `401` unauthenticated,
 `403` not Admin, `404` missing discount, `409` duplicate name with
 `fields.name` or concurrently removed product choices. No schema changes.
+
+### Quotation templates (PS-11)
+
+**Auth:** Staff reads; Admin writes (A-7). No new schema or migrations.
+
+#### GET /api/templates
+
+Paginated, case-insensitive name search through `q`. Returns template summaries,
+the plan and `_count.lines`. Uses the shared page and pageSize limits.
+
+#### GET /api/templates/:id
+
+Returns the template with ordered lines, product/variant names and current
+`unitPrice` in paise. The plan price replaces its own product's sales price;
+other lines use sales price, then add the variant extra price (A-5). No prices
+are stored on templates or their lines.
+
+#### POST /api/templates / PUT /api/templates/:id
+
+| Field | Type | Rules |
+|---|---|---|
+| name | string | Trimmed, 1-120 characters, unique |
+| planId | number | Existing plan |
+| validityDays | number | Integer, 1-2147483647 |
+| notes | string/null | Optional, at most 1000 characters |
+| isActive | boolean | Default true; deactivate to retain history |
+| lines | array | 1-100 lines, replaced atomically on update |
+| lines[].productId | number | Existing product |
+| lines[].variantId | number/null | Optional; must belong to the selected product |
+| lines[].quantity | number | Integer, 1-2147483647 |
+
+Responses: `201` created, `200` updated; `400` invalid fields (line keys such as
+`lines.0.variantId`), `401` unauthenticated, `403` forbidden, `404` missing
+template, `409` duplicate name or concurrently removed catalog references.
+Line inputs reject price fields rather than accepting a stale snapshot.

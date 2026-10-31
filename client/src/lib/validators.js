@@ -106,3 +106,39 @@ export const validatePlan = (form) => {
     fields.endDate = 'End date must be on or after start date';
   return fields;
 };
+
+export const MAX_TEMPLATE_NAME = 120;
+export const MAX_TEMPLATE_NOTES = 1000;
+export const MAX_TEMPLATE_LINES = 100;
+export const MAX_TEMPLATE_INTEGER = 2_147_483_647;
+export const validateInteger = (input, label, minimum = 1) => {
+  const value = Number(input);
+  if (input === null || input === undefined || String(input).trim() === '' || !Number.isFinite(value))
+    return label + ' is required';
+  if (!Number.isInteger(value)) return label + ' must be a whole number';
+  if (value < minimum) return label + ' must be at least ' + minimum;
+  if (value > MAX_TEMPLATE_INTEGER) return label + ' is too large';
+  return '';
+};
+
+// PS-11: validate references and quantities; current prices are read-only.
+export const validateTemplate = (form) => {
+  const fields = {};
+  if (!form.name.trim()) fields.name = 'Name is required';
+  else if (form.name.trim().length > MAX_TEMPLATE_NAME) fields.name = 'Name must be at most 120 characters';
+  if (validateInteger(form.planId, 'Plan')) fields.planId = 'Choose an existing plan';
+  const validityError = validateInteger(form.validityDays, 'Validity days');
+  if (validityError) fields.validityDays = validityError;
+  if (form.notes.trim().length > MAX_TEMPLATE_NOTES) fields.notes = 'Notes must be at most 1000 characters';
+  if (!form.lines.length) fields.lines = 'Add at least one line';
+  else if (form.lines.length > MAX_TEMPLATE_LINES) fields.lines = 'Use at most 100 lines';
+  form.lines.forEach((line, index) => {
+    if (validateInteger(line.productId, 'Product'))
+      fields['lines.' + index + '.productId'] = 'Choose an existing product';
+    if (line.variantId && validateInteger(line.variantId, 'Variant'))
+      fields['lines.' + index + '.variantId'] = 'Choose a variant of this product';
+    const quantityError = validateInteger(line.quantity, 'Quantity');
+    if (quantityError) fields['lines.' + index + '.quantity'] = quantityError;
+  });
+  return fields;
+};
