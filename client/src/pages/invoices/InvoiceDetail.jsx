@@ -6,6 +6,7 @@ import { Alert, EmptyState, PageHeader, Spinner, StatusBadge } from '../../compo
 import { api } from '../../lib/api.js';
 import { formatDate, formatLabel, formatMoney } from '../../lib/format.js';
 import { useApi } from '../../lib/useApi.js';
+import RecordPayment from '../payments/RecordPayment.jsx';
 
 function Summary({ invoice }) {
   const details = [
@@ -121,6 +122,8 @@ export default function InvoiceDetail() {
   const { data: invoice, loading, error, reload } = useApi(`/invoices/${id}`);
   const [isConfirming, setIsConfirming] = useState(false);
   const [actionError, setActionError] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState('');
 
   const handleConfirm = async () => {
     setIsConfirming(true);
@@ -158,8 +161,19 @@ export default function InvoiceDetail() {
         title={invoice.number}
         subtitle={invoice.isOverdue ? 'Overdue: the due date has passed' : undefined}
         action={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <StatusBadge status={invoice.isOverdue ? 'OVERDUE' : invoice.status} />
+            {invoice.status === 'CONFIRMED' && (
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setPaymentMessage('');
+                  setIsRecording(true);
+                }}
+              >
+                Record payment
+              </button>
+            )}
             {invoice.status === 'DRAFT' && (
               <button className="btn-primary" disabled={isConfirming} onClick={handleConfirm}>
                 {isConfirming ? 'Confirming...' : 'Confirm invoice'}
@@ -169,6 +183,23 @@ export default function InvoiceDetail() {
         }
       />
       <Alert>{actionError}</Alert>
+      <Alert tone="success">{paymentMessage}</Alert>
+      {isRecording && invoice.status === 'CONFIRMED' && (
+        <section>
+          <h2 className="mb-3 text-lg font-semibold">Record payment</h2>
+          <RecordPayment
+            invoice={invoice}
+            onRecorded={() => {
+              setIsRecording(false);
+              setPaymentMessage('Payment recorded');
+              reload();
+            }}
+          />
+          <button className="btn-secondary mt-3" onClick={() => setIsRecording(false)}>
+            Cancel
+          </button>
+        </section>
+      )}
       <Summary invoice={invoice} />
       <LineTable lines={invoice.lines} />
       <Totals invoice={invoice} />

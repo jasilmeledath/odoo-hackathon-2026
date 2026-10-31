@@ -14,7 +14,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
-*Filled in as each requirement lands. Track progress in [docs/requirements.md](docs/requirements.md).*
+- Record part/final payments from invoice detail, serialize balance checks and log every committed payment. (PS-21, PS-22).
 
 ## Screenshots
 

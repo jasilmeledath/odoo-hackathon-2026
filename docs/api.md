@@ -37,7 +37,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/health` | Public | Checks the API and the database connection | | Yes |
+| GET | `/health` | Public | Checks the API and the database connection | Yes |
 
 ### Auth (`modules/auth`)
 
@@ -131,8 +131,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | |
-| POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | |
+| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | | |
+| POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | Yes |
 
 ### Reports (`modules/reports`)
 
@@ -290,3 +290,13 @@ including product-detail plans, are `YYYY-MM-DD`; money remains integer paise.
 **Responses:** `200` the record or standard paginated envelope; `400` invalid
 query/ID with per-field messages; `401` unauthenticated; `403` wrong role;
 `404` unknown product or plan. No schema or migration changes are required.
+
+### POST /api/payments
+
+Record payment against a CONFIRMED invoice. **Auth:** Admin, Internal. Refs: PS-21, PS-22.
+
+**Body:** invoiceId positive integer; method CASH/BANK_TRANSFER/UPI/CARD/CHEQUE; amount positive whole paise at most 1,000,000,000 and not above balance; paymentDate valid YYYY-MM-DD not after today in IST; note optional, at most 500 characters.
+
+**Response:** 201 { payment, invoice }, including invoice.balanceAmount. Part payments leave CONFIRMED; full settlement sets PAID and paidAt. Row locking serializes concurrent requests. Payment insertion, balance update and PAYMENT_RECORDED activity happen in one transaction.
+
+**Responses:** 400 field validation or overpayment (fields.amount states current balance); 404 invoice missing; 409 invoice not CONFIRMED; 401 unauthenticated; 403 customer. The invoice-detail form converts rupees to paise at the UI boundary and refreshes invoice/payment history after success.
