@@ -1,4 +1,4 @@
-// Atomic customer account creation and linking (PS-1, PS-5, A-4).
+// Atomic customer account creation (PS-1, PS-5, A-4). Never links an existing customer record.
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../lib/prisma.js';
 import { HttpError } from '../../lib/errors.js';
@@ -15,15 +15,10 @@ export async function register({ name, email, password }) {
       const account = await transaction.user.create({
         data: { name, email, passwordHash, role: 'CUSTOMER' },
       });
+      // A staff-made customer with this email is not proof that the signer owns it, so the
+      // account is created without linking. Staff link it after they verify the customer.
       const customer = await transaction.customer.findUnique({ where: { email } });
-      if (customer) {
-        const linked = await transaction.customer.updateMany({
-          where: { id: customer.id, userId: null },
-          data: { userId: account.id },
-        });
-        if (!linked.count) throw duplicateEmail();
-        return { ...account, customerId: customer.id };
-      }
+      if (customer) return { ...account, customerId: null };
       const created = await transaction.customer.create({ data: { name, email, userId: account.id } });
       return { ...account, customerId: created.id };
     });
