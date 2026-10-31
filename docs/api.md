@@ -120,7 +120,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/billing/due` | Staff | Subscriptions due, with a count and expected total | PS-15 | |
 | POST | `/billing/run` | Staff | Bill everything due. Returns `{ created, skipped, failed }` | PS-15, PS-16, PS-20 | |
 | POST | `/billing/subscriptions/:id` | Staff | Bill one subscription | PS-15 | |
-| GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | |
+| GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | ✓ |
 | GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | |
 | POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | |
 | POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 | |
@@ -168,6 +168,27 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 Checks the API and the database connection. **Auth:** none.
 
 **Responses:** `200` `{ "ok": true }` · `500` the database cannot be reached
+
+### GET /api/invoices
+
+List invoices, newest first, with the balance and whether each is overdue. **Auth:** Admin, Internal. Refs: PS-17, PS-22.
+
+**Query**
+
+| Field | Type | Rules |
+|---|---|---|
+| `page`, `pageSize` | number | Page from 1. Page size 1 to 50, default 10 |
+| `status` | string | `DRAFT`, `CONFIRMED`, `PAID` or `CANCELED`. `CONFIRMED` means outstanding |
+| `isOverdue` | string | `true`: confirmed with a due date before today. `false`: everything else. Worked out when asked, never stored (A-15) |
+| `customerId` | number | An existing customer |
+| `from`, `to` | string | `YYYY-MM-DD`, filter on the issue date. `to` must not be before `from` |
+| `q` | string | At most 100 chars. Matches the invoice number or customer name, ignoring case |
+
+Filters combine with AND, so `status=PAID&isOverdue=true` returns nothing.
+
+**Response** `200`: `{ items, total, page, pageSize, pages }`. Each item has `id`, `number`, `status`, `billingName`, `issueDate`, `dueDate`, `totalAmount`, `paidAmount`, `balanceAmount`, `isOverdue`, `sentAt` and `subscription` (`id`, `number`). Money is in paise.
+
+**Responses:** `200` the page of invoices · `400` validation (`fields.to`, `fields.status`) · `401` not logged in · `403` not staff
 
 <!-- Add one entry per route, grouped by module, in the format from
 docs/documentation-rules.md §5. Add it in the same commit as the route. -->

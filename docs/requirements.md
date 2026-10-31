@@ -65,7 +65,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 |---|---|---|---|---|
 | PS-15 | On billing day, invoices are created from due subscriptions with customer details, lines, taxes and totals filled in. Nothing is billed twice or skipped | P1 | Jasil | Not started |
 | PS-16 | Taxes on invoices are calculated automatically from the Admin's rules | P1 | Jasil | Not started |
-| PS-17 | An invoice moves Draft → Confirmed → Paid, and can be canceled | P1 | Jasil | Not started |
+| PS-17 | An invoice moves Draft → Confirmed → Paid, and can be canceled | P1 | Jasil | In progress |
 | PS-18 | The team can send or print any invoice | P2 | Jasil | Not started |
 
 ### Discounts
