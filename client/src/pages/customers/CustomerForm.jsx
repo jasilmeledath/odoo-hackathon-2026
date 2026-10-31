@@ -44,6 +44,7 @@ function CustomerEditor({ customer, id }) {
       onSubmit={(values) =>
         api(id ? '/customers/' + id : '/customers', { method: id ? 'PUT' : 'POST', body: values })
       }
+      successMessage="Customer saved"
       onSaved={(saved) => navigate('/customers/' + saved.id)}
     />
   );

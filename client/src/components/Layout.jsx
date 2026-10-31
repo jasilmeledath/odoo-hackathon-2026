@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth.jsx';
+import { useToast } from '../lib/toast.js';
 import { formatLabel } from '../lib/format.js';
 import { useDashboardEvents } from '../lib/useDashboardEvents.js';
 
@@ -55,6 +56,7 @@ const menuFor = (role) => {
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const toast = useToast();
   const { pathname } = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   useDashboardEvents(pathname === '/');
@@ -88,11 +90,16 @@ export default function Layout() {
     </nav>
   );
 
+  const handleLogout = () => {
+    logout();
+    toast.success('You have been logged out.');
+  };
+
   const account = (
     <div className="border-t border-slate-200 px-3 pt-4">
       <p className="text-sm font-medium text-slate-900">{user.name}</p>
       <p className="text-xs text-slate-500">{formatLabel(user.role)}</p>
-      <button onClick={logout} className="mt-3 text-sm text-brand-600 hover:underline">
+      <button onClick={handleLogout} className="mt-3 text-sm text-brand-600 hover:underline">
         Log out
       </button>
     </div>

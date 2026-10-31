@@ -3,6 +3,7 @@ import { useState } from 'react';
 import ProductVariants from './ProductVariants.jsx';
 import { Alert, Field } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
+import { useToast } from '../../lib/toast.js';
 import { formatLabel, formatMoney, toPaise, toRupees } from '../../lib/format.js';
 import {
   MAX_PRODUCT_NAME,
@@ -25,12 +26,16 @@ export default function ProductForm({ product, onSaved, onCancel }) {
   const [fields, setFields] = useState({});
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const toast = useToast();
   const handleSubmit = async (event) => {
     event.preventDefault();
     const validation = validateProduct(form);
     setFields(validation);
     setError('');
-    if (Object.keys(validation).length) return;
+    if (Object.keys(validation).length) {
+      toast.error('Please fix the highlighted fields.');
+      return;
+    }
     if (
       product?.isActive &&
       !form.isActive &&
@@ -43,9 +48,11 @@ export default function ProductForm({ product, onSaved, onCancel }) {
         method: product ? 'PUT' : 'POST',
         body: { ...form, salesPrice: toPaise(form.salesPrice), costPrice: toPaise(form.costPrice) },
       });
+      toast.success(product ? 'Product saved' : 'Product created');
       await onSaved();
     } catch (failure) {
       setError(failure.message);
+      toast.error(failure.message);
       setFields(failure.fields ?? {});
     } finally {
       setIsSaving(false);

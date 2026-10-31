@@ -6,6 +6,7 @@ import { api } from '../../lib/api.js';
 import { useSearchParams } from 'react-router-dom';
 import { Alert, EmptyState, Field, PageHeader, Pagination, Spinner } from '../../components/ui.jsx';
 import { useApi } from '../../lib/useApi.js';
+import { useToast } from '../../lib/toast.js';
 import { validateDateRange } from '../../lib/validators.js';
 
 const VIEWS = [
@@ -45,6 +46,7 @@ function ViewTabs({ activeKey, onSelect }) {
 function InvoiceFilters({ values, onApply }) {
   const [form, setForm] = useState(values);
   const [errors, setErrors] = useState({});
+  const toast = useToast();
 
   const handleChange = (event) => setForm({ ...form, [event.target.name]: event.target.value });
 
@@ -52,7 +54,8 @@ function InvoiceFilters({ values, onApply }) {
     event.preventDefault();
     const rangeError = validateDateRange(form.from, form.to);
     setErrors(rangeError ? { to: rangeError } : {});
-    if (!rangeError) onApply(form);
+    if (rangeError) toast.error(rangeError);
+    else onApply(form);
   };
 
   const handleClear = () => {
@@ -103,6 +106,7 @@ export default function InvoiceList() {
   const [isConfirming, setIsConfirming] = useState(false);
   const [bulkError, setBulkError] = useState('');
   const [bulkResult, setBulkResult] = useState(null);
+  const toast = useToast();
   const draftIds =
     data?.items.filter((invoice) => invoice.status === 'DRAFT').map((invoice) => invoice.id) ?? [];
   const selected = selectedIds.filter((id) => draftIds.includes(id));
@@ -112,11 +116,16 @@ export default function InvoiceList() {
     setBulkError('');
     setBulkResult(null);
     try {
-      setBulkResult(await api('/invoices/confirm-all', { method: 'POST', body: { invoiceIds: selected } }));
+      const outcome = await api('/invoices/confirm-all', { method: 'POST', body: { invoiceIds: selected } });
+      setBulkResult(outcome);
+      if (outcome.failed)
+        toast.error(`${outcome.failed} invoice${outcome.failed === 1 ? '' : 's'} could not be confirmed.`);
+      else toast.success(`Confirmed ${outcome.confirmed} invoice${outcome.confirmed === 1 ? '' : 's'}.`);
       setSelectedIds([]);
       await reload();
     } catch (failure) {
       setBulkError(failure.message);
+      toast.error(failure.message);
     } finally {
       setIsConfirming(false);
     }

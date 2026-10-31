@@ -34,12 +34,16 @@ export default function StaffForm({ staff, onSaved }) {
           staff.isActive &&
           !values.isActive &&
           !window.confirm('Deactivate this staff member and end their access?')
-        )
-          return Promise.reject(new Error('Deactivation canceled'));
+        ) {
+          const canceled = new Error('Deactivation canceled');
+          canceled.canceled = true;
+          return Promise.reject(canceled);
+        }
         const body = { ...values };
         if (!body.password) delete body.password;
         return api(staff ? '/staff/' + staff.id : '/staff', { method: staff ? 'PATCH' : 'POST', body });
       }}
+      successMessage="Staff member saved"
       onSaved={onSaved}
     />
   );

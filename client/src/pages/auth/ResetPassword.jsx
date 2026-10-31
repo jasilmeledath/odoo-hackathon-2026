@@ -37,6 +37,7 @@ export default function ResetPassword() {
             setMessage(result.message);
           }}
           submitLabel="Reset password"
+          successMessage={(result) => result.message}
         />
       )}
       <div className="mt-4 flex flex-wrap gap-4 text-brand-600">

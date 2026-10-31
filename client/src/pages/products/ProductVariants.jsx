@@ -4,6 +4,7 @@ import { Alert, EmptyState, Field, Spinner } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
 import { formatMoney, toPaise, toRupees } from '../../lib/format.js';
 import { useApi } from '../../lib/useApi.js';
+import { useToast } from '../../lib/toast.js';
 import { MAX_PRICE_RUPEES, MAX_VARIANT_TEXT, validateVariant } from '../../lib/validators.js';
 
 const CHOICES = [
@@ -20,6 +21,7 @@ export default function ProductVariants({ productId, disabled }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const toast = useToast();
   const reset = () => {
     setForm(EMPTY_VARIANT);
     setEditingId(null);
@@ -30,7 +32,11 @@ export default function ProductVariants({ productId, disabled }) {
     setFields(validation);
     setError('');
     setSuccess('');
-    if (Object.keys(validation).length || isSaving || disabled) return;
+    if (Object.keys(validation).length) {
+      toast.error('Please fix the highlighted fields.');
+      return;
+    }
+    if (isSaving || disabled) return;
     setIsSaving(true);
     try {
       await api('/products/' + productId + '/variants' + (editingId ? '/' + editingId : ''), {
@@ -39,10 +45,12 @@ export default function ProductVariants({ productId, disabled }) {
       });
       reset();
       setSuccess('Variant saved');
+      toast.success('Variant saved');
       await reload();
     } catch (failure) {
       setFields(failure.fields ?? {});
       setError(failure.message);
+      toast.error(failure.message);
     } finally {
       setIsSaving(false);
     }
@@ -56,9 +64,11 @@ export default function ProductVariants({ productId, disabled }) {
       await api('/products/' + productId + '/variants/' + variantId, { method: 'DELETE' });
       if (editingId === variantId) reset();
       setSuccess('Variant removed');
+      toast.success('Variant removed');
       await reload();
     } catch (failure) {
       setError(failure.message);
+      toast.error(failure.message);
     } finally {
       setIsSaving(false);
     }
