@@ -65,21 +65,21 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/taxes` | Staff | List | PS-10 | |
+| GET | `/taxes` | Staff | List | PS-10 | Yes |
 | POST | `/taxes` | Admin | Create | PS-10 | |
 | PUT | `/taxes/:id` | Admin | Update or deactivate | PS-10 | |
-| GET | `/payment-terms` | Staff | List | PS-12 | |
+| GET | `/payment-terms` | Staff | List | PS-12 | Yes |
 | POST | `/payment-terms` | Admin | Create | PS-12 | |
 | PUT | `/payment-terms/:id` | Admin | Update or deactivate | PS-12 | |
-| GET | `/products` | Staff | List, filtered by `type`, `isActive`, `q` | PS-6 | |
-| GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | |
+| GET | `/products` | Staff | List, filtered by `type`, `isActive`, `q` | PS-6 | Yes |
+| GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | Yes |
 | POST | `/products` | Admin | Create | PS-6 | |
 | PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | |
 | POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | |
 | PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | |
 | DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | |
-| GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | |
-| GET | `/plans/:id` | Staff | One plan | PS-8 | |
+| GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | Yes |
+| GET | `/plans/:id` | Staff | One plan | PS-8 | Yes |
 | POST | `/plans` | Admin | Create | PS-8, PS-9 | |
 | PUT | `/plans/:id` | Admin | Update or deactivate | PS-8, PS-9 | |
 
@@ -244,3 +244,49 @@ The status is checked inside the update, so two people confirming at once cannot
 **Responses:** `200` the confirmed invoice, as in `GET /api/invoices/:id` · `400` the id is not a number · `401` not logged in · `403` not staff · `404` invoice not found · `409` the invoice is not a `DRAFT`
 <!-- Add one entry per route, grouped by module, in the format from
 docs/documentation-rules.md §5. Add it in the same commit as the route. -->
+
+### Catalog read endpoints (PS-6, PS-8, PS-10, PS-12)
+
+**Auth:** Admin and Internal for all six routes. Missing authentication returns
+`401`; a Customer receives `403` before query validation.
+
+#### GET `/api/taxes`
+
+List tax identifiers, names, decimal-string rates and active flags. Refs: PS-10.
+
+#### GET `/api/payment-terms`
+
+List payment-term identifiers, names, due days and active flags. Refs: PS-12.
+
+#### GET `/api/products`
+
+List product identifiers, names, types, sales/cost prices, tax IDs and active
+flags. Optional filters: `type` (SOFTWARE, ADD_ON, SERVICE), `isActive`. Refs: PS-6.
+
+#### GET `/api/products/:id`
+
+Read one product with notes, variants and plans; absent IDs return `404`.
+Refs: PS-6, PS-7.
+
+#### GET `/api/plans`
+
+List plans with price, billing period, quantity, dates and behaviour switches.
+Optional filters: `availableOn`, `isActive`. Refs: PS-8, PS-9.
+
+#### GET `/api/plans/:id`
+
+Read one plan; absent IDs return `404`. Refs: PS-8, PS-9.
+
+#### Shared catalog query and response rules
+
+Lists accept `page`, `pageSize` (maximum 50) and case-insensitive name search
+`q` (maximum 100 characters). Filters combine with AND. `isActive` accepts
+only the strings `true` or `false`; omission includes both states.
+`availableOn` is a real calendar date in `YYYY-MM-DD` format and returns
+active plans whose start date is on/before that day and whose end date is
+null or on/after it. Both boundaries are inclusive. Dates in plan responses,
+including product-detail plans, are `YYYY-MM-DD`; money remains integer paise.
+
+**Responses:** `200` the record or standard paginated envelope; `400` invalid
+query/ID with per-field messages; `401` unauthenticated; `403` wrong role;
+`404` unknown product or plan. No schema or migration changes are required.
