@@ -14,6 +14,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
+- Customers switch existing subscription add-ons on and off, with protected plan products and recalculated recurring totals (PS-27).
+
 - Customers can create Customer-only accounts with password validation and atomic billing-profile linking (PS-1, PS-5).
 - Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
 - Add customer-only subscription and invoice lists and details, scoped queries, URL search, payment history and balance display. (PS-26).
@@ -39,6 +41,9 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 - Add forgot/reset pages, 30-minute hashed recovery tokens and immediate session invalidation, including the same-second boundary. (PS-3).
 
 - Admins manage fixed/percentage discounts, scope-specific products, minimums, dates and usage limits; staff filter current rule states (PS-19).
+
+- Customers pause, resume and close their own subscriptions when the plan allows, with closing confirmation and server-side checks (PS-27).
+- Customers accept their own unexpired quotations in the portal, with transaction-safe ownership and status checks (PS-27).
 
 ## Screenshots
 
@@ -219,7 +224,13 @@ See [docs/api.md](docs/api.md).
 
 ## Known limitations
 
-*Filled in honestly at 4:45 PM.*
+Current limitations (refreshed against develop `122148f`):
+
+- Creating/editing subscriptions, lifecycle controls, discount management, customer portal reads and authentication attempt limits are now implemented.
+- Starting a quotation from a template (#36), portal acceptance (#29), lifecycle actions (#31) and add-on changes (#32) still await their owners. Full demo and final sign-off remain open.
+- The scale results in J-068 apply to its recorded source commit only. Newly merged screens require fresh measurements. PR #114 is merged, but its report is partial, so PS-25 remains in progress and issue #44 stays open.
+- Without SMTP, invoice/recovery messages print locally. Real SMTP delivery has not been exercised. Authentication attempt counters are local to one API process and reset on restart.
+
 
 ## Team
 
@@ -244,5 +255,5 @@ Use a separately created, migrated and seeded local database. Set
 npm run test:integration
 ```
 
-These tests create and remove their own fixture subscriptions. Do not point them
-at production data. They exercise transactional billing and concurrent runs.
+These tests create and remove their own fixture subscriptions and session-regression accounts. Do not point them
+at production data. They exercise transactional billing, concurrent runs and password-session revocation.
