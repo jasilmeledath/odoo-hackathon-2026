@@ -120,9 +120,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/billing/due` | Staff | Subscriptions due, with a count and expected total | PS-15 | |
 | POST | `/billing/run` | Staff | Bill everything due. Returns `{ created, skipped, failed }` | PS-15, PS-16, PS-20 | |
 | POST | `/billing/subscriptions/:id` | Staff | Bill one subscription | PS-15 | |
-| GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | |
-| GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | |
-| POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | |
+| GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | ✓ |
+| GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | ✓ |
+| POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | ✓ |
 | POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 | |
 | POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 | |
 | POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 | |
@@ -138,9 +138,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/reports/summary` | Staff | Active subscriptions, monthly recurring revenue, revenue, outstanding and overdue, for `from` and `to` | PS-23, PS-24 | |
+| GET | `/reports/summary` | Staff | Active subscriptions, monthly recurring revenue, revenue, outstanding and overdue, for `from` and `to` | PS-23, PS-24 | ✓ |
 | GET | `/reports/revenue` | Staff | Revenue by month, for the chart | PS-24 | |
-| GET | `/reports/renewals` | Staff | Subscriptions expiring soon or already expired | PS-23 | |
+| GET | `/reports/renewals` | Staff | Active subscriptions expiring in 30 days or overdue for renewal | PS-23 | ✓ |
 | GET | `/reports/events` | Staff | Server-Sent Events stream that says when numbers change | PS-28 | |
 
 ### Customer portal (`modules/portal`)
@@ -186,6 +186,62 @@ Filters combine with AND. **Response** `200`: `{ items, total, page, pageSize, p
 
 **Responses:** `200` the page of subscriptions · `400` invalid query (`fields.status`, `fields.customerId`, `fields.planId`) · `401` not logged in · `403` not staff
 
+### GET /api/reports/summary
+
+Read finance totals and the ten oldest overdue invoices. Revenue is the sum of payments received in the requested period; invoiced and outstanding balances are reported separately. Overdue is calculated from confirmed invoices past their due date. **Auth:** Admin, Internal. Refs: PS-23, PS-24.
+
+**Query** `from`, `to`: optional `YYYY-MM-DD` issue/payment date bounds. When omitted, the period defaults to the first day of the current IST month through today. `to` cannot be before `from`.
+
+**Response** `200`: `{ period, activeSubscriptionCount, monthlyRecurringAmount, invoicedAmount, revenueAmount, outstandingAmount, overdueAmount, overdueInvoices }`. `overdueInvoices` contains at most ten oldest overdue entries with `balanceAmount`. Money is in paise.
+
+**Responses:** `200` the summary · `400` invalid date (`fields.from`, `fields.to`) · `401` not logged in · `403` not staff
+
+### GET /api/reports/renewals
+
+List active subscriptions expiring within 30 days and active subscriptions already past expiry whose plan does not close automatically (A-20). Results are ordered by expiry date, oldest first. **Auth:** Admin, Internal. Refs: PS-23.
+
+**Query** `page`, `pageSize`: standard pagination; `q`: at most 100 characters, matching the subscription number, customer name/company, or plan name.
+
+**Response** `200`: `{ items, total, page, pageSize, pages }`. Each item includes the subscription number, expiry date, recurring amount, customer, and plan renewal flags.
+
+**Responses:** `200` the page of renewals · `400` invalid pagination/search query · `401` not logged in · `403` not staff
+
+### GET /api/invoices
+
+List invoices, newest first, with the balance and whether each is overdue. **Auth:** Admin, Internal. Refs: PS-17, PS-22.
+
+**Query**
+
+| Field | Type | Rules |
+|---|---|---|
+| `page`, `pageSize` | number | Page from 1. Page size 1 to 50, default 10 |
+| `status` | string | `DRAFT`, `CONFIRMED`, `PAID` or `CANCELED`. `CONFIRMED` means outstanding |
+| `isOverdue` | string | `true`: confirmed with a due date before today. `false`: everything else. Worked out when asked, never stored (A-15) |
+| `customerId` | number | An existing customer |
+| `from`, `to` | string | `YYYY-MM-DD`, filter on the issue date. `to` must not be before `from` |
+| `q` | string | At most 100 chars. Matches the invoice number or customer name, ignoring case |
+
+Filters combine with AND, so `status=PAID&isOverdue=true` returns nothing.
+
+**Response** `200`: `{ items, total, page, pageSize, pages }`. Each item has `id`, `number`, `status`, `billingName`, `issueDate`, `dueDate`, `totalAmount`, `paidAmount`, `balanceAmount`, `isOverdue`, `sentAt` and `subscription` (`id`, `number`). Money is in paise.
+
+**Responses:** `200` the page of invoices · `400` validation (`fields.to`, `fields.status`) · `401` not logged in · `403` not staff
+
+### GET /api/invoices/:id
+
+One invoice with its lines, payments, subscription and discount. **Auth:** Admin, Internal. Refs: PS-17.
+
+**Response** `200`: the invoice with `lines` (description, quantity, `unitPrice`, `amount`, `discountAmount`, `taxName`, `taxRatePercent`, `taxAmount`), `payments` (newest first, with `recordedBy`), `subscription` (`id`, `number`), `discount` (`id`, `name`, or `null`), `balanceAmount` and `isOverdue`. Money is in paise.
+
+**Responses:** `200` the invoice · `400` the id is not a number · `401` not logged in · `403` not staff · `404` invoice not found
+
+### POST /api/invoices/:id/confirm
+
+Confirm a draft invoice. **Auth:** Admin, Internal. Refs: PS-17.
+
+The status is checked inside the update, so two people confirming at once cannot both succeed. The change is logged on the invoice and subscription timelines.
+
+**Responses:** `200` the confirmed invoice, as in `GET /api/invoices/:id` · `400` the id is not a number · `401` not logged in · `403` not staff · `404` invoice not found · `409` the invoice is not a `DRAFT`
 <!-- Add one entry per route, grouped by module, in the format from
 docs/documentation-rules.md §5. Add it in the same commit as the route. -->
 
