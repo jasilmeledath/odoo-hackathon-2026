@@ -72,7 +72,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-19 | Only the Admin creates discount rules: fixed or percentage, minimum purchase or quantity, start and end dates, usage limit, and scope (specific products or the whole subscription) | P2 | Manoj | Not started |
+| PS-19 | Only the Admin creates discount rules: fixed or percentage, minimum purchase or quantity, start and end dates, usage limit, and scope (specific products or the whole subscription) | P2 | Manoj | In progress |
 | PS-20 | A discount that applies appears on the next invoice by itself, and stops when it expires or runs out | P2 | Jasil | Done |
 
 ### Payments and reporting
@@ -139,3 +139,5 @@ Anything the problem statement leaves open, and what we decided.
 | A-21 | When does Confirmed become Active? | On the start date through the daily job, or earlier by staff |
 | A-22 | What is revenue? | Payments received in the period. Invoiced and outstanding amounts are shown separately. Monthly recurring revenue is before tax and discount |
 | A-23 | Currencies, companies and time zones? | Indian rupees, one company, business days in IST |
+
+| A-24 | How are future or disabled discounts displayed? | User approved Scheduled and Inactive on 31 October. Derive state in this order: Inactive, Expired, Used up, Scheduled, Active. Both date boundaries are inclusive in IST; retain the Active, Expired and Used up filters. |
