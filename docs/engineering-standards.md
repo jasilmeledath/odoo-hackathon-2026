@@ -254,7 +254,7 @@ There's no time for a full test suite, so every change is **checked by hand** be
 
 **Debugging.** Reproduce the failure first, then read the evidence: the browser's network tab, the server's request log line, and the stack trace from the error handler. For data problems, check the table with `npx prisma studio` and slow queries with `EXPLAIN ANALYZE`. Fix the cause, not the symptom, and say what the cause was in the `fix` commit body. Everyone should be able to explain to the evaluator how they found a bug.
 
-**Integration checkpoints:** at **12:30 PM** and **3:30 PM**, everyone pulls `main` and the lead runs the full user journey end to end. Fix anything broken before starting new features.
+**Integration checkpoints:** at **12:30 PM** and **3:30 PM**, everyone pulls `develop` and the lead runs the full user journey end to end. Fix anything broken before starting new features.
 
 ## 13. Scope: no overkill
 
@@ -276,4 +276,4 @@ A feature is done when all of the following are true:
 - [ ] Rules are in the service, and any schema change is migrated and documented in [data-model.md](data-model.md)
 - [ ] It's reachable from the navigation
 - [ ] [api.md](api.md) and the README are updated if a route, env var or setup step changed, and the `PS-n` status in [requirements.md](requirements.md) is current
-- [ ] It's committed with a message that follows [CONTRIBUTING.md](../CONTRIBUTING.md) and pushed to `main`
+- [ ] It's committed with a message that follows [CONTRIBUTING.md](../CONTRIBUTING.md) and merged into `develop` through a pull request

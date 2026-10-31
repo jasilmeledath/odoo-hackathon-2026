@@ -3,7 +3,7 @@
 Before writing or reviewing code in this repository, read:
 
 1. [docs/engineering-standards.md](docs/engineering-standards.md): how code is written (stack, structure, validation, UI, API and database rules, definition of done)
-2. [CONTRIBUTING.md](CONTRIBUTING.md): commit message format and Git workflow (single `main` branch)
+2. [CONTRIBUTING.md](CONTRIBUTING.md): commit message format and Git workflow (feature branches into `develop`, and only `develop` into `main`)
 3. [docs/naming-conventions.md](docs/naming-conventions.md) and [docs/documentation-rules.md](docs/documentation-rules.md)
 4. [docs/requirements.md](docs/requirements.md): what is being built (`PS-n` IDs) and the decisions made
 5. [docs/implementation-plan.md](docs/implementation-plan.md): tasks, billing design and build order

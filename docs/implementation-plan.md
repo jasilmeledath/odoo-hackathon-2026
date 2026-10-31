@@ -25,9 +25,9 @@ Business features are deliberately **not** built. They belong to their owners, s
 
 ## 2. Start here
 
-Do these once, right after the lead pushes the repo:
+Do these once, after the project setup is merged into `develop`:
 
-1. Clone the repo and run the setup in [CONTRIBUTING §7](../CONTRIBUTING.md#7-one-time-setup).
+1. Clone the repo, run `git switch develop`, and run the setup in [CONTRIBUTING §7](../CONTRIBUTING.md#7-one-time-setup).
 2. Set up the database and server using [Data Model §10](data-model.md#10-setup-and-day-to-day-use).
 3. In `client/`, run `npm install`.
 4. Run `npm run dev` in `server/` and in `client/`, in two terminals.
@@ -40,17 +40,17 @@ Do these once, right after the lead pushes the repo:
 |---|---|
 | Until 10:00 AM | **Lead:** submit the repo link and add the evaluator. **Everyone:** setup, then start P1 |
 | 10:00 AM – 12:30 PM | All P1 requirements: the core flow working on real data |
-| **12:30 PM** | **Checkpoint 1:** everyone pulls `main`, and the lead runs [the demo story](#8-demo-story) from sign-up to dashboard |
+| **12:30 PM** | **Checkpoint 1:** everyone pulls `develop`, and the lead runs [the demo story](#8-demo-story) from sign-up to dashboard |
 | 12:30 – 1:00 PM | Fix what the checkpoint found |
 | 1:00 – 3:30 PM | All P2 requirements |
 | **3:30 PM** | **Checkpoint 2:** the full demo story, then the scale test ([§7](#7-quality-checks-against-odoos-criteria)) |
 | 3:30 – 4:30 PM | Polish: validation gaps, empty states, 375 px checks, consistent spacing |
-| **4:30 PM** | **Feature freeze.** All branches merged and deleted. Bug fixes only |
+| **4:30 PM** | **Feature freeze.** All feature branches merged and deleted. Bug fixes only |
 | 4:45 PM | Final documentation check, including a fresh clone |
-| **5:00 PM** | Coding ends. Last push to `main` |
+| **5:00 PM** | Coding ends. Final pull request from `develop` to `main` merged |
 | By **5:30 PM** | Lead records and submits the 5–6 minute demo |
 
-**Everyone pushes at least once every hour.** Set a 50-minute timer.
+**Everyone pushes at least once every hour** to their feature branch, and merges into `develop` through a pull request. Set a 50-minute timer. The lead opens a pull request from `develop` to `main` at each hourly checkpoint.
 
 ## 4. Work by owner
 
@@ -116,7 +116,7 @@ Tasks are in build order. Module folders are `server/src/modules/<module>/` and 
 | 6 | Invoice detail, confirm, bulk confirm, cancel | PS-17 | Canceling gives back the discount use and moves `nextInvoiceDate` back if needed |
 | 7 | Print view and send | PS-18 | `window.print()` with the `no-print` class, and `sendMail()` |
 | 8 | Scheduler | PS-14, PS-15 | `lib/scheduler.js` runs at start-up and hourly: activate on the start date, close at expiry, then bill |
-| 9 | Run the checkpoints, keep `main` healthy, record the demo | | |
+| 9 | Run the checkpoints, keep `develop` and `main` healthy, promote `develop` to `main` every hour, record the demo | | |
 
 ## 5. How billing works
 
