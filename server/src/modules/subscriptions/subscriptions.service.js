@@ -344,9 +344,10 @@ export const updateSubscription = async (id, data, actor) => {
 
 export const transitionSubscription = async (id, action, actor) => {
   await prisma.$transaction(async (tx) => {
+    const where = await lockSubscriptionForActor(tx, id, actor);
     const businessDate = today();
     const subscription = await tx.subscription.findUnique({
-      where: { id },
+      where,
       select: {
         id: true,
         number: true,
@@ -376,7 +377,7 @@ export const transitionSubscription = async (id, action, actor) => {
     if (action === 'ACTIVATE') data.nextInvoiceDate = subscription.startDate;
 
     const { count } = await tx.subscription.updateMany({
-      where: { id, status: subscription.status },
+      where: { ...where, status: subscription.status },
       data,
     });
     if (count !== 1) {

@@ -14,6 +14,7 @@ import {
   listInvoices,
   getInvoice,
   manageOwnSubscription,
+  acceptQuotation,
 } from './portal.service.js';
 const router = Router();
 router.use(requireAuth, requireRole('CUSTOMER'));
@@ -37,5 +38,11 @@ router.get('/invoices', validate(portalInvoiceQuerySchema, 'query'), async (req,
 );
 router.get('/invoices/:id', validate(idParamSchema, 'params'), async (req, res) =>
   res.json(await getInvoice(req.user.customerId, req.validParams.id)),
+);
+router.post(
+  '/subscriptions/:id/accept',
+  validate(idParamSchema, 'params'),
+  validate(portalActionSchema),
+  async (req, res) => res.json(await acceptQuotation(req.validParams.id, req.user)),
 );
 export default router;
