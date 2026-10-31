@@ -80,8 +80,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | |
 | GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | Yes |
 | GET | `/plans/:id` | Staff | One plan | PS-8 | Yes |
-| POST | `/plans` | Admin | Create | PS-8, PS-9 | |
-| PUT | `/plans/:id` | Admin | Update or deactivate | PS-8, PS-9 | |
+| POST | `/plans` | Admin | Create | PS-8, PS-9 | Yes |
+| PUT | `/plans/:id` | Admin | Update or deactivate | PS-8, PS-9 | Yes |
 
 ### Quotation templates and discounts (`modules/templates`, `modules/discounts`)
 
@@ -392,3 +392,26 @@ The product form component accepts prices in rupees, rejects negative,
 non-finite, oversized or sub-paise input, then uses `toPaise` once before
 submitting. The displayed margin is sales price minus cost price and is
 not stored. The Products page wires the form to its filtered catalog list.
+
+### Plan writes (PS-8, PS-9)
+
+#### POST `/api/plans`
+
+Create a plan. **Auth:** Admin. **Body:** `name` (1 to 120 trimmed characters),
+`productId` (existing product), `price` (integer paise, 0 to 1000000000),
+`billingPeriod` (DAILY, WEEKLY, MONTHLY, YEARLY), `minQuantity` (integer,
+1 to 2147483647), `startDate` (YYYY-MM-DD), optional nullable `endDate`
+(on/after startDate). Boolean defaults: `closesAtExpiry=false`,
+`canCloseEarly=true`, `canPause=false`, `canRenew=true`, `isActive=true`.
+**Response:** `201` the saved plan with product ID/name and date-only dates.
+
+#### PUT `/api/plans/:id`
+
+Update with the same body, including the intended behaviour switches.
+**Auth:** Admin. **Response:** `200`. Reads now include product ID/name
+for list display and editing without per-row API requests.
+
+**Errors:** `400` invalid input, unknown product or reversed dates with
+field messages; `401` unauthenticated; `403` wrong role; `409` duplicate
+name with `fields.name`; update returns `404` for an absent plan. No schema
+or migration change. Refs: PS-8, PS-9.
