@@ -32,6 +32,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 - Add staff-only paginated payment search with combined method/date/text filters and invoice links. (PS-21).
 
+- Add forgot/reset pages, 30-minute hashed recovery tokens and immediate session invalidation, including the same-second boundary. (PS-3).
+
 ## Screenshots
 
 *Added at 4:45 PM from `docs/screenshots/`.*
