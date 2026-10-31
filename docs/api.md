@@ -391,4 +391,4 @@ product. Refs: PS-6.
 The product form component accepts prices in rupees, rejects negative,
 non-finite, oversized or sub-paise input, then uses `toPaise` once before
 submitting. The displayed margin is sales price minus cost price and is
-not stored. Product-list wiring follows in the UI integration PR.
+not stored. The Products page wires the form to its filtered catalog list.
