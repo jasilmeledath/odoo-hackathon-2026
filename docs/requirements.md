@@ -73,7 +73,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-19 | Only the Admin creates discount rules: fixed or percentage, minimum purchase or quantity, start and end dates, usage limit, and scope (specific products or the whole subscription) | P2 | Manoj | Not started |
-| PS-20 | A discount that applies appears on the next invoice by itself, and stops when it expires or runs out | P2 | Jasil | In progress |
+| PS-20 | A discount that applies appears on the next invoice by itself, and stops when it expires or runs out | P2 | Jasil | Done |
 
 ### Payments and reporting
 

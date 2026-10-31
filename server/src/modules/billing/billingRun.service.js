@@ -5,7 +5,7 @@ import { HttpError } from '../../lib/errors.js';
 import { nextNumber } from '../../lib/numbering.js';
 import { logActivity } from '../../lib/activity.js';
 import { prisma } from '../../lib/prisma.js';
-import { calculateInvoice } from './billing.service.js';
+import { calculateBillableInvoice } from './billingDiscounts.service.js';
 
 const BILLING_BATCH_SIZE = 100;
 const MAX_DATABASE_AMOUNT = 2_147_483_647;
@@ -77,7 +77,7 @@ export const billSubscriptionPeriod = async (tx, id, issueDate, actor = null) =>
     return 'skipped';
   }
   if (!subscription.lines.length) throw new HttpError(409, 'Add an active subscription line before billing');
-  const calculated = calculateInvoice({ lines: snapshotLines(subscription), issueDate });
+  const calculated = await calculateBillableInvoice(tx, snapshotLines(subscription), issueDate);
   if (
     !Number.isSafeInteger(calculated.totalAmount) ||
     calculated.totalAmount > MAX_DATABASE_AMOUNT ||

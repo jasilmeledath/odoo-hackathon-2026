@@ -121,3 +121,42 @@ test('rewound cursors skip existing live invoices without skipping missing perio
   await prisma.subscription.update({ where: { id: sub.id }, data: { nextInvoiceDate: sub.nextInvoiceDate } });
   assert.deepEqual(await billSubscription(sub.id, { issueDate }), { created: 0, skipped: 3, failed: 0 });
 });
+
+test('simultaneous subscriptions cannot claim the last discount use twice', async () => {
+  const first = await subscription({ nextInvoiceDate: issueDate });
+  const second = await subscription({ nextInvoiceDate: issueDate });
+  const line = await prisma.subscriptionLine.findFirst({ where: { subscriptionId: first.id } });
+  const rule = await prisma.discount.create({
+    data: {
+      name: `Last use ${process.pid}`,
+      type: 'PERCENT',
+      percent: 100,
+      scope: 'PRODUCT',
+      startDate: issueDate,
+      endDate: issueDate,
+      usageLimit: 1,
+      products: { create: [{ productId: line.productId }] },
+    },
+  });
+  try {
+    const results = await Promise.all([
+      billSubscription(first.id, { issueDate }),
+      billSubscription(second.id, { issueDate }),
+    ]);
+    assert.equal(
+      results.reduce((sum, r) => sum + r.created, 0),
+      2,
+    );
+    assert.equal(
+      results.reduce((sum, r) => sum + r.failed, 0),
+      0,
+    );
+    assert.equal((await prisma.discount.findUnique({ where: { id: rule.id } })).usageCount, 1);
+    assert.equal(await prisma.invoice.count({ where: { discountId: rule.id } }), 1);
+    const discounted = await prisma.invoice.findFirst({ where: { discountId: rule.id } });
+    assert.equal(discounted.discountAmount, 20000);
+    assert.equal(discounted.totalAmount, 0);
+  } finally {
+    await prisma.discount.delete({ where: { id: rule.id } });
+  }
+});
