@@ -50,6 +50,10 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | PS-9 | Plan by plan, the Admin decides whether it closes by itself at the end, and whether it can be closed early, paused or renewed | P1 | Manoj | Done |
 | PS-10 | The Admin sets tax rules, and taxes are calculated from them automatically | P1 | Manoj | Done |
 
+Catalog quality check (#46): Manoj's products, variants, plans, taxes, payment
+terms, templates and discounts pass validation, empty/error and role checks at
+375px and 1280px. Team-wide scale verification (PS-25) remains separate.
+
 ### Subscriptions
 
 | ID | Requirement | Priority | Owner | Status |
@@ -83,7 +87,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | PS-22 | The team can see which invoices are paid, outstanding and overdue at any moment | P1 | Yadhu | Done |
 | PS-23 | The finance lead sees active subscriptions, revenue, payments, amounts owed and overdue invoices in one place | P1 | Jayasurya | Done |
 | PS-24 | Reports have filters and a summary view | P2 | Jayasurya | Done |
-| PS-25 | With thousands of subscriptions, every page responds in under two seconds | P2 | Everyone | Not started |
+| PS-25 | With thousands of subscriptions, every page responds in under two seconds | P2 | Everyone | In progress |
 
 ### Customer portal
 

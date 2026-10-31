@@ -596,6 +596,13 @@ Draft invoice, advances its cursor and logs the actor in one transaction.
 Failures roll back the period and do not stop later subscriptions. Financial
 amounts that exceed PostgreSQL limits fail without moving the cursor.
 
+Scale fixture billing observation (not a complete PS-25 page check): against a
+local 5,000-subscription fixture, 4,000 active subscriptions were made due.
+Processing completed in 9.8 seconds: 3,169 invoices created, 831 skipped, and
+0 failed. Skipped periods already had an invoice, confirming the duplicate
+billing guard. Page coverage and readiness limitations are in the performance
+section of the data model.
+
 
 Billing automatically chooses the eligible discount with the largest saving,
 with the lower rule ID breaking ties. Date bounds are inclusive. A conditional
@@ -820,3 +827,11 @@ Errors: `400` field errors or invalid/read-only input, `401` unauthenticated,
 The Discounts page uses URL-backed search/state filters and real paginated
 rules. Admin-only forms show product selection only for PRODUCT scope, convert
 rupees to paise once and preserve usage counts. Internal staff browse read-only.
+
+### Catalog UI verification (#46)
+
+Products, variants, plans, taxes, payment terms, templates and discounts are
+checked with real Admin/Internal login at 375px and 1280px. Wide tables scroll
+inside their cards; the shell can shrink without page overflow. Invalid or
+incomplete prices do not show a calculated margin. Invalid input, empty/error
+states and read-only staff controls are verified. No API or schema changes.

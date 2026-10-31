@@ -1,0 +1,10 @@
+﻿# J-071: Complete Manoj catalog, template and discount polish
+
+- Date: 2026-10-31
+- Contributor/agent: Manoj PN with Codex
+- Branch / issue / PR: `fix/catalog-polish`; Manoj portion of shared issue #46; polish PR pending
+- Summary: Improved table readability, contained tax/term accessible labels and suppressed margin previews for invalid/incomplete prices. Fixed a reproduced desktop overflow by allowing the shared main flex panel to shrink. Refreshed responsive screenshots and documentation.
+- Decisions: Keep wide tables inside their card scrollers rather than clipping page content. Leave PS-11 In progress until the separately owned subscription-from-template workflow exists. Keep #46 open for teammates and release-wide work; do not use a closing trailer for a partial shared issue.
+- Database and migrations: No schema or migration changes. Existing financial/session regressions ran on a separate newly migrated/seeded database, removed afterward. The final browser pass performs no data writes.
+- Checks and results: One hundred two real-login browser checks passed across seven sections at 375px/1280px, including bad input on every form, empty/error states, persisted filters, actual navigation, exact margin preview, staff read-only controls and no page overflow/exceptions. Reproduced 1322px document width in a 1280px viewport before the flex fix. All seventeen existing PostgreSQL integration regressions passed. The integrated parent passed full local CI with four migrations, sixty-five tests and production build; final push must pass the mandatory fast hook and client build.
+- Follow-ups: PRs #108/#109/#110 are synchronized and ready with Jayasurya requested. Reviewed/merged issues #15/#16/#34 are closed with completed checklists; #35 implementation checklist is complete pending UI review. Manoj's #46 checkbox is checked and other owners' status is preserved. Publish this polish PR, then report remaining review dependencies. Source-only LF formatting is approved and passes; no Git settings changed and no protected branch was merged by this agent.
