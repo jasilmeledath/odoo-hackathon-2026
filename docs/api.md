@@ -101,8 +101,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
 | GET | `/subscriptions` | Staff | List, filtered by `status`, `customerId`, `planId`, `q` | PS-12, PS-13 | |
-| GET | `/subscriptions/:id` | Staff | Subscription with lines, totals and invoices | PS-12 | |
-| GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | |
+| GET | `/subscriptions/:id` | Staff | Subscription with lines, totals and invoices | PS-12 | ✓ |
+| GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | ✓ |
 | POST | `/subscriptions` | Staff | Create a draft. `templateId` fills in the plan and lines | PS-11, PS-12 | |
 | PUT | `/subscriptions/:id` | Staff | Update, in Draft or Quotation only | PS-12 | |
 | POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation | PS-13 | |
@@ -168,6 +168,20 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 Checks the API and the database connection. **Auth:** none.
 
 **Responses:** `200` `{ "ok": true }` · `500` the database cannot be reached
+
+### GET /api/subscriptions/:id
+
+Read one subscription with its customer, plan rules, payment terms, lines and invoice summaries. **Auth:** Admin, Internal. Refs: PS-12, PS-13.
+
+**Responses:** `200` the subscription with `lines`, `invoices`, `customer`, `plan` and `paymentTerm` · `400` the id is not a positive integer · `401` not logged in · `403` not staff · `404` subscription not found
+
+### GET /api/subscriptions/:id/activity
+
+Read a subscription's activity timeline in chronological order, including the actor when recorded. Scheduler actions have a null actor and are displayed as System. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Response** `200`: an array of `{ id, action, detail, createdAt, actor }` entries.
+
+**Responses:** `200` the timeline (an empty array when no activity exists) · `400` the id is not a positive integer · `401` not logged in · `403` not staff · `404` subscription not found
 
 <!-- Add one entry per route, grouped by module, in the format from
 docs/documentation-rules.md §5. Add it in the same commit as the route. -->
