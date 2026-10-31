@@ -500,3 +500,15 @@ same transaction/audit rules as the individual action. Stale/non-Draft and
 missing invoices count as skipped. Unexpected errors count as failed and are
 logged without preventing later IDs. The list selects only current-page Drafts,
 disables pending controls and shows the result counts.
+
+
+### Scheduled subscription processing (PS-14, PS-15)
+
+At API startup and hourly, process due Confirmed → Active transitions, close
+expired Active subscriptions only when their plan has `closesAtExpiry`, then run
+billing. Other expired subscriptions remain Active and period starts at/after
+expiry are never billed. Transitions are conditional, paginated in batches of 100,
+and audited with no actor for system work. Phase/record failures are logged and
+do not stop the server or later phases. In-process runs never overlap; database
+state guards and billing locks handle multiple API instances. Shutdown stops the
+timer and waits for in-flight work before disconnecting PostgreSQL.

@@ -1,6 +1,6 @@
 // Real PostgreSQL regressions for money writes. Use an explicitly isolated test database.
 import assert from 'node:assert/strict';
-import { after, test } from 'node:test';
+import { after, afterEach, test } from 'node:test';
 if (!process.env.TEST_DATABASE_URL)
   throw new Error('Set TEST_DATABASE_URL to an isolated migrated/seeded PostgreSQL database');
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
@@ -45,7 +45,7 @@ async function subscription(overrides = {}) {
   fixtures.push({ id: sub.id, planId: plan.id });
   return sub;
 }
-after(async () => {
+afterEach(async () => {
   for (const { id, planId } of fixtures) {
     const invoices = await prisma.invoice.findMany({ where: { subscriptionId: id }, select: { id: true } });
     await prisma.payment.deleteMany({ where: { invoiceId: { in: invoices.map((i) => i.id) } } });
@@ -53,6 +53,9 @@ after(async () => {
     await prisma.subscription.delete({ where: { id } });
     await prisma.plan.delete({ where: { id: planId } });
   }
+  fixtures.length = 0;
+});
+after(async () => {
   await prisma.$disconnect();
 });
 test('billing catches up oldest first with anchored month ends, snapshots and no duplicates', async () => {
@@ -267,5 +270,43 @@ test('bulk confirmation changes drafts once, skips stale/missing records and log
   assert.equal(
     await prisma.activityLog.count({ where: { subscriptionId: sub.id, action: 'STATUS_CHANGED' } }),
     2,
+  );
+});
+
+test('scheduler activates due accounts, closes expiring plans before billing and preserves other active plans', async () => {
+  const { runScheduledTasks } = await import('../src/lib/scheduler.js');
+  const due = await subscription({ status: 'CONFIRMED', startDate: issueDate, nextInvoiceDate: null });
+  const future = await subscription({
+    status: 'CONFIRMED',
+    startDate: day('2026-11-01'),
+    nextInvoiceDate: null,
+  });
+  const closing = await subscription({ expiryDate: issueDate, nextInvoiceDate: issueDate });
+  const remaining = await subscription({ expiryDate: issueDate, nextInvoiceDate: issueDate });
+  await prisma.plan.update({ where: { id: closing.planId }, data: { closesAtExpiry: true } });
+  const result = await runScheduledTasks({ issueDate });
+  assert.equal(result.failed, 0);
+  assert.equal((await prisma.subscription.findUnique({ where: { id: due.id } })).status, 'ACTIVE');
+  assert.equal(await prisma.invoice.count({ where: { subscriptionId: due.id } }), 1);
+  assert.equal((await prisma.subscription.findUnique({ where: { id: future.id } })).status, 'CONFIRMED');
+  const closed = await prisma.subscription.findUnique({ where: { id: closing.id } });
+  assert.equal(closed.status, 'CLOSED');
+  assert.equal(closed.closeReason, 'EXPIRED');
+  assert.equal(closed.nextInvoiceDate, null);
+  assert.equal(await prisma.invoice.count({ where: { subscriptionId: closing.id } }), 0);
+  assert.equal((await prisma.subscription.findUnique({ where: { id: remaining.id } })).status, 'ACTIVE');
+  assert.equal(await prisma.invoice.count({ where: { subscriptionId: remaining.id } }), 0);
+  const repeated = await runScheduledTasks({ issueDate });
+  assert.equal(repeated.billing.created, 0);
+  assert.equal(
+    (
+      await runScheduledTasks({
+        issueDate,
+        bill: async () => {
+          throw new Error('test database failure');
+        },
+      })
+    ).failed,
+    1,
   );
 });
