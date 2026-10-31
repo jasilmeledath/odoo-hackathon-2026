@@ -14,7 +14,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
-*Filled in as each requirement lands. Track progress in [docs/requirements.md](docs/requirements.md).*
+- Add customer-only signup with atomic profile creation/linking and matching password-rule feedback. (PS-1, PS-5).
 
 ## Screenshots
 

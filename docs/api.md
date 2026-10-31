@@ -37,13 +37,13 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/health` | Public | Checks the API and the database connection | | Yes |
+| GET | `/health` | Public | Checks the API and the database connection | Yes |
 
 ### Auth (`modules/auth`)
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | |
+| POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | Yes |
 | POST | `/auth/login` | Public | Returns `{ token, user }` | PS-2 | |
 | GET | `/auth/me` | Any | The current user | PS-2 | |
 | POST | `/auth/forgot-password` | Public | Emails a reset link. Always answers `200` | PS-3 | |
@@ -290,3 +290,11 @@ including product-detail plans, are `YYYY-MM-DD`; money remains integer paise.
 **Responses:** `200` the record or standard paginated envelope; `400` invalid
 query/ID with per-field messages; `401` unauthenticated; `403` wrong role;
 `404` unknown product or plan. No schema or migration changes are required.
+
+### POST /api/auth/register
+
+Create a CUSTOMER account and customer profile, or link the unclaimed profile with the same normalized email (A-4). **Auth:** public. Refs: PS-1, PS-5.
+
+**Body:** name (required, at most 120 characters); email (valid, at most 254 characters, normalized); password (at least 9 characters with uppercase, lowercase and special character; at most 72 UTF-8 bytes). A digit is not required. Caller-supplied role and unknown properties are ignored. Each failed password rule appears on its own line in fields.password.
+
+**Responses:** 201 { token, user }; 400 per-field validation; 409 duplicate account or already claimed profile (fields.email). Creation/linking is one transaction and the role is always CUSTOMER. Password hashes are never returned. Token format and eight-hour expiry use the shared auth helper.
