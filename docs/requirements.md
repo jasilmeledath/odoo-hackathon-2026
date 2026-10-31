@@ -93,7 +93,7 @@ terms, templates and discounts pass validation, empty/error and role checks at
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-26 | Customers see their own subscriptions and invoices through a portal | P1 | Yadhu | Not started |
+| PS-26 | Customers see their own subscriptions and invoices through a portal | P1 | Yadhu | Done |
 | PS-27 | Customers manage their own subscriptions: accept a quotation, switch add-ons on and off, and pause or close where the plan allows | P2 | Yadhu | Not started |
 
 ### Beyond the problem statement
@@ -101,7 +101,7 @@ terms, templates and discounts pass validation, empty/error and role checks at
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-28 | The dashboard updates live, using Server-Sent Events, when a payment or invoice changes. Odoo strongly recommends real-time data | P2 | Jayasurya | In progress |
-| PS-29 | Login and password reset limit repeated attempts | P2 | Yadhu | Not started |
+| PS-29 | Login and password reset limit repeated attempts | P2 | Yadhu | Done |
 
 ## Module ownership
 

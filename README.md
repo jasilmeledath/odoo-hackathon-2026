@@ -16,6 +16,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 - Customers can create Customer-only accounts with password validation and atomic billing-profile linking (PS-1, PS-5).
 - Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
+- Add customer-only subscription and invoice lists and details, scoped queries, URL search, payment history and balance display. (PS-26).
 - Staff can record part and final payments from invoices with transactional balance protection (PS-21, PS-22).
 
 - Startup/hourly processing activates due subscriptions, closes plans at expiry when configured, and generates due invoices (PS-14, PS-15).
@@ -23,6 +24,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 - Staff can generate recurring Draft invoices with tax snapshots, catch-up billing and duplicate protection (PS-15, PS-16).
 
 - Active accounts log in with expiring tokens and role-based navigation (PS-2).
+- Add bounded per-IP attempt windows to login, forgot-password and reset-password without a new dependency. (PS-29).
 - Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
 - Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
 
