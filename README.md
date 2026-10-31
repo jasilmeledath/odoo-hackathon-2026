@@ -147,9 +147,11 @@ From `server/`, run `npm test` for billing and catalog validation regressions.
 The test runner uses the same tsx loader as the API for generated Prisma enums.
 From `client/`, run `npm run build` to check the frontend.
 
-### Local develop-to-main promotion
+### CI and local develop-to-main promotion
 
-The local gate replaces GitHub Actions for promotion checks and keeps `main` PR-only. Install the root Prettier dependency and enable the repository hooks once:
+GitHub Actions runs the CI gate on pull requests targeting `develop` or `main` and on pushes to `develop`. It checks formatting, applies migrations to a fresh PostgreSQL service database, runs the server tests, and builds the client. A pull request to `main` fails unless it comes from this repository's `develop` branch. GitHub Actions must be enabled and the repository account must be able to run jobs; use the local gate below if Actions is unavailable.
+
+To block merges when CI fails, require the `CI / Verify formatting, database migrations, server tests, and client build` check in the `main` branch protection settings. Install the root Prettier dependency and enable the repository hooks once:
 
 ```bash
 npm install
