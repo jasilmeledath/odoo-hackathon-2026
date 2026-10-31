@@ -29,6 +29,8 @@ import PaymentList from './pages/payments/PaymentList.jsx';
 import Reports from './pages/reports/Reports.jsx';
 import PortalSubscriptions from './pages/portal/PortalSubscriptions.jsx';
 import PortalInvoices from './pages/portal/PortalInvoices.jsx';
+import PortalSubscriptionDetail from './pages/portal/PortalSubscriptionDetail.jsx';
+import PortalInvoiceDetail from './pages/portal/PortalInvoiceDetail.jsx';
 
 const STAFF = ['ADMIN', 'INTERNAL'];
 const ADMIN = ['ADMIN'];
@@ -93,8 +95,11 @@ export default function App() {
 
           <Route element={<RequireRole roles={CUSTOMER} />}>
             <Route path="/portal" element={<PortalSubscriptions />} />
+            <Route path="/portal/subscriptions" element={<PortalSubscriptions />} />
+            <Route path="/portal/subscriptions/:id" element={<PortalSubscriptionDetail />} />
 
             <Route path="/portal/invoices" element={<PortalInvoices />} />
+            <Route path="/portal/invoices/:id" element={<PortalInvoiceDetail />} />
           </Route>
         </Route>
       </Route>

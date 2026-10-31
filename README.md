@@ -17,6 +17,8 @@ No demo video is included in this repository.
 - Customers can sign up and reset passwords; staff accounts and role access are managed by Admins (PS-1–PS-5).
 - Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
 - Admins manage products, variants, plans, taxes, payment terms, discounts and quotation templates (PS-6–PS-11, PS-19).
+- Login, password recovery and reset requests have bounded per-IP attempt windows (PS-29).
+- Customers can view their own subscriptions and invoices in the portal (PS-26).
 - Staff create numbered subscriptions with validated lines, current prices, variants and taxes, then send and confirm quotations (PS-12–PS-13).
 - Staff can activate subscriptions, pause and resume billing, renew the same subscription, or close early when the plan allows it (PS-13–PS-14).
 - Scheduled processing activates subscriptions on their start dates, closes configured plans at expiry, and generates due invoices (PS-14–PS-16).
@@ -34,6 +36,7 @@ No demo video is included in this repository.
 | Customer form | [375 px](docs/screenshots/customer-form-375.png) | [1280 px](docs/screenshots/customer-form-1280.png) |
 | Plans | [Mobile](docs/screenshots/plans-mobile.png) | [Desktop](docs/screenshots/plans-desktop.png) |
 | Product variants | [Mobile](docs/screenshots/products-mobile.png) | [Desktop](docs/screenshots/products-desktop.png) |
+| Discounts | [Mobile](docs/screenshots/discounts-mobile.png) | [Desktop](docs/screenshots/discounts-desktop.png) |
 | Quotation templates | [Mobile](docs/screenshots/templates-mobile.png) | [Desktop](docs/screenshots/templates-desktop.png) |
 | Record payment | [375 px](docs/screenshots/record-payment-375.png) | [1280 px](docs/screenshots/record-payment-1280.png) |
 | Staff | [375 px](docs/screenshots/staff-375.png) | [1280 px](docs/screenshots/staff-1280.png) |
@@ -199,10 +202,9 @@ See [docs/api.md](docs/api.md).
 
 ## Known limitations
 
-- Customer portal API flows are not implemented yet (PS-26 and PS-27).
+- Customer portal actions such as accepting quotations, switching add-ons and pausing or closing subscriptions are not implemented yet (PS-27).
 - Starting a subscription from a quotation template is still in progress (PS-11).
 - Page-level performance at 5,000 subscriptions is still being measured; the timings in [docs/data-model.md](docs/data-model.md#9-performance) cover queries, not full page loads (PS-25).
-- Login and password-reset rate limiting is not implemented yet (PS-29).
 
 ## Team
 
