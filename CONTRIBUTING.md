@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0 |
+| Version | 1.1 |
 | Owner | Team lead (Jasil M) |
-| Last updated | 29 October 2026 |
+| Last updated | 31 October 2026 |
 | Applies to | Every commit and pull request in this repository, by every team member and every AI assistant |
 
 This guide sets out how we commit, push and open pull requests during the Odoo x Make-A-Ton 9.0 virtual round. It is shaped by the organizers' rules:
@@ -38,7 +38,7 @@ A `commit-msg` hook checks commit messages automatically. See [§7](#7-one-time-
 | Workflow | When | Rules |
 |---|---|---|
 | **Direct to `main`** (default) | Almost every change | Small commits. Run `git pull --rebase` before every push, and keep `main` runnable. |
-| **Short-lived branch + pull request** | A risky change (schema rewrite, auth rework, large refactor) or something you want reviewed first | Name it `<type>/<short-description>`, for example `feat/approval-flow`. Merge it **within 60 minutes**, then **delete it**. |
+| **Short-lived branch + pull request** | A risky change (schema rewrite, auth rework, large refactor) or something you want reviewed first | Name it `<type>/<short-description>`, for example `feat/billing-run`. Merge it **within 60 minutes**, then **delete it**. |
 
 - **No branches may exist at 4:30 PM, apart from `main`.** Everything is merged and deleted by then.
 - Never force-push `main`. Don't rebase or amend commits that are already on `main`.
@@ -76,16 +76,16 @@ We follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1
 Example:
 
 ```text
-feat(requests): let managers approve or reject submitted requests
+feat(payments): record payments against confirmed invoices
 
-Managers had no way to act on submitted requests, so the workflow
-stopped at "submitted".
+The team had no way to mark money received, so invoices stayed
+outstanding forever.
 
-- Add POST /api/requests/:id/review with a decision and comment
-- Require a reason when rejecting
-- Block reviewers from reviewing their own requests
+- Add POST /api/payments with method, amount, date and note
+- Reject amounts above the invoice balance
+- Mark the invoice paid when the balance reaches zero
 
-Refs: PS-2
+Refs: PS-21
 ```
 
 ### 3.2 Type
@@ -115,7 +115,7 @@ The allowed scopes are listed in [`.githooks/scopes`](.githooks/scopes), one per
 | Apps | `client`, `server` |
 | Cross-cutting | `auth`, `users`, `db` (schema, migrations, seed), `api` (contracts, middleware), `ui` (theme, shared components), `validation` |
 | Repository | `deps`, `config`, `repo`, `readme` |
-| **Domain modules** | **Added by the team lead at about 9:30 AM, once the problem statement is chosen.** Use one per business entity or feature, for example `requests`, `inventory`, `bookings`, `dashboard`, `reports`. |
+| Domain modules | `staff`, `customers`, `products`, `plans`, `taxes`, `terms`, `discounts`, `templates`, `subscriptions`, `billing`, `invoices`, `payments`, `portal`, `reports`, `dashboard` |
 
 To add a scope, add a line to `.githooks/scopes` and to the table above in the same commit (`chore(repo): add bookings scope`).
 
@@ -149,7 +149,7 @@ Trailers go at the end, after one blank line, one per line, in `Key: value` form
 |---|---|---|
 | `Refs:` | The commit implements part of the problem statement (PS), or relates to an issue | `Refs: PS-2, #4` |
 | `Closes:` | The commit completes a GitHub issue | `Closes: #4` |
-| `BREAKING CHANGE:` | An API contract or the schema changes in a way teammates must adapt to | `BREAKING CHANGE: /api/items now returns { items, total }` |
+| `BREAKING CHANGE:` | An API contract or the schema changes in a way teammates must adapt to | `BREAKING CHANGE: /api/plans now returns { items, total }` |
 | `Co-authored-by:` | Someone else paired on the commit, or an AI assistant wrote part of it | `Co-authored-by: Name <email>` |
 
 **Problem-statement references.** At 9:15 AM the team lead numbers the problem statement's requirements in [docs/requirements.md](docs/requirements.md) (`PS-1`, `PS-2`, …). Use those IDs in `Refs:` so each commit traces back to a requirement.
@@ -173,26 +173,26 @@ BREAKING CHANGE: list endpoints return an object, not an array.
 ### 3.8 Reverts
 
 ```text
-revert: feat(requests): add bulk approve
+revert: feat(invoices): add bulk confirm
 
 This reverts commit 1a2b3c4d.
 
-Bulk approve skipped the self-review check. It will come back once
-the check is shared with single approve.
+Bulk confirm skipped the draft-status check. It will come back once
+the check is shared with single confirm.
 ```
 
 ### 3.9 More examples
 
 ```text
-feat(db): add schema for users, requests and activity log
+feat(db): add discount usage tracking
 
-The problem statement needs an audit trail of every status change,
-so activity is its own table rather than a JSON column.
+Discounts must stop when they run out, so usage has to be counted
+and protected by the database.
 
-- Add the initial Prisma migration
-- Seed one admin, one manager and two employees
+- Add usage_limit and usage_count to discounts
+- Add a check that usage never passes the limit
 
-Refs: PS-1, PS-4
+Refs: PS-19, PS-20
 ```
 
 ```text
@@ -201,7 +201,7 @@ fix(validation): reject negative amounts on the server
 The client blocked negative amounts, but the API still accepted
 them when called directly.
 
-- Add a positive() rule to the request schema
+- Add a minimum to the payment schema
 - Return the error under fields.amount
 
 Refs: PS-3
@@ -269,7 +269,7 @@ Refs: PS-3                          trailers
 
 types   feat fix docs style refactor perf test build ci chore revert
 scopes  see .githooks/scopes (client server auth users db api ui
-        validation deps config repo readme + domain scopes)
+        validation deps config repo readme + domain modules)
 
 loop    git pull --rebase origin main → commit → git push   (every ≤ 60 min)
 ```
