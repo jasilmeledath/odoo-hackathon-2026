@@ -1,7 +1,7 @@
 // Invoice list with paid, outstanding and overdue filters (PS-17, PS-22). The
 // filters live in the URL, so they survive a refresh and other pages can link here.
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Alert,
   EmptyState,
@@ -122,7 +122,11 @@ function InvoiceTable({ items }) {
         <tbody>
           {items.map((invoice) => (
             <tr key={invoice.id} className="border-t border-slate-100">
-              <td className="py-3 pr-4 font-medium text-slate-900">{invoice.number}</td>
+              <td className="py-3 pr-4 font-medium">
+                <Link to={`/invoices/${invoice.id}`} className="text-brand-600 hover:underline">
+                  {invoice.number}
+                </Link>
+              </td>
               <td className="py-3 pr-4">{invoice.billingName}</td>
               <td className="py-3 pr-4">{invoice.subscription.number}</td>
               <td className="py-3 pr-4 whitespace-nowrap">{formatDate(invoice.issueDate)}</td>
