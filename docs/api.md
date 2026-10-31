@@ -547,3 +547,7 @@ Responses: `201` created, `200` updated; `400` invalid fields (line keys such as
 `lines.0.variantId`), `401` unauthenticated, `403` forbidden, `404` missing
 template, `409` duplicate name or concurrently removed catalog references.
 Line inputs reject price fields rather than accepting a stale snapshot.
+The Quotation templates page supports URL-backed name search, pagination,
+Admin-only editing and staff previews with current prices. The editor converts
+no prices into snapshots. Subscription creation from a template remains a
+separately owned workflow; PS-11 stays In progress until that integration.
