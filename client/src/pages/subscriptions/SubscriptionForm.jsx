@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Alert, Field, PageHeader, Spinner } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
+import { today } from '../../lib/dates.js';
 import { formatMoney, toInputDate } from '../../lib/format.js';
 
 const blankLine = () => ({
@@ -15,8 +16,6 @@ const blankLine = () => ({
   variantsLoaded: true,
 });
 const unwrapItems = (result) => result?.items ?? [];
-const today = () => new Date().toISOString().slice(0, 10);
-
 export default function SubscriptionForm() {
   const { id } = useParams();
   const navigate = useNavigate();
