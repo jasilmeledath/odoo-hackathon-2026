@@ -2,7 +2,7 @@
 
 - Date: 2026-10-31
 - Contributor/agent: Yadhu Krishna P R with Codex
-- Branch / issue / PR: `feat/portal-addons`; #32; [PR #118](https://github.com/jasilmeledath/odoo-hackathon-2026/pull/118) (original review; replacement linked in review follow-up)
+- Branch / issue / PR: fix/portal-addons-review; #32; [PR #122](https://github.com/jasilmeledath/odoo-hackathon-2026/pull/122); supersedes [PR #118](https://github.com/jasilmeledath/odoo-hackathon-2026/pull/118)
 - Summary: Added Customer-only add-on switches, tenant-scoped mutation, plan-product protection, shared totals and atomic activity updates. Closed subscriptions reject changes. No-op requests do not duplicate activity.
 - Decisions: Work independently from reviewed develop, with one branch and PR per issue. Follow PS-27, the engineering standards and Conventional Commits. Preserve existing feature branches at the user's request. Integrated develop 122148f, including the reviewed shared layout fix, before publication.
 - Database and migrations: No schema, migration or dependency changes. Integration and browser checks use a newly migrated/seeded disposable database, removed afterward; the development database is untouched. Only intentional add-on mutations update application data at runtime.
