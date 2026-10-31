@@ -10,6 +10,7 @@ import {
   MAX_PRICE_RUPEES,
   PRODUCT_TYPES,
   validateProduct,
+  validateRupeePrice,
 } from '../../lib/validators.js';
 
 export default function ProductForm({ product, onSaved, onCancel }) {
@@ -54,6 +55,9 @@ export default function ProductForm({ product, onSaved, onCancel }) {
     { key: 'salesPrice', label: 'Sales price' },
     { key: 'costPrice', label: 'Cost price' },
   ];
+  // PS-6: incomplete or invalid prices must not look like a valid margin.
+  const canPreviewMargin =
+    !validateRupeePrice(form.salesPrice, 'Sales price') && !validateRupeePrice(form.costPrice, 'Cost price');
   return (
     <form noValidate onSubmit={handleSubmit} className="card space-y-4">
       <h2 className="text-lg font-semibold">{product ? 'Edit product' : 'New product'}</h2>
@@ -101,7 +105,10 @@ export default function ProductForm({ product, onSaved, onCancel }) {
         ))}
       </div>
       <p className="text-sm text-slate-600">
-        Margin: {formatMoney(toPaise(form.salesPrice || 0) - toPaise(form.costPrice || 0))}
+        Margin:{' '}
+        {canPreviewMargin
+          ? formatMoney(toPaise(form.salesPrice) - toPaise(form.costPrice))
+          : 'Enter valid prices to preview'}
       </p>
       <Field label="Notes" error={fields.notes}>
         <textarea

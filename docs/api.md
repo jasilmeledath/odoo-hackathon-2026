@@ -818,3 +818,11 @@ Errors: `400` field errors or invalid/read-only input, `401` unauthenticated,
 The Discounts page uses URL-backed search/state filters and real paginated
 rules. Admin-only forms show product selection only for PRODUCT scope, convert
 rupees to paise once and preserve usage counts. Internal staff browse read-only.
+
+### Catalog UI verification (#46)
+
+Products, variants, plans, taxes, payment terms, templates and discounts are
+checked with real Admin/Internal login at 375px and 1280px. Wide tables scroll
+inside their cards; the shell can shrink without page overflow. Invalid or
+incomplete prices do not show a calculated margin. Invalid input, empty/error
+states and read-only staff controls are verified. No API or schema changes.

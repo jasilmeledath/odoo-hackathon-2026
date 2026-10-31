@@ -113,7 +113,7 @@ export default function PlanList() {
             <>
               {data.items.length ? (
                 <div className="relative overflow-x-auto">
-                  <table className="w-full text-left text-sm">
+                  <table className="min-w-max w-full text-left text-sm">
                     <thead>
                       <tr className="border-b border-slate-200">
                         {COLUMNS.map((label) => (
