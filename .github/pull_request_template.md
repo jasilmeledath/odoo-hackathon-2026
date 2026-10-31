@@ -1,8 +1,9 @@
 <!--
 Title: use the commit header format, at most 72 characters, for example
-feat(requests): let managers approve or reject submitted requests
-Merge with "Rebase and merge" so each person's commits stay on main
-(CONTRIBUTING.md §5). Delete the branch after merging.
+feat(payments): record payments against confirmed invoices
+Target develop. Only develop opens pull requests into main.
+Merge with "Create a merge commit" so each person's commits are kept
+(CONTRIBUTING.md §5). Delete the feature branch after merging.
 -->
 
 ## What
