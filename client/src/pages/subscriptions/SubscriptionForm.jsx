@@ -38,6 +38,9 @@ export default function SubscriptionForm() {
   });
   const [lines, setLines] = useState([blankLine()]);
   const [customer, setCustomer] = useState(null);
+  const [template, setTemplate] = useState(null);
+  const [templateId, setTemplateId] = useState('');
+  const [applyingTemplate, setApplyingTemplate] = useState(false);
   const [plans, setPlans] = useState([]);
   const [terms, setTerms] = useState([]);
   const [taxes, setTaxes] = useState([]);
@@ -146,7 +149,44 @@ export default function SubscriptionForm() {
     async (q) => unwrapItems(await api('/customers', { query: { q, pageSize: 20, isActive: true } })),
     [],
   );
+  const searchTemplates = useCallback(
+    async (q) => unwrapItems(await api('/templates', { query: { q, pageSize: 20, isActive: true } })),
+    [],
+  );
+  const applyTemplate = async (option) => {
+    setApplyingTemplate(true);
+    setError('');
+    try {
+      const selected = await api(`/templates/${option.id}`);
+      setTemplate(selected);
+      setTemplateId(String(selected.id));
+      setForm((current) => ({
+        ...current,
+        planId: String(selected.planId),
+        expiryDate: selected.plan?.billingPeriod
+          ? addBillingPeriod(current.startDate, selected.plan.billingPeriod)
+          : current.expiryDate,
+      }));
+      setLines(
+        selected.lines.map((line) => ({
+          lineKey: crypto.randomUUID(),
+          productId: String(line.productId),
+          variantId: line.variantId ? String(line.variantId) : '',
+          taxId: '',
+          quantity: String(line.quantity),
+          variants: line.variant ? [line.variant] : [],
+          variantsLoaded: Boolean(line.variant),
+        })),
+      );
+    } catch (failure) {
+      setError(failure.message || 'Could not apply quotation template.');
+    } finally {
+      setApplyingTemplate(false);
+    }
+  };
   const handlePlanChange = (planId) => {
+    setTemplate(null);
+    setTemplateId('');
     const plan = plans.find((item) => String(item.id) === planId);
     setForm((current) => ({
       ...current,
@@ -165,7 +205,8 @@ export default function SubscriptionForm() {
     });
   };
 
-  const selectedPlan = plans.find((plan) => String(plan.id) === form.planId) ?? subscription?.plan;
+  const selectedPlan =
+    plans.find((plan) => String(plan.id) === form.planId) ?? template?.plan ?? subscription?.plan;
   const totals = useMemo(
     () =>
       lines.reduce(
@@ -239,6 +280,7 @@ export default function SubscriptionForm() {
           startDate: form.startDate,
           expiryDate: form.expiryDate,
           notes: form.notes.trim() || null,
+          ...(!editing && templateId ? { templateId: Number(templateId) } : {}),
           lines: lines.map(({ productId, variantId, taxId, quantity }) => ({
             productId: Number(productId),
             variantId: variantId ? Number(variantId) : null,
@@ -273,6 +315,37 @@ export default function SubscriptionForm() {
       />
       <form noValidate onSubmit={handleSubmit} className="card space-y-6">
         <Alert>{error}</Alert>
+        {!editing && (
+          <div className="space-y-2">
+            <SearchSelect
+              label="Start from quotation template (optional)"
+              placeholder="Search active templates"
+              value={template}
+              search={searchTemplates}
+              describe={(item) => ({
+                title: item.name,
+                detail: `${item.plan?.name ?? 'Template'} · ${item.validityDays} days validity`,
+              })}
+              disabled={applyingTemplate || saving}
+              onChange={applyTemplate}
+            />
+            {template && (
+              <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                <span>Template lines are prefilled at current catalog prices and remain editable.</span>
+                <button
+                  type="button"
+                  className="text-brand-600 hover:underline"
+                  onClick={() => {
+                    setTemplate(null);
+                    setTemplateId('');
+                  }}
+                >
+                  Clear template
+                </button>
+              </div>
+            )}
+          </div>
+        )}
         <h2 className="form-section-title">Subscription details</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <SearchSelect
@@ -443,8 +516,14 @@ export default function SubscriptionForm() {
           </p>
         </section>
         <div className="flex flex-wrap gap-2">
-          <button className="btn-primary" disabled={saving}>
-            {saving ? 'Saving...' : editing ? 'Save changes' : 'Create draft'}
+          <button className="btn-primary" disabled={saving || applyingTemplate}>
+            {applyingTemplate
+              ? 'Applying template...'
+              : saving
+                ? 'Saving...'
+                : editing
+                  ? 'Save changes'
+                  : 'Create draft'}
           </button>
           <Link className="btn-secondary" to={editing ? `/subscriptions/${id}` : '/subscriptions'}>
             Cancel

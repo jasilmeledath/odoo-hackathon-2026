@@ -105,7 +105,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/subscriptions` | Staff | List, filtered by `status`, `customerId`, `planId`, `q` | PS-12, PS-13 | ✓ |
 | GET | `/subscriptions/:id` | Staff | Subscription with lines, totals and invoices | PS-12 | ✓ |
 | GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | ✓ |
-| POST | `/subscriptions` | Staff | Create a numbered draft with customer, available plan, payment terms and priced lines | PS-12 | ✓ |
+| POST | `/subscriptions` | Staff | Create a numbered draft; optional `templateId` prefills an active quotation template | PS-11, PS-12 | ✓ |
 | PUT | `/subscriptions/:id` | Staff | Update details and replace priced lines, in Draft or Quotation only | PS-12 | ✓ |
 | POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation, requires a line | PS-13 | ✓ |
 | POST | `/subscriptions/:id/confirm` | Staff | Unexpired Quotation → Confirmed | PS-13 | ✓ |
@@ -244,7 +244,7 @@ Read one subscription with its customer, plan rules, payment terms, lines and in
 
 ### POST /api/subscriptions
 
-Create a numbered Draft. The request body contains `customerId`, `planId`, `paymentTermId`, `startDate`, `expiryDate`, optional `notes`, and at least one `lines` entry with `productId`, optional `variantId` and optional `taxId`, and `quantity`. Prices and amounts are read from the database: the plan price applies to its product line; other products use their current sales price; variant extra price is added. The server calculates line amounts and both recurring totals in paise. The plan must be available on `startDate`, and `minQuantity` applies to the plan product only. **Auth:** Admin, Internal. Refs: PS-12.
+Create a numbered Draft. The request body contains `customerId`, `planId`, `paymentTermId`, `startDate`, `expiryDate`, optional `notes`, optional `templateId`, and at least one `lines` entry with `productId`, optional `variantId` and optional `taxId`, and `quantity`. `templateId` must identify an active template whose plan matches `planId`; template lines may be edited before submission. Prices and amounts are read from the database: the plan price applies to its product line; other products use their current sales price; variant extra price is added. The server calculates line amounts and both recurring totals in paise. The plan must be available on `startDate`, and `minQuantity` applies to the plan product only. When the Draft moves to Quotation, its expiry is derived from the template validity period (30 days if no template is linked). **Auth:** Admin, Internal. Refs: PS-11, PS-12.
 
 The client form defaults `startDate` to the current IST business date. API callers must still provide `startDate` explicitly.
 
@@ -673,7 +673,8 @@ timer and waits for in-flight work before disconnecting PostgreSQL.
 #### GET /api/templates
 
 Paginated, case-insensitive name search through `q`. Returns template summaries,
-the plan and `_count.lines`. Uses the shared page and pageSize limits.
+the plan and `_count.lines`. Optional `isActive=true|false` filters before pagination.
+Uses the shared page and pageSize limits.
 
 #### GET /api/templates/:id
 
@@ -702,8 +703,9 @@ template, `409` duplicate name or concurrently removed catalog references.
 Line inputs reject price fields rather than accepting a stale snapshot.
 The Quotation templates page supports URL-backed name search, pagination,
 Admin-only editing and staff previews with current prices. The editor converts
-no prices into snapshots. Subscription creation from a template remains a
-separately owned workflow; PS-11 stays In progress until that integration.
+no prices into snapshots. Subscription creation supports choosing an active
+template, pre-filling its plan and editable lines, and retaining the template
+for quotation validity calculation.
 
 
 

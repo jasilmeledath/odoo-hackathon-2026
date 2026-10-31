@@ -17,6 +17,7 @@ export const subscriptionWriteSchema = z
   .object({
     customerId: positiveId,
     planId: positiveId,
+    templateId: positiveId.nullable().optional(),
     paymentTermId: positiveId,
     startDate: dateField('Start date'),
     expiryDate: dateField('Expiry date'),

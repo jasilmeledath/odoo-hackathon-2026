@@ -1,5 +1,6 @@
 // Template inputs contain references and quantities, never price snapshots (PS-11).
 import { z } from 'zod';
+import { listQuerySchema } from '../../lib/pagination.js';
 import { idParamSchema, optionalText, requiredText } from '../../lib/validation.js';
 
 export const MAX_TEMPLATE_LINES = 100;
@@ -35,4 +36,11 @@ export const templateSchema = z.object({
     )
     .min(1, 'Add at least one line')
     .max(MAX_TEMPLATE_LINES, 'Use at most 100 lines'),
+});
+
+export const templateListQuerySchema = listQuerySchema.extend({
+  isActive: z
+    .enum(['true', 'false'], { error: 'Choose true or false' })
+    .transform((value) => value === 'true')
+    .optional(),
 });
