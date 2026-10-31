@@ -4,6 +4,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const validateRequired = (value, label) => (String(value ?? '').trim() ? '' : `${label} is required`);
 
+// Both dates are optional. When both are given, the end must not be before the start.
 export const validateDateRange = (from, to) =>
   from && to && from > to ? 'To date must be on or after the from date' : '';
 

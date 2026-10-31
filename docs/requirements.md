@@ -44,18 +44,18 @@ Brightloop Software sells everything on subscription: software billed monthly or
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-6 | The Admin manages products: name, type, sales price, cost price and notes | P1 | Manoj | Not started |
+| PS-6 | The Admin manages products: name, type, sales price, cost price and notes | P1 | Manoj | In progress |
 | PS-7 | A product has variants, each adding an extra price (choosing the Odoo brand adds 560) | P1 | Manoj | Not started |
-| PS-8 | The Admin manages plans: price, billing period (daily, weekly, monthly, yearly), minimum quantity and the dates it is available | P1 | Manoj | Not started |
+| PS-8 | The Admin manages plans: price, billing period (daily, weekly, monthly, yearly), minimum quantity and the dates it is available | P1 | Manoj | In progress |
 | PS-9 | Plan by plan, the Admin decides whether it closes by itself at the end, and whether it can be closed early, paused or renewed | P1 | Manoj | Not started |
-| PS-10 | The Admin sets tax rules, and taxes are calculated from them automatically | P1 | Manoj | Not started |
+| PS-10 | The Admin sets tax rules, and taxes are calculated from them automatically | P1 | Manoj | In progress |
 
 ### Subscriptions
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-11 | Quotation templates hold the plan and product lines and stay valid for a set number of days. A quotation can start from one | P2 | Manoj | Not started |
-| PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | Not started |
+| PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | In progress |
 | PS-13 | A subscription moves Draft → Quotation → Confirmed → Active → Closed, and the team can see where it stands and its history | P1 | Jayasurya | Not started |
 | PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | Not started |
 
@@ -65,7 +65,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 |---|---|---|---|---|
 | PS-15 | On billing day, invoices are created from due subscriptions with customer details, lines, taxes and totals filled in. Nothing is billed twice or skipped | P1 | Jasil | Not started |
 | PS-16 | Taxes on invoices are calculated automatically from the Admin's rules | P1 | Jasil | In progress |
-| PS-17 | An invoice moves Draft → Confirmed → Paid, and can be canceled | P1 | Jasil | Not started |
+| PS-17 | An invoice moves Draft → Confirmed → Paid, and can be canceled | P1 | Jasil | In progress |
 | PS-18 | The team can send or print any invoice | P2 | Jasil | Not started |
 
 ### Discounts
@@ -81,7 +81,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 |---|---|---|---|---|
 | PS-21 | A payment is recorded with method, amount, date and note against the right invoice | P1 | Yadhu | Not started |
 | PS-22 | The team can see which invoices are paid, outstanding and overdue at any moment | P1 | Yadhu | Not started |
-| PS-23 | The finance lead sees active subscriptions, revenue, payments, amounts owed and overdue invoices in one place | P1 | Jayasurya | Not started |
+| PS-23 | The finance lead sees active subscriptions, revenue, payments, amounts owed and overdue invoices in one place | P1 | Jayasurya | In progress |
 | PS-24 | Reports have filters and a summary view | P2 | Jayasurya | In progress |
 | PS-25 | With thousands of subscriptions, every page responds in under two seconds | P2 | Everyone | Not started |
 
