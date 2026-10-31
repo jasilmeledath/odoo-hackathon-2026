@@ -812,3 +812,9 @@ with billing claims; the limit cannot be lower than the current usage count.
 Errors: `400` field errors or invalid/read-only input, `401` unauthenticated,
 `403` not Admin, `404` missing discount, `409` duplicate name with
 `fields.name` or concurrently removed product choices. No schema changes.
+
+### Discount administration (PS-19)
+
+The Discounts page uses URL-backed search/state filters and real paginated
+rules. Admin-only forms show product selection only for PRODUCT scope, convert
+rupees to paise once and preserve usage counts. Internal staff browse read-only.

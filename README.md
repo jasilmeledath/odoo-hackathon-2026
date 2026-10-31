@@ -38,6 +38,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 - Add forgot/reset pages, 30-minute hashed recovery tokens and immediate session invalidation, including the same-second boundary. (PS-3).
 
+- Admins manage fixed/percentage discounts, scope-specific products, minimums, dates and usage limits; staff filter current rule states (PS-19).
+
 ## Screenshots
 
 *Added at 4:45 PM from `docs/screenshots/`.*
