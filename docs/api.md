@@ -154,7 +154,7 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 |---|---|---|---|---|---|
 | GET | `/portal/subscriptions` | Customer | Own subscriptions | PS-26 | Yes |
 | GET | `/portal/subscriptions/:id` | Customer | One subscription with lines | PS-26 | Yes |
-| POST | `/portal/subscriptions/:id/accept` | Customer | Accept a quotation | PS-27 | |
+| POST | `/portal/subscriptions/:id/accept` | Customer | Accept a quotation | PS-27 | Yes |
 | PATCH | `/portal/subscriptions/:id/lines/:lineId` | Customer | `{ isActive }`: switch an add-on on or off | PS-27 | |
 | POST | `/portal/subscriptions/:id/pause` | Customer | Pause, if the plan allows | PS-27 | |
 | POST | `/portal/subscriptions/:id/resume` | Customer | Resume | PS-27 | |
@@ -835,3 +835,19 @@ checked with real Admin/Internal login at 375px and 1280px. Wide tables scroll
 inside their cards; the shell can shrink without page overflow. Invalid or
 incomplete prices do not show a calculated margin. Invalid input, empty/error
 states and read-only staff controls are verified. No API or schema changes.
+
+### POST /api/portal/subscriptions/:id/accept
+
+Accept the authenticated customer's own Quotation through the subscriptions
+service and its shared `assertTransition()` (PS-27). Body is empty or `{}`;
+unknown fields are rejected. A scoped row lock keeps ownership, expiry,
+status and activity recording in the same transaction. The response uses
+the portal's safe detail projection, never staff-only customer fields.
+
+Responses: `200` Confirmed subscription; `400` invalid ID/body; `401`
+unauthenticated; `403` non-Customer; `404` missing profile/subscription or
+another customer's record; `409` expired quotation or invalid current state.
+The expiry date is inclusive in IST. The portal shows pending, error and
+success feedback and refreshes status after acceptance. Activation follows
+the existing staff/scheduler workflow. PS-27 remains In progress until the
+other separately assigned customer actions are integrated.

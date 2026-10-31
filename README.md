@@ -40,6 +40,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 - Admins manage fixed/percentage discounts, scope-specific products, minimums, dates and usage limits; staff filter current rule states (PS-19).
 
+- Customers accept their own unexpired quotations in the portal, with transaction-safe ownership and status checks (PS-27).
+
 ## Screenshots
 
 **Finance dashboard:** recurring revenue, payments and overdue invoices (PS-23).

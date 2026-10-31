@@ -1,4 +1,6 @@
-// Customer-owned subscription terms and lines (PS-26).
+// Customer-owned subscription terms, lines and quotation acceptance (PS-26, PS-27).
+import { useState } from 'react';
+import { api } from '../../lib/api.js';
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi.js';
 import { Alert, EmptyState, PageHeader, Spinner, StatusBadge } from '../../components/ui.jsx';
@@ -6,6 +8,23 @@ import { formatDate, formatMoney, formatLabel } from '../../lib/format.js';
 export default function PortalSubscriptionDetail() {
   const { id } = useParams();
   const { data, loading, error, reload } = useApi('/portal/subscriptions/' + id);
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const [notice, setNotice] = useState('');
+  const handleAccept = async () => {
+    setIsAccepting(true);
+    setActionError('');
+    setNotice('');
+    try {
+      await api('/portal/subscriptions/' + id + '/accept', { method: 'POST', body: {} });
+      setNotice('Quotation accepted.');
+      await reload();
+    } catch (failure) {
+      setActionError(failure.message);
+    } finally {
+      setIsAccepting(false);
+    }
+  };
   return (
     <div className="space-y-5 break-words">
       <Link className="text-brand-600 underline" to="/portal">
@@ -27,6 +46,16 @@ export default function PortalSubscriptionDetail() {
             subtitle={data.plan.name}
             action={<StatusBadge status={data.status} />}
           />
+          <Alert>{actionError}</Alert>
+          <Alert tone="success">{notice}</Alert>
+          {data.status === 'QUOTATION' && (
+            <section className="card space-y-3" aria-label="Quotation acceptance">
+              {data.quotationExpiryDate && <p>Valid until {formatDate(data.quotationExpiryDate)}</p>}
+              <button className="btn-primary" disabled={isAccepting} onClick={handleAccept}>
+                {isAccepting ? 'Accepting...' : 'Accept quotation'}
+              </button>
+            </section>
+          )}
           <dl className="card grid gap-4 sm:grid-cols-3">
             {[
               ['Starts', formatDate(data.startDate)],

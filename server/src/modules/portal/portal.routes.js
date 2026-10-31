@@ -3,8 +3,18 @@ import { Router } from 'express';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
 import { idParamSchema } from '../../lib/validation.js';
-import { portalSubscriptionQuerySchema, portalInvoiceQuerySchema } from './portal.schemas.js';
-import { listSubscriptions, getSubscription, listInvoices, getInvoice } from './portal.service.js';
+import {
+  portalSubscriptionQuerySchema,
+  portalInvoiceQuerySchema,
+  portalActionSchema,
+} from './portal.schemas.js';
+import {
+  listSubscriptions,
+  getSubscription,
+  listInvoices,
+  getInvoice,
+  acceptQuotation,
+} from './portal.service.js';
 const router = Router();
 router.use(requireAuth, requireRole('CUSTOMER'));
 router.get('/subscriptions', validate(portalSubscriptionQuerySchema, 'query'), async (req, res) =>
@@ -18,5 +28,11 @@ router.get('/invoices', validate(portalInvoiceQuerySchema, 'query'), async (req,
 );
 router.get('/invoices/:id', validate(idParamSchema, 'params'), async (req, res) =>
   res.json(await getInvoice(req.user.customerId, req.validParams.id)),
+);
+router.post(
+  '/subscriptions/:id/accept',
+  validate(idParamSchema, 'params'),
+  validate(portalActionSchema),
+  async (req, res) => res.json(await acceptQuotation(req.validParams.id, req.user)),
 );
 export default router;
