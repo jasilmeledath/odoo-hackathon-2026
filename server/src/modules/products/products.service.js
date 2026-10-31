@@ -17,6 +17,7 @@ export const listProducts = ({ type, isActive, q, ...pagination }) =>
         salesPrice: true,
         costPrice: true,
         taxId: true,
+        notes: true,
         isActive: true,
       },
     },
@@ -37,4 +38,14 @@ export const getProduct = async (id) => {
       endDate: plan.endDate ? toIsoDate(plan.endDate) : null,
     })),
   };
+};
+
+export const saveProduct = async (data, id) => {
+  try {
+    return await (id ? prisma.product.update({ where: { id }, data }) : prisma.product.create({ data }));
+  } catch (error) {
+    if (error.code === 'P2002')
+      throw new HttpError(409, 'Name is already in use', { name: 'Name is already in use' });
+    throw error;
+  }
 };

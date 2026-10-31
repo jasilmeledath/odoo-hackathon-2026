@@ -1,0 +1,14 @@
+{
+  "name": "brightloop-local-promotion",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:format": "node scripts/check-format.js",
+    "ci:local": "node server/scripts/local-ci.js",
+    "promote:main": "node scripts/promote-to-main.js"
+  },
+  "devDependencies": {
+    "prettier": "3.9.6"
+  }
+}
