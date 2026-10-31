@@ -388,3 +388,7 @@ product. Refs: PS-6.
 **Errors:** `400` invalid input with field messages; `401` unauthenticated;
 `403` wrong role; `409` duplicate name with `fields.name`; update returns
 `404` for an absent ID. Money remains whole paise. No schema change.
+The product form component accepts prices in rupees, rejects negative,
+non-finite, oversized or sub-paise input, then uses `toPaise` once before
+submitting. The displayed margin is sales price minus cost price and is
+not stored. Product-list wiring follows in the UI integration PR.
