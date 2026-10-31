@@ -152,15 +152,15 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/portal/subscriptions` | Customer | Own subscriptions | PS-26 | |
-| GET | `/portal/subscriptions/:id` | Customer | One subscription with lines | PS-26 | |
+| GET | `/portal/subscriptions` | Customer | Own subscriptions | PS-26 | Yes |
+| GET | `/portal/subscriptions/:id` | Customer | One subscription with lines | PS-26 | Yes |
 | POST | `/portal/subscriptions/:id/accept` | Customer | Accept a quotation | PS-27 | |
 | PATCH | `/portal/subscriptions/:id/lines/:lineId` | Customer | `{ isActive }`: switch an add-on on or off | PS-27 | |
 | POST | `/portal/subscriptions/:id/pause` | Customer | Pause, if the plan allows | PS-27 | |
 | POST | `/portal/subscriptions/:id/resume` | Customer | Resume | PS-27 | |
 | POST | `/portal/subscriptions/:id/close` | Customer | Close, if the plan allows | PS-27 | |
-| GET | `/portal/invoices` | Customer | Own invoices | PS-26 | |
-| GET | `/portal/invoices/:id` | Customer | One invoice with lines and payments | PS-26 | |
+| GET | `/portal/invoices` | Customer | Own invoices | PS-26 | Yes |
+| GET | `/portal/invoices/:id` | Customer | One invoice with lines and payments | PS-26 | Yes |
 
 ---
 
@@ -278,6 +278,44 @@ Read finance totals and the ten oldest overdue invoices. Revenue is the sum of p
 **Response** `200`: `{ period, activeSubscriptionCount, monthlyRecurringAmount, invoicedAmount, revenueAmount, outstandingAmount, overdueAmount, overdueInvoices }`. `overdueInvoices` contains at most ten oldest overdue entries with `balanceAmount`. Money is in paise.
 
 **Responses:** `200` the summary · `400` invalid date (`fields.from`, `fields.to`) · `401` not logged in · `403` not staff
+
+### GET /api/portal/subscriptions
+
+List only the authenticated customer's subscriptions. **Auth:** Customer. Refs: PS-26.
+
+**Query**
+
+| Field | Type | Rules |
+|---|---|---|
+| page, pageSize | number | Standard pagination: page from 1, page size 1–50, default 10 |
+| q | string | Trimmed, at most 100 characters; case-insensitive subscription number search |
+| status | string | A native SubscriptionStatus value |
+
+**Response:** 200 { items, total, page, pageSize, pages }. Each item includes number, status, start/expiry dates, recurring amount and plan name/billing period. Caller-supplied customerId is ignored; ownership comes only from req.user.customerId.
+
+**Responses:** 400 field validation; 401 missing/invalid session; 403 non-Customer; 404 missing customer profile.
+
+### GET /api/portal/subscriptions/:id
+
+Read an owned subscription with product/variant lines, quantities, saved unit prices, active flags and tax descriptions. **Auth:** Customer. Refs: PS-26.
+
+**Responses:** 200 subscription; 400 invalid ID; 401/403 unauthorized; 404 missing profile, absent subscription or another customer's subscription. Internal cost prices and account secrets are not selected.
+
+### GET /api/portal/invoices
+
+List only the authenticated customer's invoices, newest issue date first. **Auth:** Customer. Refs: PS-26.
+
+**Query:** standard page/pageSize; q at most 100 characters, matching invoice number or billing name; optional native InvoiceStatus status. Filters combine with ownership.
+
+**Response:** 200 { items, total, page, pageSize, pages }. Items include totalAmount, paidAmount, balanceAmount and isOverdue. Balance and overdue rules reuse the existing invoice service helper; money is whole paise.
+
+**Responses:** 400 invalid filters; 401/403 unauthorized; 404 missing customer profile.
+
+### GET /api/portal/invoices/:id
+
+Read an owned invoice with billing snapshot, line prices/discounts/tax, payments and remaining balance. **Auth:** Customer. Refs: PS-26.
+
+**Responses:** 200 invoice; 400 invalid ID; 401/403 unauthorized; 404 missing profile, absent invoice or another customer's invoice. Payments expose date, method, amount and note; internal staff identities and password/account fields are omitted.
 
 ### GET /api/reports/renewals
 
