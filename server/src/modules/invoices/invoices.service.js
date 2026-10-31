@@ -7,7 +7,6 @@ import { paginate } from '../../lib/pagination.js';
 import { prisma } from '../../lib/prisma.js';
 
 const NOT_FOUND_MESSAGE = 'Invoice not found';
-
 // A-15: overdue is a confirmed invoice past its due date. It is worked out from
 // the data, never stored, so it cannot go stale.
 const overdueWhere = () => ({ status: 'CONFIRMED', dueDate: { lt: today() } });

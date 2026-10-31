@@ -22,5 +22,4 @@ router.get('/:id', validate(idParamSchema, 'params'), async (req, res) => {
 router.post('/:id/confirm', validate(idParamSchema, 'params'), async (req, res) => {
   res.json(await confirmInvoice(req.validParams.id, req.user));
 });
-
 export default router;
