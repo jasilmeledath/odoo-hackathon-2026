@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { validateProduct } from '../../../../client/src/lib/validators.js';
 import { toPaise } from '../../../../client/src/lib/format.js';
-import { productSchema } from './products.schemas.js';
+import { productSchema, variantSchema, variantParamsSchema } from './products.schemas.js';
 
 const product = { name: 'Software', type: 'SOFTWARE', salesPrice: 125050, costPrice: 100000 };
 test('product writes keep whole paise and trim names', () => {
@@ -36,4 +36,21 @@ test('rupee validation precedes exact conversion into the API paise contract', (
   );
   for (const salesPrice of ['', '-1', '0.001', '10000000.01', 'Infinity'])
     assert.ok(validateProduct({ ...form, salesPrice }).salesPrice);
+});
+
+test('variant values are trimmed and extra prices stay whole paise', () => {
+  const input = { attribute: ' Brand ', value: ' Odoo ', extraPrice: 56000 };
+  assert.equal(variantSchema.parse(input).value, 'Odoo');
+  for (const change of [
+    { attribute: ' ' },
+    { value: 'x'.repeat(61) },
+    { extraPrice: -1 },
+    { extraPrice: 0.5 },
+    { extraPrice: 1000000001 },
+  ])
+    assert.equal(variantSchema.safeParse({ ...input, ...change }).success, false);
+});
+test('variant IDs and parent IDs must fit PostgreSQL integers', () => {
+  assert.deepEqual(variantParamsSchema.parse({ id: '1', variantId: '2' }), { id: 1, variantId: 2 });
+  assert.equal(variantParamsSchema.safeParse({ id: '1', variantId: '2147483648' }).success, false);
 });
