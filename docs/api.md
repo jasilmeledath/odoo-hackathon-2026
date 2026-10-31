@@ -419,3 +419,7 @@ or migration change. Refs: PS-8, PS-9.
 The plan form converts validated rupee prices to paise at submission, mirrors
 quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
+
+The Plans page connects the validated form with URL-backed name, active-state
+and available-on filters; it displays product names, prices, billing periods
+and sale dates from paginated API results. Internal staff have read-only UI.
