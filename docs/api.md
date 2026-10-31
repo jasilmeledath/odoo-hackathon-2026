@@ -75,9 +75,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | Yes |
 | POST | `/products` | Admin | Create | PS-6 | Yes |
 | PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | Yes |
-| POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | |
-| PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | |
-| DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | |
+| POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | Yes |
+| PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | Yes |
+| DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | Yes |
 | GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | Yes |
 | GET | `/plans/:id` | Staff | One plan | PS-8 | Yes |
 | POST | `/plans` | Admin | Create | PS-8, PS-9 | Yes |
@@ -438,6 +438,33 @@ or migration change. Refs: PS-8, PS-9.
 The plan form converts validated rupee prices to paise at submission, mirrors
 quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
+
+
+### Product variants (PS-7)
+
+**Auth:** Admin for all writes. Product/variant IDs are validated and updates
+and removals are scoped to the parent product.
+
+#### POST `/api/products/:id/variants`
+
+**Body:** `attribute` and `value` (trimmed, 1 to 60 characters), `extraPrice`
+(integer paise, 0 to 1000000000). **Response:** `201` the variant.
+
+#### PUT `/api/products/:id/variants/:variantId`
+
+Update with the same body. **Response:** `200` the saved variant.
+
+#### DELETE `/api/products/:id/variants/:variantId`
+
+Remove an unused variant. **Response:** `204`. Used subscription variants
+return `409` explaining why they cannot be removed. The check and delete
+run inside one transaction with a variant-row lock, preventing a race
+with concurrent foreign-key references.
+
+**Errors:** `400` invalid body/IDs with fields; `401` unauthenticated;
+`403` wrong role; `404` missing parent/variant or mismatched parent;
+`409` duplicate product/attribute/value with `fields.value`, or used removal.
+No schema or migration changes.
 
 The Plans page connects the validated form with URL-backed name, active-state
 and available-on filters; it displays product names, prices, billing periods
