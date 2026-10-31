@@ -9,12 +9,12 @@
 // - Calendar dates are DATE and moments in time are TIMESTAMPTZ.
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ---------- Enumerated values ----------

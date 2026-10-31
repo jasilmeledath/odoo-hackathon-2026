@@ -2,12 +2,12 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.1 |
+| Version | 1.2 |
 | Owner | Team lead (Jasil M) |
 | Last updated | 31 October 2026 |
 | Related documents | [CONTRIBUTING.md](../CONTRIBUTING.md) · [Naming Conventions](naming-conventions.md) · [Documentation Rules](documentation-rules.md) · [Requirements](requirements.md) |
 
-This document is the single source of truth for **how we write code** during the hackathon. It applies to every team member and every AI coding assistant, and **everyone reads it before the first commit**. `CLAUDE.md` and any other agent rule files only point here.
+This document is the single source of truth for **how we write code** during the hackathon. It applies to every team member and every AI coding assistant. Before starting each task, everyone reads this document, the [work journal instructions](journal/README.md), the five newest journal entries, and entries related to the task. `AGENTS.md`, `CLAUDE.md` and other agent rule files point here and to the journal instructions. **Every commit must use Conventional Commits** as specified in [CONTRIBUTING.md §3](../CONTRIBUTING.md#3-commit-messages).
 
 **Order of precedence:** (1) the **problem statement** decides what we build. (2) **Odoo's judging criteria** ([§1](#1-what-odoo-judges)) decide how we build it. (3) This document records the team's decisions within those limits. If two of them disagree, raise it with the lead before writing code.
 
@@ -29,6 +29,7 @@ This document is the single source of truth for **how we write code** during the
 12. [Testing and checking](#12-testing-and-checking)
 13. [Scope: no overkill](#13-scope-no-overkill)
 14. [Definition of done](#14-definition-of-done)
+15. [Work journal](#15-work-journal)
 
 ---
 
@@ -277,3 +278,8 @@ A feature is done when all of the following are true:
 - [ ] It's reachable from the navigation
 - [ ] [api.md](api.md) and the README are updated if a route, env var or setup step changed, and the `PS-n` status in [requirements.md](requirements.md) is current
 - [ ] It's committed with a message that follows [CONTRIBUTING.md](../CONTRIBUTING.md) and merged into `develop` through a pull request
+- [ ] A work journal entry is added under [`docs/journal/`](journal/README.md) in the same branch and pull request
+
+## 15. Work journal
+
+Every team member and every coding agent records work that changes the repository or database in [`docs/journal/`](journal/README.md). Read its instructions before starting a task. Add an append-only entry in the same branch and pull request as the change; include code, documentation, configuration and database work. Record database migrations and schema effects explicitly, including when there was no schema change. The journal is required project history, not a substitute for Git commits or technical documentation.

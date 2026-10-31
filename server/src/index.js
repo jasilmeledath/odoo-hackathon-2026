@@ -1,6 +1,7 @@
 // App setup and route mounting only. Every module's router is already mounted,
 // so owners work inside src/modules/<module>/ and rarely touch this file.
 import express from 'express';
+import { startScheduler, stopScheduler } from './lib/scheduler.js';
 import cors from 'cors';
 import authRoutes from './modules/auth/auth.routes.js';
 import staffRoutes from './modules/staff/staff.routes.js';
@@ -17,6 +18,7 @@ import invoiceRoutes from './modules/invoices/invoices.routes.js';
 import paymentRoutes from './modules/payments/payments.routes.js';
 import reportRoutes from './modules/reports/reports.routes.js';
 import portalRoutes from './modules/portal/portal.routes.js';
+import { startDashboardListener, stopDashboardListener } from './lib/dashboardEvents.js';
 import { prisma } from './lib/prisma.js';
 import { errorHandler, notFound } from './middleware/error.js';
 import { requestLogger } from './middleware/requestLogger.js';
@@ -56,4 +58,26 @@ app.use(notFound);
 app.use(errorHandler);
 
 const port = Number(process.env.PORT) || 4000;
-app.listen(port, () => console.info(`API on http://localhost:${port}`));
+startDashboardListener();
+startScheduler();
+const server = app.listen(port, () => console.info(`API on http://localhost:${port}`));
+
+let isShuttingDown = false;
+const shutdown = async () => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  await new Promise((resolve) => server.close(resolve));
+  await stopScheduler();
+  await Promise.all([stopDashboardListener(), prisma.$disconnect()]);
+};
+
+process.once('SIGINT', () => {
+  void shutdown().catch(() => {
+    process.exitCode = 1;
+  });
+});
+process.once('SIGTERM', () => {
+  void shutdown().catch(() => {
+    process.exitCode = 1;
+  });
+});

@@ -9,11 +9,18 @@ const dateFormat = new Intl.DateTimeFormat('en-IN', {
   year: 'numeric',
   timeZone: 'UTC',
 });
+const dateTimeFormat = new Intl.DateTimeFormat('en-IN', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'Asia/Kolkata',
+});
 
 export const formatMoney = (paise) => moneyFormat.format((paise ?? 0) / PAISE_PER_RUPEE);
 
 // Calendar dates are stored at 00:00 UTC, so they are formatted in UTC too.
 export const formatDate = (value) => (value ? dateFormat.format(new Date(value)) : '');
+
+export const formatDateTime = (value) => (value ? dateTimeFormat.format(new Date(value)) : '');
 
 export const toInputDate = (value) => (value ? new Date(value).toISOString().slice(0, 10) : '');
 

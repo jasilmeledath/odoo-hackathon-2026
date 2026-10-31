@@ -746,6 +746,8 @@ stateDiagram-v2
 
 Prisma cannot express `CHECK` constraints or partial indexes, so they live in the migration `add_business_rule_constraints`. A check failure has no Prisma error code, so `server/src/middleware/error.js` matches PostgreSQL's code `23514` and returns `409`. Good validation should mean users never see it.
 
+The migration `dashboard_change_notifications` adds statement-level triggers to `invoices` and `payments`. They call `pg_notify('dashboard_changed', ...)`; PostgreSQL delivers each notification only after the transaction commits. The server keeps one reconnecting `LISTEN` connection and forwards a payload-free `changed` event to authorized dashboard streams. This avoids polling financial tables and works across server processes.
+
 We tested these directly against the database by trying to store a second invoice for a period, an overpayment, a wrong total, `PAID` without full payment, a negative price, a discount that was both fixed and percentage, an uppercase email and a zero payment, and by deleting a customer who has invoices. All were refused. Billing a canceled period again was allowed, and invoice numbers stayed gapless after a rollback.
 
 ## 8. Normalization decisions
@@ -818,14 +820,18 @@ npx prisma migrate deploy
 ```
 
 ```bash
+npm run db:generate
+```
+
+```bash
 npm run db:seed
 ```
 
 | Task | Command (in `server/`) |
 |---|---|
-| Apply teammates' migrations after pulling | `npx prisma migrate dev` |
-| Change the schema | Edit `schema.prisma`, then `npx prisma migrate dev --name <what_changed>` |
-| Add a check constraint or partial index | `npx prisma migrate dev --create-only --name <what_changed>`, add the SQL, then `npx prisma migrate dev` |
+| Apply teammates' migrations after pulling | `npx prisma migrate dev`, then `npm run db:generate` |
+| Change the schema | Edit `schema.prisma`, then `npx prisma migrate dev --name <what_changed>` and `npm run db:generate` |
+| Add a check constraint or partial index | `npx prisma migrate dev --create-only --name <what_changed>`, add the SQL, then run `npx prisma migrate dev` and `npm run db:generate` |
 | Reset to fresh demo data | `npm run db:reset` |
 | Test at scale | `SEED_SUBSCRIPTIONS=5000 npm run db:seed` |
 | Browse the data | `npx prisma studio` |

@@ -14,7 +14,13 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
-*Filled in as each requirement lands. Track progress in [docs/requirements.md](docs/requirements.md).*
+- Startup/hourly processing activates due subscriptions, closes plans at expiry when configured, and generates due invoices (PS-14, PS-15).
+
+- Staff can generate recurring Draft invoices with tax snapshots, catch-up billing and duplicate protection (PS-15, PS-16).
+
+- Active accounts log in with expiring tokens and role-based navigation (PS-2).
+- Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
+- Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
 
 ## Screenshots
 
@@ -39,7 +45,7 @@ Database design is the heart of this project. [docs/data-model.md](docs/data-mod
 
 ## Getting started
 
-**Prerequisites:** Node.js 20.6 or later, PostgreSQL 14 or later, and Git.
+**Prerequisites:** Node.js 20.19 or later (or 22.12 or later), PostgreSQL 14 or later, and Git.
 
 1. Clone the repository:
 
@@ -75,6 +81,10 @@ Database design is the heart of this project. [docs/data-model.md](docs/data-mod
 
    ```bash
    npx prisma migrate deploy
+   ```
+
+   ```bash
+   npm run db:generate
    ```
 
    ```bash
@@ -133,6 +143,38 @@ server/
 docs/                  requirements, plan, database, API and team standards
 ```
 
+## Checks
+
+From `server/`, run `npm test` for billing and catalog validation regressions.
+The test runner uses the same tsx loader as the API for generated Prisma enums.
+From `client/`, run `npm run build` to check the frontend.
+
+### Local develop-to-main promotion
+
+The local gate replaces GitHub Actions for promotion checks and keeps `main` PR-only. Install the root Prettier dependency and enable the repository hooks once:
+
+```bash
+npm install
+```
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Set `server/.env` to a local PostgreSQL account that can create databases. From a clean, up-to-date `develop` branch, run the checks without opening a PR:
+
+```bash
+npm run ci:local
+```
+
+To rerun the checks and create or locate the `develop`-to-`main` PR:
+
+```bash
+npm run promote:main
+```
+
+The gate checks tracked source formatting, creates a disposable local database, applies migrations, runs `server` tests, and builds the client. It removes the temporary database afterward. The promotion command requires local `develop` to match `origin/develop`; the pre-push hook blocks direct pushes to `main`. Review and merge the generated PR through the normal flow. The `gh` CLI must be installed and authenticated to create that PR.
+
 ## API
 
 See [docs/api.md](docs/api.md).
@@ -153,3 +195,16 @@ See [docs/api.md](docs/api.md).
 ## Contributing
 
 Team rules are in [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/engineering-standards.md](docs/engineering-standards.md). Tasks and the timeline are in [docs/implementation-plan.md](docs/implementation-plan.md).
+
+
+### Database integration tests
+
+Use a separately created, migrated and seeded local database. Set
+`TEST_DATABASE_URL` to its PostgreSQL connection URL, then run from `server/`:
+
+```bash
+npm run test:integration
+```
+
+These tests create and remove their own fixture subscriptions. Do not point them
+at production data. They exercise transactional billing and concurrent runs.
