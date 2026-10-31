@@ -91,7 +91,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | Yes |
 | POST | `/templates` | Admin | Create with lines | PS-11 | Yes |
 | PUT | `/templates/:id` | Admin | Update with lines | PS-11 | Yes |
-| GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`) | PS-19 | Yes |
+| GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`, `SCHEDULED`, `INACTIVE`) | PS-19 | Yes |
 | GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | Yes |
 | POST | `/discounts` | Admin | Create | PS-19 | Yes |
 | PUT | `/discounts/:id` | Admin | Update or deactivate | PS-19 | Yes |

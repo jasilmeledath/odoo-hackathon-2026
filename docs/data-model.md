@@ -745,7 +745,7 @@ stateDiagram-v2
 | **One account per email** (PS-1) | A unique index on `users.email`, plus `users_email_lowercase_check`, so `A@x.com` and `a@x.com` cannot both exist. |
 | **A discount cannot be overused** (PS-20) | `discounts_usage_check` keeps `usage_count` at or below `usage_limit`. |
 | **Gapless document numbers** | `document_counters` is incremented inside the creating transaction. The row lock lasts until commit, and a rollback gives the number back. A plain database sequence would leave gaps, which accounting does not accept. |
-| **Access ends at once** (PS-3, PS-4) | A login token only holds the user id. Each request reads `role`, `is_active` and the customer link from the database, and refuses tokens issued before `password_changed_at`. Demoting or deactivating someone, or resetting a password, applies immediately. |
+| **Access ends at once** (PS-3, PS-4) | A login token holds the user id and an exact signed password version. Each request reads `role`, `is_active`, the customer link and `password_changed_at` from the database, and refuses a token whose password version differs. Password writes lock the user and advance the version even within the same millisecond. Demoting or deactivating someone, or resetting a password, applies immediately. |
 | **History survives** | `RESTRICT` on customers, plans, products, subscriptions, invoices and payments. Deleting a customer who has invoices is refused. |
 | **Issued invoices stay the same** | Billing name, address, descriptions, prices and tax rates are copied at creation. |
 

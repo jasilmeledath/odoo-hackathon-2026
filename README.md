@@ -201,7 +201,14 @@ See [docs/api.md](docs/api.md).
 
 ## Known limitations
 
-*Filled in honestly at 4:45 PM.*
+Readiness checked against `develop` at `6c57fe2` on 31 October 2026:
+
+- Subscription create/edit, starting a quotation from a template, and pause/resume/renew/early-close still await issues #18, #36 and #30. Existing seeded subscriptions support the implemented status and billing flows.
+- Customer portal reads/actions and ownership-isolation proof await #11, #12 and #29–#32. The portal pages are placeholders; the complete customer demo cannot yet run.
+- Discount rules have validated read/write APIs, but the discount management page still awaits #35. Login/reset attempt limiting remains pending in #33.
+- All 59 implemented HTTP endpoints are documented and marked complete; 15 planned subscription/portal endpoints remain unimplemented. Blank completion cells in the API reference are deliberate.
+- Scale measurements cover implemented screens only. Final full-story, all-page scale, team polish, documentation sign-off and video submission remain open until their dependencies are delivered. See the latest readiness journal for evidence and owners.
+- Without SMTP, invoice and recovery messages print locally. Real SMTP delivery has not been exercised. After a successful mail delivery followed by a database error, check delivery before retrying.
 
 ## Team
 
@@ -226,5 +233,5 @@ Use a separately created, migrated and seeded local database. Set
 npm run test:integration
 ```
 
-These tests create and remove their own fixture subscriptions. Do not point them
-at production data. They exercise transactional billing and concurrent runs.
+These tests create and remove their own fixture subscriptions and session-regression accounts. Do not point them
+at production data. They exercise transactional billing, concurrent runs and password-session revocation.

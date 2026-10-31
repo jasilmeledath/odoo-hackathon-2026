@@ -193,6 +193,23 @@ This is the path for both checkpoints and the 5–6 minute video, told as one mo
 7. **Payment:** confirm and print an invoice, record a part payment, then the rest, and watch it become Paid. Show the dashboard update live.
 8. **Finance:** finish on the dashboard and reports, with overdue invoices and filters.
 
+### Recording script (target 5 minutes 30 seconds)
+
+Record only once the entire path above works; seeded data can support rehearsals but does not replace the customer signup-to-acceptance story.
+
+| Time | Screen and action | Narration |
+|---|---|---|
+| 0:00–0:35 | Signup; demonstrate password feedback, then register | “Brightloop sells subscriptions. We replace its spreadsheet with one local system, starting with a validated customer account.” |
+| 0:35–1:00 | Customer portal, then staff login | “Roles come from the database. Customers see their own records; staff manage operations.” |
+| 1:00–1:40 | Product, Odoo variant and plan | “Products and variants define current prices. Each plan controls billing frequency and allowed lifecycle actions.” |
+| 1:40–2:30 | Enterprise CRM template; create/send quotation; customer accepts | “Reusable templates keep catalog references. A quotation uses current prices, and acceptance moves it into the subscription workflow.” |
+| 2:30–3:25 | Billing queue; run twice; inspect invoice lines, tax and discount | “Each period is transactional, with snapshot prices and a database guard against duplicate invoices. Repeating the run creates nothing twice.” |
+| 3:25–4:20 | Confirm/print invoice; record part payment, then settle | “The server locks balances against concurrent payments, refuses overpayment and marks the invoice Paid only at full settlement.” |
+| 4:20–5:05 | Dashboard live update, overdue invoices and filtered reports | “Committed payments update the dashboard. Revenue means money received; outstanding and overdue balances stay separate.” |
+| 5:05–5:30 | Architecture and database constraints | “The application uses local PostgreSQL, foreign keys, check constraints, pagination and shared services. The core flow uses no external APIs.” |
+
+Current recording blockers: subscription creation/template workflow (#18, #36), portal reads/acceptance and isolation (#11, #12, #29). Narration is prepared; recording duration, upload and submission are not yet verified. Readiness evidence is in [J-068](journal/2026-10-31-J068-readiness-check.md).
+
 ## 9. If we fall behind
 
 Cut from the bottom of this list first. Never cut validation, or the demo story's main path.
