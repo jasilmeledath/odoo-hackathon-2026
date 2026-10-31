@@ -21,6 +21,9 @@ Before every task, every team member and coding agent must read this file, the f
 
 Create a new file named `YYYY-MM-DD-JNNN-short-topic.md` in this folder:
 
+The uppercase `J` in journal filenames is an explicit exception to the general
+lowercase kebab-case document filename rule; see [Naming Conventions §4](../naming-conventions.md#4-files-and-folders).
+
 ```markdown
 # J-NNN: Short topic
 
