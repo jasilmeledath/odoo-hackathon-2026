@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { validateTemplate } from '../../../../client/src/lib/validators.js';
-import { templateSchema } from './templates.schemas.js';
+import { templateListQuerySchema, templateSchema } from './templates.schemas.js';
 
 const template = {
   name: 'Offer',
@@ -45,4 +45,11 @@ test('template client errors mirror line paths and numeric boundaries', () => {
   assert.equal(validateTemplate({ ...form, lines: [] }).lines, 'Add at least one line');
   for (const quantity of ['0', '0.1', '2147483648'])
     assert.ok(validateTemplate({ ...form, lines: [{ productId: 1, quantity }] })['lines.0.quantity']);
+});
+
+test('template list active filter accepts only explicit boolean strings', () => {
+  assert.equal(templateListQuerySchema.parse({ isActive: 'true' }).isActive, true);
+  assert.equal(templateListQuerySchema.parse({ isActive: 'false' }).isActive, false);
+  assert.equal(templateListQuerySchema.parse({}).isActive, undefined);
+  assert.equal(templateListQuerySchema.safeParse({ isActive: 'yes' }).success, false);
 });

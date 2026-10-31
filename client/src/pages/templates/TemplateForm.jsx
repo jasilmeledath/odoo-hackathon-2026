@@ -3,6 +3,7 @@ import { useState } from 'react';
 import CatalogPicker from '../../components/CatalogPicker.jsx';
 import { Alert, Field } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
+import { useToast } from '../../lib/toast.js';
 import {
   MAX_TEMPLATE_INTEGER,
   MAX_TEMPLATE_LINES,
@@ -26,12 +27,17 @@ export default function TemplateForm({ template, onSaved, onCancel }) {
   const [fields, setFields] = useState({});
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const toast = useToast();
   const handleSubmit = async (event) => {
     event.preventDefault();
     const validation = validateTemplate(form);
     setFields(validation);
     setError('');
-    if (Object.keys(validation).length || isSaving) return;
+    if (Object.keys(validation).length) {
+      toast.error('Please fix the highlighted fields.');
+      return;
+    }
+    if (isSaving) return;
     if (
       template?.isActive &&
       !form.isActive &&
@@ -55,10 +61,12 @@ export default function TemplateForm({ template, onSaved, onCancel }) {
           })),
         },
       });
+      toast.success(template ? 'Template saved' : 'Template created');
       await onSaved();
     } catch (failure) {
       setFields(failure.fields ?? {});
       setError(failure.message);
+      toast.error(failure.message);
     } finally {
       setIsSaving(false);
     }

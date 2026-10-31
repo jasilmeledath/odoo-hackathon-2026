@@ -1,7 +1,17 @@
 // Shared controlled form with matching field validation and server feedback.
 import { useState } from 'react';
+import { useToast } from '../lib/toast.js';
 import { Alert } from './ui.jsx';
-export default function RecordForm({ fields, initialValues = {}, onSubmit, onSaved, submitLabel = 'Save' }) {
+// successMessage is a string, or a function of the saved result for messages that include it.
+export default function RecordForm({
+  fields,
+  initialValues = {},
+  onSubmit,
+  onSaved,
+  submitLabel = 'Save',
+  successMessage,
+}) {
+  const toast = useToast();
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
@@ -14,14 +24,22 @@ export default function RecordForm({ fields, initialValues = {}, onSubmit, onSav
     );
     setErrors(nextErrors);
     setError('');
-    if (Object.values(nextErrors).some(Boolean)) return;
+    if (Object.values(nextErrors).some(Boolean)) {
+      toast.error('Please fix the highlighted fields.');
+      return;
+    }
     setIsSaving(true);
     try {
       const result = await onSubmit(values);
+      if (successMessage) {
+        toast.success(typeof successMessage === 'function' ? successMessage(result) : successMessage);
+      }
       onSaved?.(result);
     } catch (failure) {
       setErrors(failure.fields ?? {});
       setError(failure.message);
+      // A canceled confirmation is a choice, not an error, so it stays quiet.
+      if (!failure.canceled) toast.error(failure.message);
     } finally {
       setIsSaving(false);
     }

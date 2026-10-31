@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Alert, PageHeader, Spinner, StatusBadge } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
+import { useToast } from '../../lib/toast.js';
 import { useApi } from '../../lib/useApi.js';
 import {
   ActivityTimeline,
@@ -13,12 +14,23 @@ import {
 } from './SubscriptionDetailSections.jsx';
 import SubscriptionLifecycleActions from './SubscriptionLifecycleActions.jsx';
 
+const SUCCESS_MESSAGE_BY_ACTION = {
+  quote: 'Quotation sent.',
+  confirm: 'Quotation confirmed.',
+  activate: 'Subscription activated.',
+  pause: 'Subscription paused.',
+  resume: 'Subscription resumed.',
+  renew: 'Subscription renewed.',
+  close: 'Subscription closed.',
+};
+
 export default function SubscriptionDetail() {
   const { id } = useParams();
   const { data: subscription, loading, error, reload } = useApi(`/subscriptions/${id}`);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [actionError, setActionError] = useState('');
   const [actionNotice, setActionNotice] = useState('');
+  const toast = useToast();
 
   const handleTransition = async (action, body) => {
     setIsTransitioning(true);
@@ -26,12 +38,15 @@ export default function SubscriptionDetail() {
     setActionNotice('');
     try {
       await api(`/subscriptions/${id}/${action}`, { method: 'POST', body });
-      setActionNotice(action === 'renew' ? 'Subscription renewed.' : 'Subscription status updated.');
+      const message = SUCCESS_MESSAGE_BY_ACTION[action] ?? 'Subscription updated.';
+      setActionNotice(message);
+      toast.success(message);
       window.dispatchEvent(new Event('subscription:changed'));
       await reload();
       return true;
     } catch (requestError) {
       setActionError(requestError.message);
+      toast.error(requestError.message);
       await reload();
       return false;
     } finally {

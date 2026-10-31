@@ -43,6 +43,7 @@ export default function Signup() {
         onSubmit={register}
         onSaved={(user) => navigate(homePathFor(user), { replace: true })}
         submitLabel="Create account"
+        successMessage="Account created. Welcome to Brightloop!"
       />
       <Link className="mt-4 inline-block text-brand-600" to="/login">
         Back to login

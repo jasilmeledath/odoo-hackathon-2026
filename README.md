@@ -18,7 +18,8 @@ No demo video is included in this repository.
 - Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
 - Admins manage products, variants, plans, taxes, payment terms, discounts and quotation templates (PS-6–PS-11, PS-19).
 - Login, password recovery and reset requests have bounded per-IP attempt windows (PS-29).
-- Customers can view their own subscriptions and invoices in the portal (PS-26).
+- Customers can view their own subscriptions and invoices, accept quotations, switch eligible add-ons, and use plan-enabled pause, resume and close actions (PS-26–PS-27).
+- Staff can start a subscription draft from an active quotation template, then edit its prefilled lines (PS-11).
 - Staff create numbered subscriptions with validated lines, current prices, variants and taxes, then send and confirm quotations (PS-12–PS-13).
 - Staff can activate subscriptions, pause and resume billing, renew the same subscription, or close early when the plan allows it (PS-13–PS-14).
 - Scheduled processing activates subscriptions on their start dates, closes configured plans at expiry, and generates due invoices (PS-14–PS-16).
@@ -206,9 +207,8 @@ See [docs/api.md](docs/api.md).
 
 ## Known limitations
 
-- Customer portal actions such as accepting quotations, switching add-ons and pausing or closing subscriptions are not implemented yet (PS-27).
-- Starting a subscription from a quotation template is still in progress (PS-11).
 - Page-level performance at 5,000 subscriptions is still being measured; the timings in [docs/data-model.md](docs/data-model.md#9-performance) cover queries, not full page loads (PS-25).
+- Without SMTP, invoice and recovery messages print locally. Real SMTP delivery has not been exercised; rate-limit counters are local to one API process and reset on restart.
 
 ## Team
 

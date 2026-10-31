@@ -1,7 +1,10 @@
-// Every portal read is scoped to the authenticated customer (PS-26, PS-4).
+// Customer-owned portal reads and actions (PS-26, PS-27).
+// Subscription rules stay in the public subscriptions service.
 import { prisma } from '../../lib/prisma.js';
 import { paginate } from '../../lib/pagination.js';
 import { HttpError } from '../../lib/errors.js';
+import { manageSubscription } from '../subscriptions/subscriptions.service.js';
+import { transitionSubscription } from '../subscriptions/subscriptions.service.js';
 import { withComputedFields } from '../invoices/invoices.service.js';
 const SUBSCRIPTION_FIELDS = {
   id: true,
@@ -10,7 +13,7 @@ const SUBSCRIPTION_FIELDS = {
   startDate: true,
   expiryDate: true,
   recurringAmount: true,
-  plan: { select: { name: true, billingPeriod: true } },
+  plan: { select: { name: true, billingPeriod: true, productId: true } },
 };
 const INVOICE_FIELDS = {
   id: true,
@@ -51,6 +54,7 @@ export async function getSubscription(customerId, id) {
     where: { id, customerId },
     select: {
       ...SUBSCRIPTION_FIELDS,
+      plan: { select: { ...SUBSCRIPTION_FIELDS.plan.select, canPause: true, canCloseEarly: true } },
       quotationExpiryDate: true,
       notes: true,
       lines: {
@@ -61,7 +65,7 @@ export async function getSubscription(customerId, id) {
           unitPrice: true,
           amount: true,
           isActive: true,
-          product: { select: { name: true } },
+          product: { select: { id: true, name: true } },
           variant: { select: { attribute: true, value: true } },
           tax: { select: { name: true, ratePercent: true } },
         },
@@ -71,6 +75,15 @@ export async function getSubscription(customerId, id) {
   if (!subscription) throw new HttpError(404, 'Subscription not found');
   return subscription;
 }
+// PS-27: customer actions use the same plan rules and schedule as staff.
+export async function manageOwnSubscription(id, action, actor) {
+  assertCustomerProfile(actor.customerId);
+  if (!['PAUSE', 'RESUME', 'CLOSE'].includes(action))
+    throw new HttpError(400, 'Choose a valid subscription action');
+  await manageSubscription(id, action, { ...actor, role: 'CUSTOMER' });
+  return getSubscription(actor.customerId, id);
+}
+
 export async function listInvoices(customerId, query) {
   const page = await paginate(
     prisma.invoice,
@@ -119,4 +132,11 @@ export async function getInvoice(customerId, id) {
   });
   if (!invoice) throw new HttpError(404, 'Invoice not found');
   return withComputedFields(invoice);
+}
+
+// PS-27: the subscription service owns expiry, transitions, locking and history.
+export async function acceptQuotation(id, actor) {
+  assertCustomerProfile(actor.customerId);
+  await transitionSubscription(id, 'CONFIRM', { ...actor, role: 'CUSTOMER' });
+  return getSubscription(actor.customerId, id);
 }

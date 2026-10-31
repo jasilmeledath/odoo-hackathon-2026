@@ -3,7 +3,7 @@ import { HttpError } from '../../lib/errors.js';
 import { paginate } from '../../lib/pagination.js';
 import { prisma } from '../../lib/prisma.js';
 
-const PLAN = { select: { id: true, name: true, productId: true, price: true } };
+const PLAN = { select: { id: true, name: true, productId: true, price: true, billingPeriod: true } };
 const DETAIL = {
   plan: PLAN,
   lines: {
@@ -26,11 +26,14 @@ const serializeTemplate = (template) => ({
   })),
 });
 
-export const listTemplates = ({ q, ...pagination }) =>
+export const listTemplates = ({ q, isActive, ...pagination }) =>
   paginate(
     prisma.quotationTemplate,
     {
-      where: q ? { name: { contains: q, mode: 'insensitive' } } : {},
+      where: {
+        ...(isActive === undefined ? {} : { isActive }),
+        ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
+      },
       orderBy: { id: 'asc' },
       include: { plan: PLAN, _count: { select: { lines: true } } },
     },

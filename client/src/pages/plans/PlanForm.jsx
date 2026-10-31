@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Alert, Field } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
+import { useToast } from '../../lib/toast.js';
 import { formatLabel, toInputDate, toPaise, toRupees } from '../../lib/format.js';
 import {
   BILLING_PERIODS,
@@ -52,12 +53,16 @@ export default function PlanForm({ plan, onSaved, onCancel }) {
   const [fields, setFields] = useState({});
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const toast = useToast();
   const handleSubmit = async (event) => {
     event.preventDefault();
     const validation = validatePlan(form);
     setFields(validation);
     setError('');
-    if (Object.keys(validation).length) return;
+    if (Object.keys(validation).length) {
+      toast.error('Please fix the highlighted fields.');
+      return;
+    }
     if (
       plan?.isActive &&
       !form.isActive &&
@@ -76,10 +81,12 @@ export default function PlanForm({ plan, onSaved, onCancel }) {
           endDate: form.endDate || null,
         },
       });
+      toast.success(plan ? 'Plan saved' : 'Plan created');
       await onSaved();
     } catch (failure) {
       setFields(failure.fields ?? {});
       setError(failure.message);
+      toast.error(failure.message);
     } finally {
       setIsSaving(false);
     }
