@@ -137,6 +137,12 @@ server/
 docs/                  requirements, plan, database, API and team standards
 ```
 
+## Checks
+
+From `server/`, run `npm test` for billing and catalog validation regressions.
+The test runner uses the same tsx loader as the API for generated Prisma enums.
+From `client/`, run `npm run build` to check the frontend.
+
 ## API
 
 See [docs/api.md](docs/api.md).

@@ -20,6 +20,7 @@ import TemplateList from './pages/templates/TemplateList.jsx';
 import SubscriptionList from './pages/subscriptions/SubscriptionList.jsx';
 import SubscriptionDetail from './pages/subscriptions/SubscriptionDetail.jsx';
 import BillingRun from './pages/billing/BillingRun.jsx';
+import InvoiceDetail from './pages/invoices/InvoiceDetail.jsx';
 import InvoiceList from './pages/invoices/InvoiceList.jsx';
 import PaymentList from './pages/payments/PaymentList.jsx';
 import Reports from './pages/reports/Reports.jsx';
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="/billing" element={<BillingRun />} />
 
             <Route path="/invoices" element={<InvoiceList />} />
+            <Route path="/invoices/:id" element={<InvoiceDetail />} />
 
             <Route path="/payments" element={<PaymentList />} />
 
