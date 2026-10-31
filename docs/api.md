@@ -37,64 +37,64 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/health` | Public | Checks the API and the database connection | | Yes |
+| GET | `/health` | Public | Checks the API and the database connection | | ✓ |
 
 ### Auth (`modules/auth`)
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | Yes |
-| POST | `/auth/login` | Public | Returns `{ token, user }` | PS-2 | Yes |
-| GET | `/auth/me` | Any | The current user | PS-2 | Yes |
-| POST | `/auth/forgot-password` | Public | Emails a reset link. Always answers `200` | PS-3 | Yes |
-| POST | `/auth/reset-password` | Public | `{ token, password }`. The token works once, for 30 minutes | PS-3 | Yes |
+| POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | ✓ |
+| POST | `/auth/login` | Public | Returns `{ token, user }` | PS-2 | ✓ |
+| GET | `/auth/me` | Any | The current user | PS-2 | ✓ |
+| POST | `/auth/forgot-password` | Public | Emails a reset link. Always answers `200` | PS-3 | ✓ |
+| POST | `/auth/reset-password` | Public | `{ token, password }`. The token works once, for 30 minutes | PS-3 | ✓ |
 
 ### Staff and customers (`modules/staff`, `modules/customers`)
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/staff` | Admin | List staff | PS-5 | Yes |
-| POST | `/staff` | Admin | Add a staff member | PS-5 | Yes |
-| PATCH | `/staff/:id` | Admin | Change details or `isActive` | PS-5 | Yes |
-| GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | Yes |
-| POST | `/customers` | Staff | Create a customer | PS-12 | Yes |
-| GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | Yes |
-| PUT | `/customers/:id` | Staff | Update | PS-12 | Yes |
+| GET | `/staff` | Admin | List staff | PS-5 | ✓ |
+| POST | `/staff` | Admin | Add a staff member | PS-5 | ✓ |
+| PATCH | `/staff/:id` | Admin | Change details or `isActive` | PS-5 | ✓ |
+| GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | ✓ |
+| POST | `/customers` | Staff | Create a customer | PS-12 | ✓ |
+| GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | ✓ |
+| PUT | `/customers/:id` | Staff | Update | PS-12 | ✓ |
 
 ### Catalog (`modules/taxes`, `modules/terms`, `modules/products`, `modules/plans`)
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/taxes` | Staff | List | PS-10 | Yes |
-| POST | `/taxes` | Admin | Create | PS-10 | Yes |
-| PUT | `/taxes/:id` | Admin | Update or deactivate | PS-10 | Yes |
-| GET | `/payment-terms` | Staff | List | PS-12 | Yes |
-| POST | `/payment-terms` | Admin | Create | PS-12 | Yes |
-| PUT | `/payment-terms/:id` | Admin | Update or deactivate | PS-12 | Yes |
-| GET | `/products` | Staff | List, filtered by `type`, `isActive`, `q` | PS-6 | Yes |
-| GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | Yes |
-| POST | `/products` | Admin | Create | PS-6 | Yes |
-| PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | Yes |
-| POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | Yes |
-| PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | Yes |
-| DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | Yes |
-| GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | Yes |
-| GET | `/plans/:id` | Staff | One plan | PS-8 | Yes |
-| POST | `/plans` | Admin | Create | PS-8, PS-9 | Yes |
-| PUT | `/plans/:id` | Admin | Update or deactivate | PS-8, PS-9 | Yes |
+| GET | `/taxes` | Staff | List | PS-10 | ✓ |
+| POST | `/taxes` | Admin | Create | PS-10 | ✓ |
+| PUT | `/taxes/:id` | Admin | Update or deactivate | PS-10 | ✓ |
+| GET | `/payment-terms` | Staff | List | PS-12 | ✓ |
+| POST | `/payment-terms` | Admin | Create | PS-12 | ✓ |
+| PUT | `/payment-terms/:id` | Admin | Update or deactivate | PS-12 | ✓ |
+| GET | `/products` | Staff | List, filtered by `type`, `isActive`, `q` | PS-6 | ✓ |
+| GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | ✓ |
+| POST | `/products` | Admin | Create | PS-6 | ✓ |
+| PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | ✓ |
+| POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | ✓ |
+| PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | ✓ |
+| DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | ✓ |
+| GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | ✓ |
+| GET | `/plans/:id` | Staff | One plan | PS-8 | ✓ |
+| POST | `/plans` | Admin | Create | PS-8, PS-9 | ✓ |
+| PUT | `/plans/:id` | Admin | Update or deactivate | PS-8, PS-9 | ✓ |
 
 ### Quotation templates and discounts (`modules/templates`, `modules/discounts`)
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/templates` | Staff | List | PS-11 | Yes |
-| GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | Yes |
-| POST | `/templates` | Admin | Create with lines | PS-11 | Yes |
-| PUT | `/templates/:id` | Admin | Update with lines | PS-11 | Yes |
-| GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`) | PS-19 | Yes |
-| GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | Yes |
-| POST | `/discounts` | Admin | Create | PS-19 | Yes |
-| PUT | `/discounts/:id` | Admin | Update or deactivate | PS-19 | Yes |
+| GET | `/templates` | Staff | List | PS-11 | ✓ |
+| GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | ✓ |
+| POST | `/templates` | Admin | Create with lines | PS-11 | ✓ |
+| PUT | `/templates/:id` | Admin | Update with lines | PS-11 | ✓ |
+| GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`, `SCHEDULED`, `INACTIVE`) | PS-19 | ✓ |
+| GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | ✓ |
+| POST | `/discounts` | Admin | Create | PS-19 | ✓ |
+| PUT | `/discounts/:id` | Admin | Update or deactivate | PS-19 | ✓ |
 
 
 
@@ -119,22 +119,22 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/billing/due` | Staff | Subscriptions due, with a count and expected total | PS-15 |Yes |
-| POST | `/billing/run` | Staff | Bill everything due. Returns `{ created, skipped, failed }` | PS-15, PS-16, PS-20 |Yes |
-| POST | `/billing/subscriptions/:id` | Staff | Bill one subscription | PS-15 |Yes |
+| GET | `/billing/due` | Staff | Subscriptions due, with a count and expected total | PS-15 | ✓ |
+| POST | `/billing/run` | Staff | Bill everything due. Returns `{ created, skipped, failed }` | PS-15, PS-16, PS-20 | ✓ |
+| POST | `/billing/subscriptions/:id` | Staff | Bill one subscription | PS-15 | ✓ |
 | GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | ✓ |
 | GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | ✓ |
 | POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | ✓ |
-| POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 |Yes |
-| POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 |Yes |
-| POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 |Yes |
+| POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 | ✓ |
+| POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 | ✓ |
+| POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 | ✓ |
 
 ### Payments (`modules/payments`)
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | Yes |
-| POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | Yes |
+| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | ✓ |
+| POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | ✓ |
 
 
 ### Reports (`modules/reports`)

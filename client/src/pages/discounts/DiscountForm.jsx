@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Alert } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
+import { useToast } from '../../lib/toast.js';
 import { toInputDate, toPaise, toRupees } from '../../lib/format.js';
 import { validateDiscount } from '../../lib/validators.js';
 import DiscountFields from './DiscountFields.jsx';
@@ -25,12 +26,17 @@ export default function DiscountForm({ discount, onSaved, onCancel }) {
   const [fields, setFields] = useState({});
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const toast = useToast();
   const handleSubmit = async (event) => {
     event.preventDefault();
     const validation = validateDiscount(form, discount?.usageCount ?? 0);
     setFields(validation);
     setError('');
-    if (Object.keys(validation).length || isSaving) return;
+    if (Object.keys(validation).length) {
+      toast.error('Please fix the highlighted fields.');
+      return;
+    }
+    if (isSaving) return;
     if (
       discount?.isActive &&
       !form.isActive &&
@@ -52,10 +58,12 @@ export default function DiscountForm({ discount, onSaved, onCancel }) {
           productIds: form.scope === 'PRODUCT' ? products.map((product) => product.id) : [],
         },
       });
+      toast.success(discount ? 'Discount saved' : 'Discount created');
       await onSaved();
     } catch (failure) {
       setFields(failure.fields ?? {});
       setError(failure.message);
+      toast.error(failure.message);
     } finally {
       setIsSaving(false);
     }

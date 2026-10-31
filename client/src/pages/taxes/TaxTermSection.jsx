@@ -5,6 +5,7 @@ import { Alert, EmptyState, Field, Pagination, Spinner } from '../../components/
 import { api } from '../../lib/api.js';
 import { useAuth } from '../../lib/auth.jsx';
 import { useApi } from '../../lib/useApi.js';
+import { useToast } from '../../lib/toast.js';
 import {
   MAX_CATALOG_RULE_NAME,
   MAX_TAX_RATE,
@@ -30,6 +31,7 @@ export default function TaxTermSection({ kind }) {
   const [saveError, setSaveError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const toast = useToast();
   const resetForm = () => {
     setEditing(null);
     setForm(emptyForm);
@@ -49,7 +51,10 @@ export default function TaxTermSection({ kind }) {
     setFields(validation);
     setSaveError('');
     setSuccess('');
-    if (Object.keys(validation).length) return;
+    if (Object.keys(validation).length) {
+      toast.error('Please fix the highlighted fields.');
+      return;
+    }
     if (
       editing?.isActive &&
       !form.isActive &&
@@ -64,10 +69,12 @@ export default function TaxTermSection({ kind }) {
       });
       resetForm();
       setSuccess(entity + ' saved');
+      toast.success(entity + ' saved');
       await reload();
     } catch (failure) {
       setFields(failure.fields ?? {});
       setSaveError(failure.message);
+      toast.error(failure.message);
     } finally {
       setIsSaving(false);
     }

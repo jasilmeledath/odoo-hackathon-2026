@@ -4,12 +4,14 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Alert, EmptyState, PageHeader, Pagination, Spinner } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
 import { useApi } from '../../lib/useApi.js';
+import { useToast } from '../../lib/toast.js';
 import { formatDate, formatMoney } from '../../lib/format.js';
 
 export default function BillingRun() {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState(params.get('q') ?? '');
   const [isRunning, setIsRunning] = useState(false);
+  const toast = useToast();
   const [runError, setRunError] = useState('');
   const [result, setResult] = useState(null);
   const { data, loading, error, reload } = useApi('/billing/due', {
@@ -22,10 +24,17 @@ export default function BillingRun() {
     setRunError('');
     setResult(null);
     try {
-      setResult(await api('/billing/run', { method: 'POST', body: {} }));
+      const outcome = await api('/billing/run', { method: 'POST', body: {} });
+      setResult(outcome);
+      if (outcome.failed) toast.error(`Billing run: ${outcome.failed} failed. Review the server log.`);
+      else
+        toast.success(
+          `Billing run complete: ${outcome.created} invoice${outcome.created === 1 ? '' : 's'} created.`,
+        );
       await reload();
     } catch (failure) {
       setRunError(failure.message);
+      toast.error(failure.message);
     } finally {
       setIsRunning(false);
     }

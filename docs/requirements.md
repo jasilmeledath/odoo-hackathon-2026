@@ -37,7 +37,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | PS-1 | A customer signs up with email and password. Each email belongs to one account. The password must be **more than eight characters** with an uppercase letter, a lowercase letter and a special character | P1 | Yadhu | Done |
 | PS-2 | Users log in and stay logged in with a token that expires | P1 | Yadhu | Done |
 | PS-3 | A forgotten password is reset through a link sent to the registered email | P1 | Yadhu | Done |
-| PS-4 | Three roles see different things. Customers see only their own records, and any other record returns `404` | P1 | Yadhu | Not started |
+| PS-4 | Three roles see different things. Customers see only their own records, and any other record returns `404` | P1 | Yadhu | Done |
 | PS-5 | Only the Admin can add a staff member, and sign-up can never create staff | P1 | Yadhu | Done |
 
 ### Catalog
@@ -58,7 +58,7 @@ terms, templates and discounts pass validation, empty/error and role checks at
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-11 | Quotation templates hold the plan and product lines and stay valid for a set number of days. A quotation can start from one | P2 | Manoj | In progress |
+| PS-11 | Quotation templates hold the plan and product lines and stay valid for a set number of days. A quotation can start from one | P2 | Manoj | Done |
 | PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | Done |
 | PS-13 | A subscription moves Draft → Quotation → Confirmed → Active → Closed, and the team can see where it stands and its history | P1 | Jayasurya | Done |
 | PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | Done |
@@ -69,7 +69,7 @@ terms, templates and discounts pass validation, empty/error and role checks at
 |---|---|---|---|---|
 | PS-15 | On billing day, invoices are created from due subscriptions with customer details, lines, taxes and totals filled in. Nothing is billed twice or skipped | P1 | Jasil | Done |
 | PS-16 | Taxes on invoices are calculated automatically from the Admin's rules | P1 | Jasil | Done |
-| PS-17 | An invoice moves Draft → Confirmed → Paid, and can be canceled | P1 | Jasil | In progress |
+| PS-17 | An invoice moves Draft → Confirmed → Paid, and can be canceled | P1 | Jasil | Done |
 | PS-18 | The team can send or print any invoice | P2 | Jasil | Done |
 
 ### Discounts
@@ -94,7 +94,7 @@ terms, templates and discounts pass validation, empty/error and role checks at
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-26 | Customers see their own subscriptions and invoices through a portal | P1 | Yadhu | Done |
-| PS-27 | Customers manage their own subscriptions: accept a quotation, switch add-ons on and off, and pause or close where the plan allows | P2 | Yadhu | Not started |
+| PS-27 | Customers manage their own subscriptions: accept a quotation, switch add-ons on and off, and pause or close where the plan allows | P2 | Yadhu | Done |
 
 ### Beyond the problem statement
 

@@ -1,9 +1,9 @@
 // Shared UI pieces. Use these instead of restyling each screen.
 import { formatLabel } from '../lib/format.js';
 
-export function Field({ label, inputId, error, errorId, hint, children }) {
+export function Field({ label, inputId, error, errorId, hint, wrapperClassName, children }) {
   return (
-    <div>
+    <div className={wrapperClassName}>
       <label className="label" htmlFor={inputId}>
         {label}
       </label>

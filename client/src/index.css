@@ -25,10 +25,38 @@
     @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm;
   }
   .input {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500;
+  }
+  /* A custom chevron replaces the browser's default select arrow so dropdowns match the inputs. */
+  select.input {
+    @apply appearance-none bg-no-repeat pr-9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2364748b' stroke-width='1.8'%3E%3Cpath d='m5 7.5 5 5 5-5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-position: right 0.65rem center;
+    background-size: 1.1rem;
+  }
+  textarea.input {
+    @apply min-h-24 resize-y;
   }
   .input-error {
     @apply border-red-400 focus:border-red-500 focus:ring-red-100;
+  }
+  /* Every checkbox and radio gets the brand colour, a larger target and a visible focus ring. */
+  input[type='checkbox'],
+  input[type='radio'] {
+    @apply h-4 w-4 shrink-0 cursor-pointer border-slate-300 accent-brand-600 focus-visible:ring-4 focus-visible:ring-brand-100 disabled:cursor-not-allowed;
+  }
+  input[type='checkbox'] {
+    @apply rounded;
+  }
+  label:has(> input[type='checkbox']),
+  label:has(> input[type='radio']) {
+    @apply cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 transition hover:border-brand-500 hover:bg-brand-50;
+  }
+  label:has(> input:checked) {
+    @apply border-brand-500 bg-brand-50;
+  }
+  .form-section-title {
+    @apply border-b border-slate-200 pb-2 text-base font-semibold text-slate-900;
   }
   .label {
     @apply mb-1 block text-sm font-medium text-slate-700;

@@ -26,6 +26,7 @@ export default function ForgotPassword() {
         onSubmit={(values) => api('/auth/forgot-password', { method: 'POST', body: values })}
         onSaved={(result) => setMessage(result.message)}
         submitLabel="Send reset link"
+        successMessage={(result) => result.message}
       />
       <Link className="mt-4 inline-block text-brand-600" to="/login">
         Back to login

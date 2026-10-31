@@ -1,16 +1,15 @@
 // Admin template writes and staff catalog reads (PS-11, A-7).
 import { Router } from 'express';
 import { STAFF_ROLES } from '../../lib/constants.js';
-import { listQuerySchema } from '../../lib/pagination.js';
 import { idParamSchema } from '../../lib/validation.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
-import { templateSchema } from './templates.schemas.js';
+import { templateListQuerySchema, templateSchema } from './templates.schemas.js';
 import { getTemplate, listTemplates, saveTemplate } from './templates.service.js';
 
 const router = Router();
 router.use(requireAuth, requireRole(...STAFF_ROLES));
-router.get('/', validate(listQuerySchema, 'query'), async (req, res) => {
+router.get('/', validate(templateListQuerySchema, 'query'), async (req, res) => {
   res.json(await listTemplates(req.validQuery));
 });
 router.get('/:id', validate(idParamSchema, 'params'), async (req, res) => {
