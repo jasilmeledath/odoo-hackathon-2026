@@ -125,7 +125,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | ✓ |
 | POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 | |
 | POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 |Yes |
-| POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 | |
+| POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 |Yes |
 
 ### Payments (`modules/payments`)
 
@@ -476,3 +476,16 @@ whole queue, including rows outside the current filter.
 In one transaction, lock the subscription and invoice, cancel once, return one
 discount usage, rewind the cursor if necessary and write the timeline. Paused or
 closed subscriptions retain their status and remain excluded from billing.
+
+
+### POST /api/invoices/:id/send
+
+**Auth:** Admin/Internal. Send snapshot line items, dates, totals and balance to
+the customer's current registered email through the existing mail helper.
+Returns `200` with the updated invoice and `sentAt`; `404` missing, `400` invalid
+ID, `502` mail delivery failure with a clear retry message. Failed delivery does
+not set `sentAt` or log success. Without SMTP, the same message is printed in the
+server terminal. Successful delivery updates `sentAt` and logs `SENT` together.
+SMTP delivery and database recording are separate operations; after a database
+failure, check delivery before retrying to avoid duplicate mail.
+Invoice detail provides a print action; print styles hide navigation and actions.

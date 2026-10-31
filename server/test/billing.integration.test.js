@@ -222,3 +222,31 @@ test('a real partial payment prevents cancellation and leaves the billing cursor
     cursor.getTime(),
   );
 });
+
+test('invoice delivery records successful mail and leaves failed delivery unmarked', async () => {
+  const { sendInvoice } = await import('../src/modules/invoices/invoiceDelivery.service.js');
+  const actor = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+  const sub = await subscription({ nextInvoiceDate: issueDate });
+  await billSubscription(sub.id, { issueDate });
+  const invoice = await prisma.invoice.findFirst({ where: { subscriptionId: sub.id } });
+  await assert.rejects(
+    sendInvoice(invoice.id, actor, {
+      deliver: async () => {
+        throw new Error('test transport unavailable');
+      },
+    }),
+    { status: 502 },
+  );
+  assert.equal((await prisma.invoice.findUnique({ where: { id: invoice.id } })).sentAt, null);
+  let message;
+  const sent = await sendInvoice(invoice.id, actor, {
+    deliver: async (mail) => {
+      message = mail;
+    },
+  });
+  assert.ok(sent.sentAt);
+  assert.ok(message.to.endsWith('@demo.test'));
+  assert.ok(message.text.includes(invoice.number));
+  assert.ok(message.text.includes('Balance:'));
+  assert.equal(await prisma.activityLog.count({ where: { invoiceId: invoice.id, action: 'SENT' } }), 1);
+});
