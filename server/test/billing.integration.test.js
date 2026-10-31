@@ -250,3 +250,22 @@ test('invoice delivery records successful mail and leaves failed delivery unmark
   assert.ok(message.text.includes('Balance:'));
   assert.equal(await prisma.activityLog.count({ where: { invoiceId: invoice.id, action: 'SENT' } }), 1);
 });
+
+test('bulk confirmation changes drafts once, skips stale/missing records and logs each success', async () => {
+  const { confirmInvoices } = await import('../src/modules/invoices/invoiceBulk.service.js');
+  const actor = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+  const sub = await subscription();
+  await billSubscription(sub.id, { issueDate });
+  const invoices = await prisma.invoice.findMany({
+    where: { subscriptionId: sub.id },
+    orderBy: { id: 'asc' },
+  });
+  await prisma.invoice.update({ where: { id: invoices[0].id }, data: { status: 'CONFIRMED' } });
+  const ids = [...invoices.map((i) => i.id), 2147483647];
+  assert.deepEqual(await confirmInvoices(ids, actor), { confirmed: 2, skipped: 2, failed: 0 });
+  assert.deepEqual(await confirmInvoices(ids, actor), { confirmed: 0, skipped: 4, failed: 0 });
+  assert.equal(
+    await prisma.activityLog.count({ where: { subscriptionId: sub.id, action: 'STATUS_CHANGED' } }),
+    2,
+  );
+});
