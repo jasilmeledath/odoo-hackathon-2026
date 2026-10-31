@@ -11,6 +11,8 @@ import ForgotPassword from './pages/auth/ForgotPassword.jsx';
 import ResetPassword from './pages/auth/ResetPassword.jsx';
 import Dashboard from './pages/dashboard/Dashboard.jsx';
 import CustomerList from './pages/customers/CustomerList.jsx';
+import CustomerForm from './pages/customers/CustomerForm.jsx';
+import CustomerDetail from './pages/customers/CustomerDetail.jsx';
 import StaffList from './pages/staff/StaffList.jsx';
 import ProductList from './pages/products/ProductList.jsx';
 import PlanList from './pages/plans/PlanList.jsx';
@@ -54,6 +56,9 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
 
             <Route path="/customers" element={<CustomerList />} />
+            <Route path="/customers/new" element={<CustomerForm />} />
+            <Route path="/customers/:id" element={<CustomerDetail />} />
+            <Route path="/customers/:id/edit" element={<CustomerForm />} />
 
             <Route path="/subscriptions" element={<SubscriptionList />} />
 
