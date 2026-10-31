@@ -117,7 +117,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/billing/due` | Staff | Subscriptions due, with a count and expected total | PS-15 | |
+| GET | `/billing/due` | Staff | Subscriptions due, with a count and expected total | PS-15 |Yes |
 | POST | `/billing/run` | Staff | Bill everything due. Returns `{ created, skipped, failed }` | PS-15, PS-16, PS-20 |Yes |
 | POST | `/billing/subscriptions/:id` | Staff | Bill one subscription | PS-15 |Yes |
 | GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | ✓ |
@@ -456,3 +456,14 @@ with the lower rule ID breaking ties. Date bounds are inclusive. A conditional
 count/version update claims one use per invoice; if another transaction takes
 that use, the invoice is recalculated without that rule. The usage increment
 rolls back with invoice creation. Product-scoped rules cover only their products.
+
+
+### GET /api/billing/due
+
+**Auth:** Admin/Internal. Standard `q`, `page`, `pageSize` validation and
+pagination apply. Returns `{ items, total, page, pageSize, pages,
+expectedSubtotalAmount }`. Search matches subscription number or customer name.
+The database sums recurring pre-tax amounts for one next period per matching
+subscription. The UI labels this as an estimate before tax/discount and explains
+that catch-up can create multiple invoices. Run billing always processes the
+whole queue, including rows outside the current filter.
