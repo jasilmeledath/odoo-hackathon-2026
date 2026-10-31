@@ -12,6 +12,7 @@ const dateFormat = new Intl.DateTimeFormat('en-IN', {
 const dateTimeFormat = new Intl.DateTimeFormat('en-IN', {
   dateStyle: 'medium',
   timeStyle: 'short',
+  timeZone: 'Asia/Kolkata',
 });
 
 export const formatMoney = (paise) => moneyFormat.format((paise ?? 0) / PAISE_PER_RUPEE);
