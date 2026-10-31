@@ -1,6 +1,8 @@
 // Discount state boundaries match the database-backed list filters (PS-19, A-24).
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { validateDiscount } from '../../../../client/src/lib/validators.js';
+import { toPaise } from '../../../../client/src/lib/format.js';
 import { getDiscountState } from './discounts.service.js';
 import { discountListQuerySchema, discountSchema } from './discounts.schemas.js';
 
@@ -68,5 +70,35 @@ test('discount writes enforce scope, dates, usage and read-only counters', () =>
   assert.deepEqual(
     discountSchema.parse({ ...fixedRule, scope: 'PRODUCT', productIds: [1, 2] }).productIds,
     [1, 2],
+  );
+});
+test('discount client prices and fields match API boundaries', () => {
+  const form = {
+    ...fixedRule,
+    fixedAmount: '560',
+    percent: '',
+    minPurchaseAmount: '1000',
+    minQuantity: '0',
+    usageLimit: '',
+    products: [],
+  };
+  assert.deepEqual(validateDiscount(form), {});
+  assert.equal(
+    discountSchema.parse({ ...fixedRule, fixedAmount: toPaise(form.fixedAmount) }).fixedAmount,
+    56000,
+  );
+  assert.ok(validateDiscount({ ...form, fixedAmount: '0.001' }).fixedAmount);
+  assert.equal(
+    validateDiscount({ ...form, type: 'PERCENT', percent: '100.01' }).percent,
+    'Percentage must be at most 100',
+  );
+  assert.equal(
+    validateDiscount({ ...form, startDate: '2026-11-01' }).endDate,
+    'End date must be on or after start date',
+  );
+  assert.equal(validateDiscount({ ...form, scope: 'PRODUCT' }).productIds, 'Choose at least one product');
+  assert.equal(
+    validateDiscount({ ...form, usageLimit: '1' }, 2).usageLimit,
+    'Usage limit cannot be below the current usage count',
   );
 });
