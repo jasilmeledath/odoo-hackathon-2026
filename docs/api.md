@@ -91,8 +91,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | Yes |
 | POST | `/templates` | Admin | Create with lines | PS-11 | Yes |
 | PUT | `/templates/:id` | Admin | Update with lines | PS-11 | Yes |
-| GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`) | PS-19 | |
-| GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | |
+| GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`) | PS-19 | Yes |
+| GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | Yes |
+
 | POST | `/discounts` | Admin | Create | PS-19 | |
 | PUT | `/discounts/:id` | Admin | Update or deactivate | PS-19 | |
 
@@ -132,10 +133,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
 | GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | Yes |
-| POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | |
-
-| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | |
 | POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | Yes |
+
 
 ### Reports (`modules/reports`)
 
@@ -643,3 +642,25 @@ Record payment against a CONFIRMED invoice. **Auth:** Admin, Internal. Refs: PS-
 **Response:** 201 { payment, invoice }, including invoice.balanceAmount. Part payments leave CONFIRMED; full settlement sets PAID and paidAt. Row locking serializes concurrent requests. Payment insertion, balance update and PAYMENT_RECORDED activity happen in one transaction.
 
 **Responses:** 400 field validation or overpayment (fields.amount states current balance); 404 invoice missing; 409 invoice not CONFIRMED; 401 unauthenticated; 403 customer. The invoice-detail form converts rupees to paise at the UI boundary and refreshes invoice/payment history after success.
+
+### Discount catalog reads (PS-19, A-24)
+
+#### GET /api/discounts
+
+**Auth:** Staff. Shared pagination and case-insensitive name search `q`.
+Optional `state`: ACTIVE, EXPIRED, USED_UP, SCHEDULED or INACTIVE.
+Filtering/counting happens in PostgreSQL before pagination, including usage
+count versus limit. Returns records with current derived state and products.
+
+State precedence: disabled is Inactive; past end date is Expired; a reached
+non-null limit is Used up; future start date is Scheduled; otherwise Active.
+Business dates use IST and both boundaries are inclusive. The user approved
+the Scheduled/Inactive labels; no new database state column is introduced.
+
+#### GET /api/discounts/:id
+
+**Auth:** Staff. Returns the rule, linked products, read-only usage count,
+numeric percentage and dates as YYYY-MM-DD.
+
+Responses: `200`; `400` invalid query/ID, `401` unauthenticated, `403`
+not staff, `404` missing discount. No schema or migration changes.
