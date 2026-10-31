@@ -25,7 +25,7 @@ Base URL: `http://localhost:4000/api`. Every route except sign-up, login, passwo
 
 **Money** is whole paise in both directions: `156000` means ₹1,560.00. **Dates** are `YYYY-MM-DD`.
 
-**Status codes:** `200` OK · `201` created · `204` deleted · `400` validation failed · `401` not logged in · `403` not allowed · `404` not found, or another customer's record · `409` a conflict, such as a duplicate value or an action not allowed in the current status · `500` unexpected.
+**Status codes:** `200` OK · `201` created · `204` deleted · `400` validation failed · `401` not logged in · `403` not allowed · `404` not found, or another customer's record · `409` a conflict, such as a duplicate value or an action not allowed in the current status · `429` too many attempts (Retry-After seconds) · `500` unexpected.
 
 ## Route map
 
@@ -165,6 +165,22 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 ---
 
 ## Route details
+
+### Authentication attempt limits
+
+Login and recovery requests have separate in-memory windows keyed by the connection IP. **Auth:** public. Refs: PS-29.
+
+| Route | Attempts per 15 minutes |
+|---|---|
+| POST /api/auth/login | 20 |
+| POST /api/auth/forgot-password | 5 |
+| POST /api/auth/reset-password | 10 |
+
+Validation failures count too. A limited request returns 429 with { error } explaining how many seconds remain and a Retry-After header containing that wait in seconds. Further blocked requests do not extend the window. Other auth endpoints and authenticated sessions remain usable.
+
+The server does not trust forwarded IP headers. Expired entries are removed, storage is capped at 10,000 clients per endpoint and active windows are never evicted to admit another client. At capacity, a new client gets 429 until space becomes available.
+
+Limits are per process and restart with the API; multiple server processes do not share counters. Existing form alerts display the 429 message. No database schema, environment variable or dependency is added.
 
 ### POST /api/auth/login
 
