@@ -39,7 +39,7 @@ Database design is the heart of this project. [docs/data-model.md](docs/data-mod
 
 ## Getting started
 
-**Prerequisites:** Node.js 20.6 or later, PostgreSQL 14 or later, and Git.
+**Prerequisites:** Node.js 20.19 or later (or 22.12 or later), PostgreSQL 14 or later, and Git.
 
 1. Clone the repository:
 
@@ -75,6 +75,10 @@ Database design is the heart of this project. [docs/data-model.md](docs/data-mod
 
    ```bash
    npx prisma migrate deploy
+   ```
+
+   ```bash
+   npm run db:generate
    ```
 
    ```bash
