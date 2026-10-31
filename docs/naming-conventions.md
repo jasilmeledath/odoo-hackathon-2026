@@ -73,7 +73,8 @@ How we name variables, functions, files, routes and database objects. Branch nam
 
 ## 5. API routes
 
-- Prefix with `/api`, use **plural kebab-case nouns** (`/api/payment-terms`), and use `:id` for a single record.
+- The canonical server route includes the `/api` prefix. Use **plural kebab-case nouns** (`/api/payment-terms`) and `:id` for a single record.
 - Workflow actions are a verb under the record: `POST /api/subscriptions/:id/confirm`, `POST /api/invoices/:id/cancel`.
 - Query parameters are camelCase: `?status=ACTIVE&pageSize=20`.
-- Frontend routes mirror the API without `/api`: `/subscriptions`, `/subscriptions/new`, `/subscriptions/:id`, `/subscriptions/:id/edit`.
+- In `docs/api.md`, the Base URL already includes `/api`, so route-map paths are relative to that Base URL (for example, `/subscriptions` resolves to `/api/subscriptions`). Detailed endpoint headings may show the canonical full path.
+- Frontend routes mirror the resource path without `/api`: `/subscriptions`, `/subscriptions/new`, `/subscriptions/:id`, `/subscriptions/:id/edit`.
