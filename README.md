@@ -24,6 +24,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 - Staff can generate recurring Draft invoices with tax snapshots, catch-up billing and duplicate protection (PS-15, PS-16).
 
 - Active accounts log in with expiring tokens and role-based navigation (PS-2).
+- Add bounded per-IP attempt windows to login, forgot-password and reset-password without a new dependency. (PS-29).
 - Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
 - Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
 
