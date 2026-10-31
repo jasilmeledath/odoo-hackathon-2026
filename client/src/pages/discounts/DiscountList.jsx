@@ -118,7 +118,7 @@ export default function DiscountList() {
             <>
               {data.items.length ? (
                 <div className="relative mt-4 overflow-x-auto">
-                  <table className="w-full text-left text-sm">
+                  <table className="min-w-max w-full text-left text-sm">
                     <thead>
                       <tr>
                         {COLUMNS.map((label) => (

@@ -246,6 +246,8 @@ Read one subscription with its customer, plan rules, payment terms, lines and in
 
 Create a numbered Draft. The request body contains `customerId`, `planId`, `paymentTermId`, `startDate`, `expiryDate`, optional `notes`, and at least one `lines` entry with `productId`, optional `variantId` and optional `taxId`, and `quantity`. Prices and amounts are read from the database: the plan price applies to its product line; other products use their current sales price; variant extra price is added. The server calculates line amounts and both recurring totals in paise. The plan must be available on `startDate`, and `minQuantity` applies to the plan product only. **Auth:** Admin, Internal. Refs: PS-12.
 
+The client form defaults `startDate` to the current IST business date. API callers must still provide `startDate` explicitly.
+
 **Responses:** `201` the created subscription · `400` invalid fields or unavailable references (`fields` identifies the invalid field) · `401` not logged in · `403` not staff
 
 ### PUT /api/subscriptions/:id
@@ -594,6 +596,13 @@ Draft invoice, advances its cursor and logs the actor in one transaction.
 Failures roll back the period and do not stop later subscriptions. Financial
 amounts that exceed PostgreSQL limits fail without moving the cursor.
 
+Scale fixture billing observation (not a complete PS-25 page check): against a
+local 5,000-subscription fixture, 4,000 active subscriptions were made due.
+Processing completed in 9.8 seconds: 3,169 invoices created, 831 skipped, and
+0 failed. Skipped periods already had an invoice, confirming the duplicate
+billing guard. Page coverage and readiness limitations are in the performance
+section of the data model.
+
 
 Billing automatically chooses the eligible discount with the largest saving,
 with the lower rule ID breaking ties. Date bounds are inclusive. A conditional
@@ -818,3 +827,11 @@ Errors: `400` field errors or invalid/read-only input, `401` unauthenticated,
 The Discounts page uses URL-backed search/state filters and real paginated
 rules. Admin-only forms show product selection only for PRODUCT scope, convert
 rupees to paise once and preserve usage counts. Internal staff browse read-only.
+
+### Catalog UI verification (#46)
+
+Products, variants, plans, taxes, payment terms, templates and discounts are
+checked with real Admin/Internal login at 375px and 1280px. Wide tables scroll
+inside their cards; the shell can shrink without page overflow. Invalid or
+incomplete prices do not show a calculated margin. Invalid input, empty/error
+states and read-only staff controls are verified. No API or schema changes.

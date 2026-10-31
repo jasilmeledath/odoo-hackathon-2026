@@ -29,17 +29,21 @@ No demo video is included in this repository.
 
 ## Screenshots
 
-| Page | Mobile | Desktop |
-|---|---|---|
-| Login | [375 px](docs/screenshots/login-375.png) | [1280 px](docs/screenshots/login-1280.png) |
-| Customer directory | [375 px](docs/screenshots/customers-375.png) | [1280 px](docs/screenshots/customers-1280.png) |
-| Customer form | [375 px](docs/screenshots/customer-form-375.png) | [1280 px](docs/screenshots/customer-form-1280.png) |
-| Plans | [Mobile](docs/screenshots/plans-mobile.png) | [Desktop](docs/screenshots/plans-desktop.png) |
-| Product variants | [Mobile](docs/screenshots/products-mobile.png) | [Desktop](docs/screenshots/products-desktop.png) |
-| Discounts | [Mobile](docs/screenshots/discounts-mobile.png) | [Desktop](docs/screenshots/discounts-desktop.png) |
-| Quotation templates | [Mobile](docs/screenshots/templates-mobile.png) | [Desktop](docs/screenshots/templates-desktop.png) |
-| Record payment | [375 px](docs/screenshots/record-payment-375.png) | [1280 px](docs/screenshots/record-payment-1280.png) |
-| Staff | [375 px](docs/screenshots/staff-375.png) | [1280 px](docs/screenshots/staff-1280.png) |
+**Finance dashboard:** recurring revenue, payments and overdue invoices (PS-23).
+
+![Finance dashboard with live subscription and payment totals](docs/screenshots/dashboard-desktop.png)
+
+**Subscription workflow:** customer plans, lifecycle statuses and recurring amounts (PS-12, PS-13).
+
+![Subscription workflow showing Draft, Quotation, Active, Paused and Closed records](docs/screenshots/subscriptions-desktop.png)
+
+**Form validation:** required-name and invalid-price feedback before a product is saved (PS-6).
+
+![Product form showing missing-name, sub-paise sales-price and negative-cost validation errors](docs/screenshots/product-validation-desktop.png)
+
+**Mobile view:** discount administration at 375 px (PS-19).
+
+![Discount rule editor and catalog on a 375 px mobile screen](docs/screenshots/discounts-mobile.png)
 
 ## Tech stack
 

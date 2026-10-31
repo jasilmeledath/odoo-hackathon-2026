@@ -11,7 +11,7 @@ export default function TemplateDetail({ template, onClose }) {
       </p>
       {template.notes && <p className="break-words text-sm text-slate-600">{template.notes}</p>}
       <div className="relative overflow-x-auto">
-        <table className="w-full text-left text-sm">
+        <table className="min-w-max w-full text-left text-sm">
           <thead>
             <tr>
               {['Product', 'Variant', 'Quantity', 'Current unit price'].map((label) => (
