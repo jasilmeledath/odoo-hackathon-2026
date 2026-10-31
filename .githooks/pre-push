@@ -1,15 +1,26 @@
 #!/bin/sh
-# Run the local CI gate before every branch push and keep main PR-only.
+# Run fast checks on feature branches and the full gate on develop.
 set -eu
+
+run_full_ci=false
 
 while read -r local_ref local_sha remote_ref remote_sha; do
   if [ "$remote_ref" = "refs/heads/main" ]; then
     printf '%s\n' 'Direct pushes to main are blocked. Run `npm run promote:main` to validate develop and open a promotion PR.' >&2
     exit 1
   fi
+
+  if [ "$remote_ref" = "refs/heads/develop" ]; then
+    run_full_ci=true
+  fi
 done
 
-printf '%s\n' 'Running local CI before push...'
-npm run ci:local
+if [ "$run_full_ci" = "true" ]; then
+  printf '%s\n' 'Running full local CI before pushing to develop...'
+  npm run ci:local
+else
+  printf '%s\n' 'Running fast local checks before branch push...'
+  npm run ci:fast
+fi
 
 exit 0

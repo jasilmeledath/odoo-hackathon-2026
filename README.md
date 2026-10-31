@@ -149,9 +149,7 @@ From `client/`, run `npm run build` to check the frontend.
 
 ### CI and local develop-to-main promotion
 
-GitHub Actions runs the CI gate on pull requests targeting `develop` or `main` and on pushes to `develop`. It checks formatting, applies migrations to a fresh PostgreSQL service database, runs the server tests, and builds the client. A pull request to `main` fails unless it comes from this repository's `develop` branch. GitHub Actions must be enabled and the repository account must be able to run jobs; the local pre-push hook below runs the same checks without GitHub Actions.
-
-To block merges when CI fails, require the `CI / Verify formatting, database migrations, server tests, and client build` check in the `main` branch protection settings. Install the root Prettier dependency and enable the repository hooks once:
+CI runs locally through Git hooks. Install the dependencies and enable the repository hooks once in each clone:
 
 ```bash
 npm install
@@ -161,7 +159,13 @@ npm install
 git config core.hooksPath .githooks
 ```
 
-Set `server/.env` to a local PostgreSQL account that can create databases. With the hook enabled, every push runs the full local CI gate first and is stopped if any check fails. From a clean, up-to-date `develop` branch, run the checks manually without opening a PR:
+Set `server/.env` to a local PostgreSQL account that can create databases. With the hook enabled, feature-branch pushes run Prettier and the server tests; pushes to `develop` run the full gate. Any failed check stops the push, and direct pushes to `main` are blocked. To run the fast checks manually:
+
+```bash
+npm run ci:fast
+```
+
+From a clean, up-to-date `develop` branch, run the full gate manually without opening a PR:
 
 ```bash
 npm run ci:local
@@ -173,7 +177,7 @@ To rerun the checks and create or locate the `develop`-to-`main` PR:
 npm run promote:main
 ```
 
-The gate checks tracked source formatting, creates a disposable local database, applies migrations, runs `server` tests, and builds the client. It removes the temporary database afterward. The promotion command requires local `develop` to match `origin/develop`; the pre-push hook runs CI before branch pushes and blocks direct pushes to `main`. Review and merge the generated PR through the normal flow. The `gh` CLI must be installed and authenticated to create that PR.
+The full gate checks tracked source formatting, creates a disposable local database, applies migrations, runs `server` tests, and builds the client. It removes the temporary database afterward. `npm run promote:main` is the team process for promotion: it requires the current branch to be `develop`, a clean working tree, and local `develop` to match `origin/develop`; it then runs the full gate and opens the `develop`-to-`main` PR with the checked commit SHA in its description. Do not merge that PR unless the local promotion command passed for the same commit. The `gh` CLI must be installed and authenticated to create the PR.
 
 ## API
 
