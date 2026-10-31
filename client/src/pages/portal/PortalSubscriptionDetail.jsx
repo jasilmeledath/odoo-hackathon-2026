@@ -1,4 +1,6 @@
-// Customer-owned subscription terms and lines (PS-26).
+// Customer-owned subscription terms, lines and actions (PS-26, PS-27).
+import { useState } from 'react';
+import { api } from '../../lib/api.js';
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi.js';
 import { Alert, EmptyState, PageHeader, Spinner, StatusBadge } from '../../components/ui.jsx';
@@ -6,6 +8,36 @@ import { formatDate, formatMoney, formatLabel } from '../../lib/format.js';
 export default function PortalSubscriptionDetail() {
   const { id } = useParams();
   const { data, loading, error, reload } = useApi('/portal/subscriptions/' + id);
+  const [isChanging, setIsChanging] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const [notice, setNotice] = useState('');
+  // PS-27: visibility follows the plan; the server still authorizes each action.
+  const actions = [
+    ...(data?.plan.canPause && data.status === 'ACTIVE' ? ['pause'] : []),
+    ...(data?.plan.canPause && data.status === 'PAUSED' ? ['resume'] : []),
+    ...(data?.plan.canCloseEarly && ['ACTIVE', 'PAUSED'].includes(data.status) ? ['close'] : []),
+  ];
+  const handleManage = async (action) => {
+    if (
+      action === 'close' &&
+      !window.confirm(
+        'Close this subscription? Future billing will stop. Existing invoices and history will remain.',
+      )
+    )
+      return;
+    setIsChanging(true);
+    setActionError('');
+    setNotice('');
+    try {
+      await api('/portal/subscriptions/' + id + '/' + action, { method: 'POST', body: {} });
+      setNotice('Subscription ' + { pause: 'paused', resume: 'resumed', close: 'closed' }[action] + '.');
+      await reload();
+    } catch (failure) {
+      setActionError(failure.message);
+    } finally {
+      setIsChanging(false);
+    }
+  };
   return (
     <div className="space-y-5 break-words">
       <Link className="text-brand-600 underline" to="/portal">
@@ -40,6 +72,28 @@ export default function PortalSubscriptionDetail() {
               </div>
             ))}
           </dl>
+          <Alert>{actionError}</Alert>
+          <Alert tone="success">{notice}</Alert>
+          {actions.length > 0 && (
+            <section className="card flex flex-wrap gap-3" aria-label="Manage subscription">
+              {actions.map((action) => (
+                <button
+                  key={action}
+                  className={action === 'close' ? 'btn-danger' : 'btn-secondary'}
+                  disabled={isChanging}
+                  onClick={() => handleManage(action)}
+                >
+                  {isChanging
+                    ? 'Updating...'
+                    : {
+                        pause: 'Pause subscription',
+                        resume: 'Resume subscription',
+                        close: 'Close subscription',
+                      }[action]}
+                </button>
+              ))}
+            </section>
+          )}
           {data.notes && <p className="card whitespace-pre-line">{data.notes}</p>}
           <h2 className="text-lg font-semibold">Subscription lines</h2>
           {!data.lines.length ? (
