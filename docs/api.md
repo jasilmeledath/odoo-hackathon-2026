@@ -643,3 +643,7 @@ Responses: `201` created, `200` updated; `400` invalid fields (line keys such as
 `lines.0.variantId`), `401` unauthenticated, `403` forbidden, `404` missing
 template, `409` duplicate name or concurrently removed catalog references.
 Line inputs reject price fields rather than accepting a stale snapshot.
+
+The Discounts page uses URL-backed search/state filters and real paginated
+rules. Admin-only forms show product selection only for PRODUCT scope, convert
+rupees to paise once and preserve usage counts. Internal staff browse read-only.

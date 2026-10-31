@@ -26,6 +26,8 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 - Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
 - Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
 
+- Admins manage fixed/percentage discounts, scope-specific products, minimums, dates and usage limits; staff filter current rule states (PS-19).
+
 ## Screenshots
 
 *Added at 4:45 PM from `docs/screenshots/`.*
