@@ -45,6 +45,7 @@ export const requireAuth = async (req, _res, next) => {
     select: {
       id: true,
       name: true,
+      email: true,
       role: true,
       isActive: true,
       passwordChangedAt: true,
@@ -57,7 +58,13 @@ export const requireAuth = async (req, _res, next) => {
   }
 
   // customerId is set for portal users, so portal queries can always scope to it.
-  req.user = { id: user.id, name: user.name, role: user.role, customerId: user.customer?.id ?? null };
+  req.user = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    customerId: user.customer?.id ?? null,
+  };
   next();
 };
 
