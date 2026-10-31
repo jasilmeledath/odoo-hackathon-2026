@@ -1,4 +1,4 @@
-# J-079: Publish role-checks for review
+# J-080: Publish role-checks for review
 
 - Date: 2026-10-31
 - Contributor/agent: Yadhu Krishna P R with Codex
