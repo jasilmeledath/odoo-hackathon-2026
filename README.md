@@ -14,7 +14,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Features
 
-*Filled in as each requirement lands. Track progress in [docs/requirements.md](docs/requirements.md).*
+- Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
 
 ## Screenshots
 
@@ -136,6 +136,12 @@ server/
     lib/               shared helpers
 docs/                  requirements, plan, database, API and team standards
 ```
+
+## Checks
+
+From `server/`, run `npm test` for billing and catalog validation regressions.
+The test runner uses the same tsx loader as the API for generated Prisma enums.
+From `client/`, run `npm run build` to check the frontend.
 
 ## API
 

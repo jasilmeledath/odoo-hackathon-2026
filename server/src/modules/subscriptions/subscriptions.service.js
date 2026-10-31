@@ -1,7 +1,8 @@
-// Subscription detail and activity queries (PS-12, PS-13).
+// Subscription list, detail and activity queries (PS-12, PS-13, PS-14).
 import { addDays, today, toDateOnly } from '../../lib/dates.js';
 import { logActivity } from '../../lib/activity.js';
 import { HttpError } from '../../lib/errors.js';
+import { paginate } from '../../lib/pagination.js';
 import { prisma } from '../../lib/prisma.js';
 
 const NOT_FOUND_MESSAGE = 'Subscription not found';
@@ -21,6 +22,54 @@ export const assertTransition = (currentStatus, action) => {
   }
   return transition;
 };
+
+const buildListConditions = ({ status, customerId, planId, q }) => {
+  const conditions = [];
+  if (status) conditions.push({ status });
+  if (customerId) conditions.push({ customerId });
+  if (planId) conditions.push({ planId });
+  if (q) {
+    conditions.push({
+      OR: [
+        { number: { contains: q, mode: 'insensitive' } },
+        {
+          customer: {
+            is: {
+              OR: [
+                { name: { contains: q, mode: 'insensitive' } },
+                { companyName: { contains: q, mode: 'insensitive' } },
+              ],
+            },
+          },
+        },
+        { plan: { is: { name: { contains: q, mode: 'insensitive' } } } },
+      ],
+    });
+  }
+  return conditions;
+};
+
+const LIST_SELECT = {
+  id: true,
+  number: true,
+  status: true,
+  startDate: true,
+  expiryDate: true,
+  recurringAmount: true,
+  customer: { select: { id: true, name: true, companyName: true } },
+  plan: { select: { id: true, name: true, billingPeriod: true } },
+};
+
+export const listSubscriptions = async (query) =>
+  paginate(
+    prisma.subscription,
+    {
+      where: { AND: buildListConditions(query) },
+      select: LIST_SELECT,
+      orderBy: [{ startDate: 'desc' }, { id: 'desc' }],
+    },
+    query,
+  );
 
 const DETAIL_INCLUDE = {
   customer: { select: { id: true, name: true, companyName: true, email: true, phone: true, address: true } },
@@ -52,24 +101,31 @@ const DETAIL_INCLUDE = {
 };
 
 export const getSubscription = async (id) => {
-  const subscription = await prisma.subscription.findUnique({ where: { id }, include: DETAIL_INCLUDE });
+  const subscription = await prisma.subscription.findUnique({
+    where: { id },
+    include: DETAIL_INCLUDE,
+  });
   if (!subscription) throw new HttpError(404, NOT_FOUND_MESSAGE);
   return subscription;
 };
 
-export const getSubscriptionActivity = async (id) => {
-  const subscriptionExists = await prisma.subscription.findUnique({ where: { id }, select: { id: true } });
-  if (!subscriptionExists) throw new HttpError(404, NOT_FOUND_MESSAGE);
+export const getSubscriptionActivity = async (subscriptionId) => {
+  const subscription = await prisma.subscription.findUnique({
+    where: { id: subscriptionId },
+    select: { id: true },
+  });
+  if (!subscription) throw new HttpError(404, NOT_FOUND_MESSAGE);
 
   return prisma.activityLog.findMany({
-    where: { subscriptionId: id },
-    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    where: { subscriptionId },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    take: 50,
     select: {
       id: true,
       action: true,
       detail: true,
       createdAt: true,
-      actor: { select: { id: true, name: true } },
+      actor: { select: { id: true, name: true, email: true } },
     },
   });
 };

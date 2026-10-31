@@ -4,15 +4,21 @@ import { STAFF_ROLES } from '../../lib/constants.js';
 import { idParamSchema } from '../../lib/validation.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
+import { subscriptionListQuerySchema } from './subscriptions.schemas.js';
 import {
   getSubscription,
   getSubscriptionActivity,
+  listSubscriptions,
   transitionSubscription,
 } from './subscriptions.service.js';
 
 const router = Router();
 
 router.use(requireAuth, requireRole(...STAFF_ROLES));
+
+router.get('/', validate(subscriptionListQuerySchema, 'query'), async (req, res) => {
+  res.json(await listSubscriptions(req.validQuery));
+});
 
 router.post('/:id/quote', validate(idParamSchema, 'params'), async (req, res) => {
   res.json(await transitionSubscription(req.validParams.id, 'QUOTE', req.user));

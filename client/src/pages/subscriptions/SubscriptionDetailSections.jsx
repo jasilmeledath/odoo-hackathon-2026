@@ -1,7 +1,79 @@
-// Reusable line, invoice and timeline sections for subscription detail (PS-12, PS-13).
+// Subscription status, terms, lines, invoices and activity sections (PS-12, PS-13).
+import { Link } from 'react-router-dom';
 import { Alert, EmptyState, Spinner, StatusBadge } from '../../components/ui.jsx';
 import { formatDate, formatDateTime, formatLabel, formatMoney } from '../../lib/format.js';
 import { useApi } from '../../lib/useApi.js';
+
+const STATUS_STEPS = ['DRAFT', 'QUOTATION', 'CONFIRMED', 'ACTIVE', 'CLOSED'];
+
+export function StatusBar({ status }) {
+  // A paused subscription retains its place in the lifecycle; only the label changes.
+  const currentStatus = status === 'PAUSED' ? 'ACTIVE' : status;
+  const currentIndex = STATUS_STEPS.indexOf(currentStatus);
+  return (
+    <ol aria-label="Subscription status history" className="card grid grid-cols-2 gap-3 sm:grid-cols-5">
+      {STATUS_STEPS.map((step, index) => {
+        const isComplete = index <= currentIndex;
+        const label = status === 'PAUSED' && step === 'ACTIVE' ? 'PAUSED' : step;
+        return (
+          <li key={step} className="flex items-center gap-2 text-sm">
+            <span
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                isComplete ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500'
+              }`}
+            >
+              {index + 1}
+            </span>
+            <span className={isComplete ? 'font-medium text-slate-900' : 'text-slate-500'}>
+              {formatLabel(label)}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+export function SubscriptionSummary({ subscription }) {
+  const customerName = subscription.customer.companyName || subscription.customer.name;
+  const fields = [
+    ['Customer', customerName],
+    ['Email', subscription.customer.email],
+    ['Phone', subscription.customer.phone || '—'],
+    ['Plan', subscription.plan.name],
+    ['Billing period', formatLabel(subscription.plan.billingPeriod)],
+    ['Payment terms', `${subscription.paymentTerm.name} (${subscription.paymentTerm.dueDays} days)`],
+    ['Start date', formatDate(subscription.startDate)],
+    ['Expiry date', formatDate(subscription.expiryDate)],
+    ['Quotation expires', formatDate(subscription.quotationExpiryDate) || '—'],
+    ['Next invoice', formatDate(subscription.nextInvoiceDate) || '—'],
+    ['Recurring amount', formatMoney(subscription.recurringAmount)],
+    ['Monthly recurring', formatMoney(subscription.monthlyRecurringAmount)],
+  ];
+
+  return (
+    <dl className="card grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+      {fields.map(([label, value]) => (
+        <div key={label}>
+          <dt className="text-slate-500">{label}</dt>
+          <dd className="mt-1 font-medium text-slate-900">{value}</dd>
+        </div>
+      ))}
+      {subscription.customer.address && (
+        <div className="sm:col-span-2 lg:col-span-3">
+          <dt className="text-slate-500">Billing address</dt>
+          <dd className="mt-1 font-medium text-slate-900">{subscription.customer.address}</dd>
+        </div>
+      )}
+      {subscription.notes && (
+        <div className="sm:col-span-2 lg:col-span-3">
+          <dt className="text-slate-500">Notes</dt>
+          <dd className="mt-1 whitespace-pre-wrap font-medium text-slate-900">{subscription.notes}</dd>
+        </div>
+      )}
+    </dl>
+  );
+}
 
 export function SubscriptionLines({ lines }) {
   return (
@@ -69,7 +141,11 @@ export function InvoiceList({ invoices }) {
             <tbody>
               {invoices.map((invoice) => (
                 <tr key={invoice.id} className="border-t border-slate-100">
-                  <td className="py-3 pr-4 font-medium text-slate-900">{invoice.number}</td>
+                  <td className="py-3 pr-4 font-medium">
+                    <Link to={`/invoices/${invoice.id}`} className="text-brand-600 hover:underline">
+                      {invoice.number}
+                    </Link>
+                  </td>
                   <td className="py-3 pr-4 whitespace-nowrap">{formatDate(invoice.issueDate)}</td>
                   <td className="py-3 pr-4 whitespace-nowrap">{formatDate(invoice.dueDate)}</td>
                   <td className="py-3 pr-4 text-right whitespace-nowrap">
@@ -78,7 +154,9 @@ export function InvoiceList({ invoices }) {
                   <td className="py-3 pr-4 text-right whitespace-nowrap">
                     {formatMoney(invoice.paidAmount)}
                   </td>
-                  <td className="py-3"><StatusBadge status={invoice.status} /></td>
+                  <td className="py-3">
+                    <StatusBadge status={invoice.status} />
+                  </td>
                 </tr>
               ))}
             </tbody>
