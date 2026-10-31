@@ -68,6 +68,11 @@ export default function SubscriptionDetail() {
         action={
           <div className="flex items-center gap-3">
             <StatusBadge status={subscription.status} />
+            {['DRAFT', 'QUOTATION'].includes(subscription.status) && (
+              <Link className="btn-secondary" to={`/subscriptions/${id}/edit`}>
+                Edit
+              </Link>
+            )}
             {nextAction && (
               <button
                 className="btn-primary"

@@ -105,8 +105,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/subscriptions` | Staff | List, filtered by `status`, `customerId`, `planId`, `q` | PS-12, PS-13 | ✓ |
 | GET | `/subscriptions/:id` | Staff | Subscription with lines, totals and invoices | PS-12 | ✓ |
 | GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | ✓ |
-| POST | `/subscriptions` | Staff | Create a draft. `templateId` fills in the plan and lines | PS-11, PS-12 | |
-| PUT | `/subscriptions/:id` | Staff | Update, in Draft or Quotation only | PS-12 | |
+| POST | `/subscriptions` | Staff | Create a numbered draft with customer, available plan, payment terms and priced lines | PS-12 | ✓ |
+| PUT | `/subscriptions/:id` | Staff | Update details and replace priced lines, in Draft or Quotation only | PS-12 | ✓ |
 | POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation, requires a line | PS-13 | ✓ |
 | POST | `/subscriptions/:id/confirm` | Staff | Unexpired Quotation → Confirmed | PS-13 | ✓ |
 | POST | `/subscriptions/:id/activate` | Staff | Confirmed → Active and schedule billing | PS-13 | ✓ |
@@ -225,6 +225,18 @@ Return monthly revenue as payments received, aggregated by PostgreSQL. Every mon
 Read one subscription with its customer, plan rules, payment terms, lines and invoice summaries. **Auth:** Admin, Internal. Refs: PS-12, PS-13.
 
 **Responses:** `200` the subscription with `lines`, `invoices`, `customer`, `plan` and `paymentTerm` · `400` the id is not a positive integer · `401` not logged in · `403` not staff · `404` subscription not found
+
+### POST /api/subscriptions
+
+Create a numbered Draft. The request body contains `customerId`, `planId`, `paymentTermId`, `startDate`, `expiryDate`, optional `notes`, and at least one `lines` entry with `productId`, optional `variantId` and optional `taxId`, and `quantity`. Prices and amounts are read from the database: the plan price applies to its product line; other products use their current sales price; variant extra price is added. The server calculates line amounts and both recurring totals in paise. The plan must be available on `startDate`, and `minQuantity` applies to the plan product only. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** `201` the created subscription · `400` invalid fields or unavailable references (`fields` identifies the invalid field) · `401` not logged in · `403` not staff
+
+### PUT /api/subscriptions/:id
+
+Replace the subscription details and lines using the same request body as `POST /api/subscriptions`. Updates are allowed only while the subscription is Draft or Quotation. Prices, line amounts, `recurringAmount` and `monthlyRecurringAmount` are recalculated from current database values in the transaction; the number, status and template association are retained. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** `200` the updated subscription · `400` invalid fields or unavailable references · `401` not logged in · `403` not staff · `404` subscription not found · `409` status does not allow editing or a concurrent update changed the status
 
 ### GET /api/subscriptions/:id/activity
 
@@ -746,4 +758,3 @@ with billing claims; the limit cannot be lower than the current usage count.
 Errors: `400` field errors or invalid/read-only input, `401` unauthenticated,
 `403` not Admin, `404` missing discount, `409` duplicate name with
 `fields.name` or concurrently removed product choices. No schema changes.
-
