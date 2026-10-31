@@ -141,8 +141,7 @@ export default function SubscriptionForm() {
 
   // Only active customers can be billed; the server does the matching so the list never grows the page.
   const searchCustomers = useCallback(
-    async (q) =>
-      unwrapItems(await api('/customers', { query: { q, pageSize: 20 } })).filter((item) => item.isActive),
+    async (q) => unwrapItems(await api('/customers', { query: { q, pageSize: 20, isActive: true } })),
     [],
   );
   const handlePlanChange = (planId) => {
