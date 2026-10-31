@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0 |
+| Version | 1.1 |
 | Owner | Team lead (Jasil M) |
-| Last updated | 29 October 2026 |
+| Last updated | 31 October 2026 |
 | Related documents | [Engineering Standards](engineering-standards.md) · [CONTRIBUTING.md](../CONTRIBUTING.md) |
 
 How we name variables, functions, files, routes and database objects. Branch names and commit messages are covered in [CONTRIBUTING.md](../CONTRIBUTING.md).
@@ -13,9 +13,9 @@ How we name variables, functions, files, routes and database objects. Branch nam
 
 ## 1. General rules
 
-- **Names say what something is or does:** `calculateTotalAmount()`, not `calc()`; `submitRequest()`, not `handleThing()`.
+- **Names say what something is or does:** `calculateInvoice()`, not `calc()`; `billSubscription()`, not `handleThing()`.
 - **Booleans read as a yes/no question:** `isActive`, `hasAttachment`, `canApprove`, `isLoading`.
-- **Use the problem statement's words**, and the **same word in every layer**. If the problem says "booking", it's `Booking` in Prisma, `/api/bookings` in the API, `BookingList.jsx` in React and "Booking" in the UI. Never `reservation` in one place and `booking` in another.
+- **Use the problem statement's words**, and the **same word in every layer**. The problem says "subscription", so it's `subscriptions` in the database, `Subscription` in Prisma, `/api/subscriptions` in the API, `SubscriptionList.jsx` in React and "Subscription" in the UI. Never `membership` in one place and `subscription` in another.
 - **No abbreviations** except the established ones: `id`, `url`, `api`, `db`, `otp`, `csv`. Write acronyms as words in camelCase: `userId`, `apiClient`, `csvExport`.
 - English, with American spelling in code (`color`, `canceled`).
 
@@ -23,54 +23,58 @@ How we name variables, functions, files, routes and database objects. Branch nam
 
 | Layer | Case | Example |
 |---|---|---|
-| Prisma model | PascalCase, singular | `Request`, `ActivityLog` |
-| Prisma field | camelCase | `ownerId`, `createdAt` |
-| API JSON | camelCase | `"ownerId": 3` |
-| JavaScript variables | camelCase | `ownerId` |
-| UI label | Sentence case | "Owner" |
+| Database table | snake_case, plural | `subscriptions`, `activity_logs` |
+| Database column | snake_case | `customer_id`, `created_at` |
+| Prisma model | PascalCase, singular | `Subscription`, `ActivityLog` |
+| Prisma field | camelCase | `customerId`, `createdAt` |
+| API JSON | camelCase | `"customerId": 3` |
+| JavaScript variables | camelCase | `customerId` |
+| UI label | Sentence case | "Customer" |
 
 **Suffixes carry meaning:**
 
 | Kind of value | Rule | Examples |
 |---|---|---|
-| Identifiers | `<entity>Id`; a record's own key is `id` | `ownerId`, `requestId` |
-| Money | `<what>Amount` | `amount`, `totalAmount` |
+| Identifiers | `<entity>Id`; a record's own key is `id` | `customerId`, `planId` |
+| Money | Whole paise. Calculated values are `<what>Amount`; catalog prices keep the problem's word, `<what>Price` | `totalAmount`, `paidAmount`, `salesPrice`, `unitPrice` |
 | Points in time | `<event>At` | `createdAt`, `approvedAt` |
 | Calendar dates | `<what>Date` | `dueDate` |
 | Durations and sizes | the unit in the name | `durationMinutes`, `sizeBytes` |
 | Counts | `<what>Count` | `itemCount` |
-| Collections | plural; a lookup map is `<items>By<Key>` | `requests`, `usersById` |
-| One item | singular | `for (const request of requests)` |
+| Collections | plural; a lookup map is `<items>By<Key>` | `invoices`, `plansById` |
+| One item | singular | `for (const invoice of invoices)` |
 
 ## 3. Code
 
 | Thing | Convention | Example |
 |---|---|---|
-| Variables, functions | camelCase; functions start with a verb | `loadRequest`, `formatMoney` |
+| Variables, functions | camelCase; functions start with a verb | `billSubscription`, `formatMoney` |
 | Constants (fixed values, config) | UPPER_SNAKE_CASE | `MAX_PAGE_SIZE`, `CATEGORIES` |
-| React components | PascalCase | `RequestList`, `StatusBadge` |
-| React hooks | `use` + PascalCase | `useAuth`, `useLive` |
+| React components | PascalCase | `SubscriptionList`, `StatusBadge` |
+| React hooks | `use` + PascalCase | `useAuth`, `useApi` |
 | Event handlers | `handle<Event>` in components, `on<Event>` as props | `handleSubmit`, `onChange` |
-| Zod schemas | `<thing>Schema` | `requestSchema`, `loginSchema` |
-| Client validators | `validate<Thing>` | `validateRequest` |
+| Zod schemas | `<thing>Schema` | `planSchema`, `loginSchema` |
+| Client validators | `validate<Thing>` | `validateEmail` |
 | Enumerated values | UPPER_SNAKE_CASE strings | `'SUBMITTED'`, `'IN_PROGRESS'` |
-| Errors | `HttpError(status, message, fields)` | `new HttpError(404, 'Request not found')` |
+| Errors | `HttpError(status, message, fields)` | `new HttpError(404, 'Invoice not found')` |
 
 ## 4. Files and folders
 
 | Thing | Convention | Example |
 |---|---|---|
-| React component and page files | PascalCase `.jsx`, matching the component | `RequestList.jsx`, `Layout.jsx` |
-| Other JS modules | camelCase `.js` | `validation.js`, `useLive.js`, `api.js` |
-| Express routers | plural domain noun | `routes/requests.js`, `routes/users.js` |
-| Folders | lowercase | `pages/`, `components/`, `lib/` |
+| React component and page files | PascalCase `.jsx`, matching the component | `SubscriptionList.jsx`, `Layout.jsx` |
+| Other JS modules | camelCase `.js` | `validation.js`, `useApi.js`, `api.js` |
+| Server module files | `<module>.<role>.js` in `modules/<module>/` | `invoices.routes.js`, `invoices.service.js`, `invoices.schemas.js` |
+| Folders | lowercase | `pages/`, `components/`, `lib/`, `modules/billing/` |
 | Docs | kebab-case `.md` | `engineering-standards.md` |
-| Migrations | generated by Prisma; `--name` in snake_case | `add_due_date_to_request` |
+| Migrations | generated by Prisma; `--name` in snake_case | `add_due_date_to_invoices` |
+| Database constraints | `<table>_<rule>_check` | `invoices_total_amount_check` |
 | Screenshots | kebab-case | `docs/screenshots/dashboard-mobile.png` |
 
 ## 5. API routes
 
-- Prefix with `/api`, use **plural kebab-case nouns** (`/api/purchase-orders`), and use `:id` for a single record.
-- Workflow actions are a verb under the record: `POST /api/requests/:id/submit`, `POST /api/requests/:id/review`.
-- Query parameters are camelCase: `?status=APPROVED&pageSize=20`.
-- Frontend routes mirror the API without `/api`: `/requests`, `/requests/new`, `/requests/:id`, `/requests/:id/edit`.
+- The canonical server route includes the `/api` prefix. Use **plural kebab-case nouns** (`/api/payment-terms`) and `:id` for a single record.
+- Workflow actions are a verb under the record: `POST /api/subscriptions/:id/confirm`, `POST /api/invoices/:id/cancel`.
+- Query parameters are camelCase: `?status=ACTIVE&pageSize=20`.
+- In `docs/api.md`, the Base URL already includes `/api`, so route-map paths are relative to that Base URL (for example, `/subscriptions` resolves to `/api/subscriptions`). Detailed endpoint headings may show the canonical full path.
+- Frontend routes mirror the resource path without `/api`: `/subscriptions`, `/subscriptions/new`, `/subscriptions/:id`, `/subscriptions/:id/edit`.

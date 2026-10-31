@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0 |
+| Version | 1.1 |
 | Owner | Team lead (Jasil M) |
-| Last updated | 29 October 2026 |
+| Last updated | 31 October 2026 |
 | Related documents | [Engineering Standards](engineering-standards.md) · [CONTRIBUTING.md](../CONTRIBUTING.md) |
 
 The evaluator opens the repository before running the app. Documentation is how they find out, in two minutes, what we built, how to run it and who did what. These rules keep it accurate without slowing us down.
@@ -17,8 +17,9 @@ The evaluator opens the repository before running the app. Documentation is how 
 |---|---|---|---|
 | [`README.md`](../README.md) | The front page: the problem, features, stack, setup, demo logins, screenshots, team | Lead | **4:45 PM** (setup section by 11:00 AM) |
 | [`docs/requirements.md`](requirements.md) | The problem statement split into numbered requirements (`PS-n`), each with its owner and status | Lead | **9:30 AM**, then statuses kept current |
-| [`docs/api.md`](api.md) | Every API route: method, path, auth, body, response and errors | Whoever adds the route | **In the same commit as the route** |
-| [`docs/data-model.md`](data-model.md) | The entities, their key fields and relations, and an ER diagram (Mermaid) | Whoever changes `schema.prisma` | In the same commit as each migration |
+| [`docs/implementation-plan.md`](implementation-plan.md) | How we build it: timeline, tasks by owner, billing design, demo story | Lead | Done, then kept current |
+| [`docs/api.md`](api.md) | Every API route: the route map, then method, path, auth, body, response and errors | Whoever adds the route | **In the same commit as the route** |
+| [`docs/data-model.md`](data-model.md) | The complete database documentation: design decisions, ER diagram, every table and column, constraints, lifecycles, setup | Whoever changes `schema.prisma` | In the same commit as each migration |
 | [`docs/engineering-standards.md`](engineering-standards.md) | How we write code | Lead | Done (before the event) |
 | [`docs/naming-conventions.md`](naming-conventions.md) | How we name things | Lead | Done (before the event) |
 | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Git, commit and pull request rules | Lead | Done (before the event) |
@@ -33,7 +34,7 @@ Nothing else. No separate design doc, no meeting notes, no changelog: the commit
 | You changed… | Update… |
 |---|---|
 | Added or changed an API route, its body or its errors | `docs/api.md` |
-| Changed `schema.prisma` | `docs/data-model.md` (and the ER diagram) |
+| Changed `schema.prisma` or added a migration | `docs/data-model.md` (columns, constraints, indexes and the ER diagram) |
 | Added an env var, script, dependency or setup step | `README.md` → *Getting started*, and `.env.example` |
 | Finished or dropped a requirement | `docs/requirements.md` → *Status* |
 | Changed seed users or passwords | `README.md` → *Demo logins* |
@@ -75,18 +76,21 @@ The README follows this order. The skeleton is already in [`README.md`](../READM
 Each route in `docs/api.md` gets one entry in this form:
 
 ````markdown
-### POST /api/requests/:id/review
+### POST /api/payments
 
-Approve or reject a submitted request. **Auth:** Manager, Admin. Refs: PS-3.
+Record a payment against a confirmed invoice. **Auth:** Admin, Internal. Refs: PS-21.
 
 **Body**
 
 | Field | Type | Rules |
 |---|---|---|
-| `decision` | string | `APPROVED` or `REJECTED` |
-| `comment` | string | Optional, at most 500 chars; required (5+ chars) when rejecting |
+| `invoiceId` | number | An existing invoice |
+| `method` | string | `CASH`, `BANK_TRANSFER`, `UPI`, `CARD` or `CHEQUE` |
+| `amount` | number | Paise, above 0, at most the balance |
+| `paymentDate` | string | `YYYY-MM-DD`, not in the future |
+| `note` | string | Optional, at most 500 chars |
 
-**Responses:** `200` the updated request · `400` validation (`fields.comment`) · `403` not a reviewer or own request · `404` not found · `409` not in `SUBMITTED` status
+**Responses:** `201` the payment and updated invoice · `400` validation (`fields.amount`) · `403` not staff · `404` invoice not found · `409` the invoice is not `CONFIRMED`
 ````
 
 ## 6. Code-level documentation
@@ -98,8 +102,9 @@ Comments in code follow [Engineering Standards §5](engineering-standards.md#5-c
 - [ ] The README *Getting started* steps work on a **fresh clone** (delete `node_modules`, `.env` and the database, then follow the steps exactly)
 - [ ] Demo logins work
 - [ ] Every `PS-n` in `requirements.md` has a final status
-- [ ] `api.md` lists every route in `server/src/routes/`
+- [ ] `api.md` lists every route in `server/src/modules/`
+- [ ] `data-model.md` matches the final schema
 - [ ] Screenshots are current
 - [ ] *Known limitations* is honest
 - [ ] Team table filled in
-- [ ] No secrets, `.env` files or local database files in the repo (`git ls-files | grep -E "\.env$|\.db$"` prints nothing)
+- [ ] No secrets, `.env` files or local database files in the repo (`git ls-files | grep -E "\.env$"` prints nothing)

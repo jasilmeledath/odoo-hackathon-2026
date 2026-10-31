@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0 |
+| Version | 1.2 |
 | Owner | Team lead (Jasil M) |
-| Last updated | 29 October 2026 |
+| Last updated | 31 October 2026 |
 | Applies to | Every commit and pull request in this repository, by every team member and every AI assistant |
 
 This guide sets out how we commit, push and open pull requests during the Odoo x Make-A-Ton 9.0 virtual round. It is shaped by the organizers' rules:
@@ -13,6 +13,8 @@ This guide sets out how we commit, push and open pull requests during the Odoo x
 > - Every member pushes **at least once every hour**.
 > - **Every member commits their own code.** Individual commits are used to identify each member's contribution and directly affect the evaluation.
 > - Commit messages must explain what was done.
+
+The organizers ask for all code in a single branch. We use short-lived feature branches and `develop` for review, and everything still reaches `main`: [§1](#1-branching) explains how.
 
 A `commit-msg` hook checks commit messages automatically. See [§7](#7-one-time-setup).
 
@@ -33,27 +35,32 @@ A `commit-msg` hook checks commit messages automatically. See [§7](#7-one-time-
 
 ## 1. Branching
 
-**`main` is the only long-lived branch.** The evaluator reads `main`, and the organizers want all code in one branch.
+Work moves in one direction: **feature branch → `develop` → `main`**.
 
-| Workflow | When | Rules |
+| Branch | Purpose | Rules |
 |---|---|---|
-| **Direct to `main`** (default) | Almost every change | Small commits. Run `git pull --rebase` before every push, and keep `main` runnable. |
-| **Short-lived branch + pull request** | A risky change (schema rewrite, auth rework, large refactor) or something you want reviewed first | Name it `<type>/<short-description>`, for example `feat/approval-flow`. Merge it **within 60 minutes**, then **delete it**. |
+| `main` | The finished code the evaluator reads | Changes only through a pull request **from `develop`**. No direct pushes, and no pull requests from any other branch. |
+| `develop` | Where the team's finished work comes together | Changes only through pull requests from feature branches. |
+| `<type>/<short-description>` | One piece of work, for example `feat/billing-run` | Branch from `develop`, and open the pull request back into `develop`. Merge it **within 60 minutes**, then **delete it**. |
 
-- **No branches may exist at 4:30 PM, apart from `main`.** Everything is merged and deleted by then.
-- Never force-push `main`. Don't rebase or amend commits that are already on `main`.
+The evaluator reads `main`, and the organizers want the latest code there, so:
+
+- The lead opens a pull request from `develop` to `main` at every hourly checkpoint, so `main` is never more than an hour behind.
+- **No branches may exist at 4:30 PM, apart from `main` and `develop`.** Every feature branch is merged and deleted by then.
+- The final pull request from `develop` to `main` is merged by **5:00 PM**.
+- Never force-push `main` or `develop`. Don't rebase or amend commits that are already on them.
 
 ## 2. Push cadence
 
 | Rule | Detail |
 |---|---|
-| Push **at least once every hour**, every member | Set a repeating 50-minute timer at 9:00 AM. The organizers use these pushes to track progress. |
+| Push **at least once every hour**, every member | Push to your feature branch. Set a repeating 50-minute timer at 9:00 AM. The organizers use these pushes to track progress. |
 | Commit **every 15–30 minutes** | Small commits are easier to review, revert and credit. |
-| **Pull before you push** | `git pull --rebase origin main`, then `git push`. |
-| A push never breaks `main` | The app must still start after your push. If your feature isn't finished, push it behind a route nobody links to yet, or keep it unused, rather than pushing broken code. |
+| **Stay up to date** | Run `git fetch origin`, then `git merge origin/develop` on your feature branch, then `git push`. |
+| A merge never breaks `develop` | The app must still start after your pull request merges. If your feature isn't finished, merge it behind a route nobody links to yet, or keep it unused, rather than merging broken code. |
 | Author identity is real | `git config user.name` and `user.email` match your own GitHub account. No shared machines or accounts. Commits made under someone else's name count for them, not you. |
 
-Lead checkpoints (`git log --since="1 hour ago" --format="%an"`): at 10, 11, 12, 1, 2, 3 and 4. Anyone who hasn't pushed in the last hour gets a ping.
+Lead checkpoints (`git fetch origin`, then `git log --remotes --since="1 hour ago" --format="%an"`): at 10, 11, 12, 1, 2, 3 and 4. Anyone who hasn't pushed in the last hour gets a ping, and the lead then opens the pull request from `develop` to `main`.
 
 ---
 
@@ -76,16 +83,16 @@ We follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1
 Example:
 
 ```text
-feat(requests): let managers approve or reject submitted requests
+feat(payments): record payments against confirmed invoices
 
-Managers had no way to act on submitted requests, so the workflow
-stopped at "submitted".
+The team had no way to mark money received, so invoices stayed
+outstanding forever.
 
-- Add POST /api/requests/:id/review with a decision and comment
-- Require a reason when rejecting
-- Block reviewers from reviewing their own requests
+- Add POST /api/payments with method, amount, date and note
+- Reject amounts above the invoice balance
+- Mark the invoice paid when the balance reaches zero
 
-Refs: PS-2
+Refs: PS-21
 ```
 
 ### 3.2 Type
@@ -115,7 +122,7 @@ The allowed scopes are listed in [`.githooks/scopes`](.githooks/scopes), one per
 | Apps | `client`, `server` |
 | Cross-cutting | `auth`, `users`, `db` (schema, migrations, seed), `api` (contracts, middleware), `ui` (theme, shared components), `validation` |
 | Repository | `deps`, `config`, `repo`, `readme` |
-| **Domain modules** | **Added by the team lead at about 9:30 AM, once the problem statement is chosen.** Use one per business entity or feature, for example `requests`, `inventory`, `bookings`, `dashboard`, `reports`. |
+| Domain modules | `staff`, `customers`, `products`, `plans`, `taxes`, `terms`, `discounts`, `templates`, `subscriptions`, `billing`, `invoices`, `payments`, `portal`, `reports`, `dashboard` |
 
 To add a scope, add a line to `.githooks/scopes` and to the table above in the same commit (`chore(repo): add bookings scope`).
 
@@ -149,7 +156,7 @@ Trailers go at the end, after one blank line, one per line, in `Key: value` form
 |---|---|---|
 | `Refs:` | The commit implements part of the problem statement (PS), or relates to an issue | `Refs: PS-2, #4` |
 | `Closes:` | The commit completes a GitHub issue | `Closes: #4` |
-| `BREAKING CHANGE:` | An API contract or the schema changes in a way teammates must adapt to | `BREAKING CHANGE: /api/items now returns { items, total }` |
+| `BREAKING CHANGE:` | An API contract or the schema changes in a way teammates must adapt to | `BREAKING CHANGE: /api/plans now returns { items, total }` |
 | `Co-authored-by:` | Someone else paired on the commit, or an AI assistant wrote part of it | `Co-authored-by: Name <email>` |
 
 **Problem-statement references.** At 9:15 AM the team lead numbers the problem statement's requirements in [docs/requirements.md](docs/requirements.md) (`PS-1`, `PS-2`, …). Use those IDs in `Refs:` so each commit traces back to a requirement.
@@ -173,26 +180,26 @@ BREAKING CHANGE: list endpoints return an object, not an array.
 ### 3.8 Reverts
 
 ```text
-revert: feat(requests): add bulk approve
+revert: feat(invoices): add bulk confirm
 
 This reverts commit 1a2b3c4d.
 
-Bulk approve skipped the self-review check. It will come back once
-the check is shared with single approve.
+Bulk confirm skipped the draft-status check. It will come back once
+the check is shared with single confirm.
 ```
 
 ### 3.9 More examples
 
 ```text
-feat(db): add schema for users, requests and activity log
+feat(db): add discount usage tracking
 
-The problem statement needs an audit trail of every status change,
-so activity is its own table rather than a JSON column.
+Discounts must stop when they run out, so usage has to be counted
+and protected by the database.
 
-- Add the initial Prisma migration
-- Seed one admin, one manager and two employees
+- Add usage_limit and usage_count to discounts
+- Add a check that usage never passes the limit
 
-Refs: PS-1, PS-4
+Refs: PS-19, PS-20
 ```
 
 ```text
@@ -201,7 +208,7 @@ fix(validation): reject negative amounts on the server
 The client blocked negative amounts, but the API still accepted
 them when called directly.
 
-- Add a positive() rule to the request schema
+- Add a minimum to the payment schema
 - Return the error under fields.amount
 
 Refs: PS-3
@@ -235,7 +242,7 @@ chore(deps): add zod for request validation
 
 1. **One logical change per commit.** A feature and its docs belong together. An unrelated refactor or a formatting pass doesn't.
 2. **Commit your own work.** Don't commit a teammate's changes from your machine, and don't paste their code into your commit. If you paired, add a `Co-authored-by:` trailer.
-3. **`main` always starts.** Run the app (or at least `npm run build` and the server start-up) before pushing.
+3. **`develop` and `main` always start.** Run the app (or at least `npm run build` and the server start-up) before pushing.
 4. **Never commit secrets**: `.env` files, API keys, database passwords or JWT secrets. Commit `.env.example` with placeholder values instead.
 5. **Never commit generated output**: `node_modules/`, `dist/`, local database files (`*.db`), `.DS_Store`.
 6. **Change code and docs together.** A schema, API or setup change updates the docs in the same commit (see [Documentation Rules](docs/documentation-rules.md)).
@@ -245,14 +252,16 @@ chore(deps): add zod for request validation
 
 ## 5. Pull requests
 
-Most work goes straight to `main` ([§1](#1-branching)). When you do open a pull request:
+All work reaches `develop` and `main` through pull requests ([§1](#1-branching)).
+
+- **Target:** feature branches target `develop`. Only `develop` targets `main`.
 
 - **Title:** use the commit header format, `<type>(<scope>): <subject>`, at most 72 characters.
 - **Description:** fill in [the template](.github/pull_request_template.md). Cover what changed, why (with `PS-n` IDs), how you tested it, whether it is AI-assisted, and any limitations.
 - **Review:** one teammate approves. The reviewer runs the app with the branch checked out. Reviews happen **within 15 minutes** of being asked. If you can't make that, say so on the team chat.
-- **Merge method:** **"Rebase and merge"**. It keeps every individual commit and its author on `main`, which matters because Odoo scores individual commits. Don't use "Squash and merge": it turns several people's commits into one.
-- **After merging:** delete the branch straight away.
-- **Size:** about 300 changed lines or fewer. Anything bigger is split.
+- **Merge method:** **"Create a merge commit"**, for both kinds of pull request. It keeps every individual commit and its author, which matters because Odoo scores individual commits, and it keeps `develop` and `main` in step. Don't use "Squash and merge": it turns several people's commits into one. Don't use "Rebase and merge": it rewrites commits, so `develop` and `main` drift apart.
+- **After merging:** delete the feature branch straight away. Never delete `develop`.
+- **Size:** about 300 changed lines or fewer for a feature branch. Anything bigger is split.
 
 ---
 
@@ -269,9 +278,12 @@ Refs: PS-3                          trailers
 
 types   feat fix docs style refactor perf test build ci chore revert
 scopes  see .githooks/scopes (client server auth users db api ui
-        validation deps config repo readme + domain scopes)
+        validation deps config repo readme + domain modules)
 
-loop    git pull --rebase origin main → commit → git push   (every ≤ 60 min)
+start   git switch develop → git pull → git switch -c feat/<name>
+loop    commit → git push -u origin feat/<name>     (every ≤ 60 min)
+finish  pull request into develop → merge → delete the branch
+flow    feature branch → develop → main             (pull requests only)
 ```
 
 ---
@@ -317,10 +329,11 @@ printf 'feat(auth): add login\n\nWhy.\n\n- What\n' > /tmp/msg && .githooks/commi
 
 | Problem | Fix |
 |---|---|
-| `git push` rejected (non-fast-forward) | `git pull --rebase origin main`, resolve any conflicts, then `git push`. Never `--force`. |
+| `git push` rejected (non-fast-forward) | `git pull --rebase`, resolve any conflicts, then `git push`. Never `--force`. |
+| Merge conflict from `develop` | Edit the conflicted files, `git add <file>`, then `git commit`. If you're lost: `git merge --abort` and ask the lead. |
 | Rebase conflict | Edit the conflicted files, `git add <file>`, then `git rebase --continue`. If you're lost: `git rebase --abort` and ask the lead. |
 | Hook rejected your message | Read the reasons it prints, fix the message and commit again. Your staged changes are still there. |
 | Typo in the last commit message, **not pushed yet** | `git commit --amend` |
-| Typo in a commit that's **already pushed** | Leave it. Don't rewrite `main`. |
+| Typo in a commit that's **already pushed** | Leave it. Don't rewrite pushed history. |
 | Committed a secret | Tell the lead **straight away**. Rotate the secret, then remove it in a new commit. |
-| Broke `main` | Fix it right away, or `git revert <sha>` and push. Tell the team. |
+| Broke `develop` or `main` | Fix it right away in a new branch, or use `git revert <sha>` there, and open a pull request. Tell the team. |
