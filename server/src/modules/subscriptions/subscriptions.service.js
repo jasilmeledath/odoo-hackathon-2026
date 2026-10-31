@@ -237,7 +237,7 @@ const prepareSubscriptionLines = async (tx, lines, plan, startDate) => {
 };
 
 const loadActiveReferences = async (tx, data) => {
-  const [customer, plan, paymentTerm] = await Promise.all([
+  const [customer, plan, paymentTerm, template] = await Promise.all([
     tx.customer.findFirst({ where: { id: data.customerId, isActive: true }, select: { id: true } }),
     tx.plan.findFirst({
       where: { id: data.planId, isActive: true },
@@ -252,6 +252,12 @@ const loadActiveReferences = async (tx, data) => {
       },
     }),
     tx.paymentTerm.findFirst({ where: { id: data.paymentTermId, isActive: true }, select: { id: true } }),
+    data.templateId
+      ? tx.quotationTemplate.findFirst({
+          where: { id: data.templateId, isActive: true },
+          select: { id: true, planId: true },
+        })
+      : Promise.resolve(null),
   ]);
   if (!customer)
     throw new HttpError(400, 'Choose an active customer', { customerId: 'Choose an active customer' });
@@ -260,6 +266,16 @@ const loadActiveReferences = async (tx, data) => {
     throw new HttpError(400, 'Choose an active payment term', {
       paymentTermId: 'Choose an active payment term',
     });
+  if (data.templateId && !template) {
+    throw new HttpError(400, 'Choose an active quotation template', {
+      templateId: 'Choose an active quotation template',
+    });
+  }
+  if (template && template.planId !== data.planId) {
+    throw new HttpError(400, 'The selected plan must match the quotation template', {
+      planId: 'Choose the plan from the selected template',
+    });
+  }
   return plan;
 };
 
@@ -273,6 +289,7 @@ export const createSubscription = async (data, actor) => {
         number,
         customerId: data.customerId,
         planId: data.planId,
+        templateId: data.templateId ?? null,
         paymentTermId: data.paymentTermId,
         startDate: data.startDate,
         expiryDate: data.expiryDate,
@@ -312,6 +329,7 @@ export const updateSubscription = async (id, data, actor) => {
         customerId: data.customerId,
         planId: data.planId,
         paymentTermId: data.paymentTermId,
+        ...(data.templateId !== undefined ? { templateId: data.templateId } : {}),
         startDate: data.startDate,
         expiryDate: data.expiryDate,
         notes: data.notes || null,
