@@ -161,3 +161,50 @@ export const validateTemplate = (form) => {
   });
   return fields;
 };
+
+export const DISCOUNT_TYPES = ['FIXED', 'PERCENT'];
+export const DISCOUNT_SCOPES = ['SUBSCRIPTION', 'PRODUCT'];
+export const DISCOUNT_STATES = ['ACTIVE', 'EXPIRED', 'USED_UP', 'SCHEDULED', 'INACTIVE'];
+export const MAX_DISCOUNT_NAME = 120;
+export const MAX_DISCOUNT_PRODUCTS = 100;
+export const MAX_DISCOUNT_INTEGER = 2_147_483_647;
+export const MAX_DISCOUNT_PERCENTAGE = 100;
+const PERCENT_DECIMAL_PLACES = 2;
+
+// PS-19: mirror server rules before converting rupee values into whole paise.
+export const validateDiscount = (form, usageCount = 0) => {
+  const fields = {};
+  if (!form.name.trim()) fields.name = 'Name is required';
+  else if (form.name.trim().length > MAX_DISCOUNT_NAME) fields.name = 'Name must be at most 120 characters';
+  if (!DISCOUNT_TYPES.includes(form.type)) fields.type = 'Choose a valid discount type';
+  if (!DISCOUNT_SCOPES.includes(form.scope)) fields.scope = 'Choose a valid discount scope';
+  if (form.type === 'FIXED') {
+    const error = validateRupeePrice(form.fixedAmount, 'Fixed amount');
+    if (error) fields.fixedAmount = error;
+    else if (Number(form.fixedAmount) <= 0) fields.fixedAmount = 'Fixed amount must be greater than 0';
+  } else {
+    const percent = Number(form.percent);
+    if (String(form.percent).trim() === '' || !Number.isFinite(percent))
+      fields.percent = 'Percentage is required';
+    else if (percent <= 0) fields.percent = 'Percentage must be greater than 0';
+    else if (percent > MAX_DISCOUNT_PERCENTAGE) fields.percent = 'Percentage must be at most 100';
+    else if (Number(percent.toFixed(PERCENT_DECIMAL_PLACES)) !== percent)
+      fields.percent = 'Percentage must have at most 2 decimal places';
+  }
+  const minimumError = validateRupeePrice(form.minPurchaseAmount, 'Minimum purchase');
+  if (minimumError) fields.minPurchaseAmount = minimumError;
+  const quantityError = validateInteger(form.minQuantity, 'Minimum quantity', 0);
+  if (quantityError) fields.minQuantity = quantityError;
+  if (!isCalendarDate(form.startDate)) fields.startDate = 'Start date must be a valid date';
+  if (!isCalendarDate(form.endDate)) fields.endDate = 'End date must be a valid date';
+  else if (form.endDate < form.startDate) fields.endDate = 'End date must be on or after start date';
+  if (form.usageLimit.trim()) {
+    const limitError = validateInteger(form.usageLimit, 'Usage limit');
+    if (limitError) fields.usageLimit = limitError;
+    else if (Number(form.usageLimit) < usageCount)
+      fields.usageLimit = 'Usage limit cannot be below the current usage count';
+  }
+  if (form.scope === 'PRODUCT' && !form.products.length) fields.productIds = 'Choose at least one product';
+  else if (form.products.length > MAX_DISCOUNT_PRODUCTS) fields.productIds = 'Choose at most 100 products';
+  return fields;
+};
