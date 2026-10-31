@@ -155,7 +155,7 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 | GET | `/portal/subscriptions` | Customer | Own subscriptions | PS-26 | Yes |
 | GET | `/portal/subscriptions/:id` | Customer | One subscription with lines | PS-26 | Yes |
 | POST | `/portal/subscriptions/:id/accept` | Customer | Accept a quotation | PS-27 | Yes |
-| PATCH | `/portal/subscriptions/:id/lines/:lineId` | Customer | `{ isActive }`: switch an add-on on or off | PS-27 | |
+| PATCH | `/portal/subscriptions/:id/lines/:lineId` | Customer | `{ isActive }`: switch an add-on on or off | PS-27 | Yes |
 | POST | `/portal/subscriptions/:id/pause` | Customer | Pause, if the plan allows | PS-27 | Yes |
 | POST | `/portal/subscriptions/:id/resume` | Customer | Resume | PS-27 | Yes |
 | POST | `/portal/subscriptions/:id/close` | Customer | Close, if the plan allows | PS-27 | Yes |
@@ -836,6 +836,26 @@ inside their cards; the shell can shrink without page overflow. Invalid or
 incomplete prices do not show a calculated margin. Invalid input, empty/error
 states and read-only staff controls are verified. No API or schema changes.
 
+### PATCH /api/portal/subscriptions/:id/lines/:lineId
+
+Switch an existing owned subscription add-on on or off. **Auth:** Customer. Refs: PS-27.
+
+Both path parameters must be positive integer IDs. The JSON body requires a strict boolean
+`isActive`; strings and omitted values return `400` with field messages. Ownership comes from
+the authenticated database user, never from request data.
+
+- `200`: the refreshed customer-safe subscription detail. Plan data includes `productId` and
+  line product data includes `id` so the client can identify the protected plan product.
+- `400`: malformed input, disabling the plan product, or totals outside the integer money range.
+- `401` / `403`: missing authentication / a non-Customer role.
+- `404`: missing or foreign subscription, line, or customer profile.
+- `409`: a closed subscription cannot be changed.
+
+The service locks the owned subscription row and atomically updates the line, recurring amount,
+monthly recurring amount and activity record. Concurrent toggles cannot overwrite each other's
+totals. Existing saved line prices and quantities are preserved. Repeating the current state
+does not create duplicate activity. Staff edits and customer toggles share the recurring-total
+calculation. This endpoint changes existing lines only; it does not create products or lines.
 ### POST /api/portal/subscriptions/:id/pause, /resume and /close
 
 Customer-only actions on an owned subscription (PS-27). Body is empty or
@@ -849,12 +869,12 @@ the existing anchored schedule skips paused time. Close requires Active or
 Paused plus canCloseEarly; it records CLOSED_EARLY and clears future billing.
 Existing invoices and money remain unchanged. The UI confirms closing first,
 prevents duplicate submits, and refreshes status with success/error feedback.
-Those controls ship in the separate lifecycle UI PR after this API change.
+The portal presents available controls based on plan capability flags and confirms closing.
 
 Responses: `200` updated detail; `400` invalid ID/body; `401` missing
 session; `403` non-Customer; `404` missing profile/record or foreign owner;
-`409` invalid state or a plan that disallows the action. PS-27 remains In
-progress until the separately assigned acceptance and add-on flows integrate.
+`409` invalid state or a plan that disallows the action. PS-27 is complete
+across quotation acceptance, lifecycle controls and add-on management.
 
 ### POST /api/portal/subscriptions/:id/accept
 
@@ -869,5 +889,5 @@ unauthenticated; `403` non-Customer; `404` missing profile/subscription or
 another customer's record; `409` expired quotation or invalid current state.
 The expiry date is inclusive in IST. The portal shows pending, error and
 success feedback and refreshes status after acceptance. Activation follows
-the existing staff/scheduler workflow. PS-27 remains In progress until the
-other separately assigned customer actions are integrated.
+the existing staff/scheduler workflow. PS-27 is complete across quotation
+acceptance, lifecycle controls and add-on management.

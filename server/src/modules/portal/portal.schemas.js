@@ -1,6 +1,7 @@
 // Customer portal filters use the same bounded pagination as staff lists (PS-26).
 import { z } from 'zod';
 import { InvoiceStatus, SubscriptionStatus } from '../../generated/prisma/enums.js';
+import { idParamSchema } from '../../lib/validation.js';
 import { listQuerySchema } from '../../lib/pagination.js';
 const MAX_SEARCH_LENGTH = 100;
 const portalListQuerySchema = listQuerySchema.extend({
@@ -12,6 +13,11 @@ export const portalSubscriptionQuerySchema = portalListQuerySchema.extend({
 export const portalInvoiceQuerySchema = portalListQuerySchema.extend({
   status: z.enum(InvoiceStatus, { error: 'Choose a valid invoice status' }).optional(),
 });
+
+export const portalAddonSchema = z.object({
+  isActive: z.boolean({ error: 'Choose whether the add-on is active' }),
+});
+export const portalAddonParamsSchema = idParamSchema.extend({ lineId: idParamSchema.shape.id });
 
 // PS-27: an action accepts no ownership, status or pricing overrides.
 export const portalActionSchema = z.object({}).strict().default({});

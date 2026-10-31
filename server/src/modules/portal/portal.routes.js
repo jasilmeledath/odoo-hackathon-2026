@@ -7,6 +7,8 @@ import {
   portalSubscriptionQuerySchema,
   portalInvoiceQuerySchema,
   portalActionSchema,
+  portalAddonSchema,
+  portalAddonParamsSchema,
 } from './portal.schemas.js';
 import {
   listSubscriptions,
@@ -16,6 +18,7 @@ import {
   manageOwnSubscription,
   acceptQuotation,
 } from './portal.service.js';
+import { updateAddon } from './portalAddons.service.js';
 const router = Router();
 router.use(requireAuth, requireRole('CUSTOMER'));
 router.get('/subscriptions', validate(portalSubscriptionQuerySchema, 'query'), async (req, res) =>
@@ -38,6 +41,12 @@ router.get('/invoices', validate(portalInvoiceQuerySchema, 'query'), async (req,
 );
 router.get('/invoices/:id', validate(idParamSchema, 'params'), async (req, res) =>
   res.json(await getInvoice(req.user.customerId, req.validParams.id)),
+);
+router.patch(
+  '/subscriptions/:id/lines/:lineId',
+  validate(portalAddonParamsSchema, 'params'),
+  validate(portalAddonSchema),
+  async (req, res) => res.json(await updateAddon(req.validParams, req.body.isActive, req.user)),
 );
 router.post(
   '/subscriptions/:id/accept',
