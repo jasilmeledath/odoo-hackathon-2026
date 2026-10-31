@@ -2,7 +2,7 @@
 
 - Date: 2026-10-31
 - Contributor/agent: Yadhu Krishna P R with Codex
-- Branch / issue / PR: `test/role-checks`; #12; [PR #119](https://github.com/jasilmeledath/odoo-hackathon-2026/pull/119) (original review; replacement linked in review follow-up)
+- Branch / issue / PR: fix/role-checks-review; #12; [PR #123](https://github.com/jasilmeledath/odoo-hackathon-2026/pull/123); supersedes [PR #119](https://github.com/jasilmeledath/odoo-hackathon-2026/pull/119)
 - Summary: Added persistent API regressions proving role guards across staff, catalog and portal modules, foreign-record 404 parity, database-authoritative identity and missing-authentication rejection. Production behavior is unchanged.
 - Decisions: Work independently from reviewed develop, with one branch and PR per issue. Follow PS-4, the engineering standards and Conventional Commits. Preserve existing feature branches at the user's request. Integrated develop 122148f, including the reviewed shared layout fix, before publication.
 - Database and migrations: No schema, migration or dependency changes. Integration and browser checks use a newly migrated/seeded disposable database, removed afterward; the development database is untouched. The regression suite performs no application-data mutations.
