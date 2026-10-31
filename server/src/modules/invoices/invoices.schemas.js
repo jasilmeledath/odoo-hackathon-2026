@@ -21,3 +21,13 @@ export const invoiceListQuerySchema = listQuerySchema
     path: ['to'],
     message: 'To date must be on or after the from date',
   });
+
+export const bulkConfirmSchema = z
+  .object({
+    invoiceIds: z
+      .array(z.number().int().positive().max(2_147_483_647))
+      .min(1, 'Select at least one draft invoice')
+      .max(100, 'Select at most 100 invoices')
+      .refine((ids) => new Set(ids).size === ids.length, 'Select each invoice once'),
+  })
+  .strict();

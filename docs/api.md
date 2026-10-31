@@ -123,7 +123,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | ✓ |
 | GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | ✓ |
 | POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | ✓ |
-| POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 | |
+| POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 |Yes |
 | POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 |Yes |
 | POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 |Yes |
 
@@ -489,3 +489,14 @@ server terminal. Successful delivery updates `sentAt` and logs `SENT` together.
 SMTP delivery and database recording are separate operations; after a database
 failure, check delivery before retrying to avoid duplicate mail.
 Invoice detail provides a print action; print styles hide navigation and actions.
+
+
+### POST /api/invoices/confirm-all
+
+**Auth:** Admin/Internal. Body `{ invoiceIds }`: 1–100 distinct positive integer
+IDs, bounded to PostgreSQL identifiers. Invalid or duplicate IDs return `400`.
+Returns `{ confirmed, skipped, failed }`. Each Draft is confirmed through the
+same transaction/audit rules as the individual action. Stale/non-Draft and
+missing invoices count as skipped. Unexpected errors count as failed and are
+logged without preventing later IDs. The list selects only current-page Drafts,
+disables pending controls and shows the result counts.
