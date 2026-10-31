@@ -826,3 +826,20 @@ checked with real Admin/Internal login at 375px and 1280px. Wide tables scroll
 inside their cards; the shell can shrink without page overflow. Invalid or
 incomplete prices do not show a calculated margin. Invalid input, empty/error
 states and read-only staff controls are verified. No API or schema changes.
+
+
+### Role and customer-isolation regression checks
+
+Refs: PS-4. `server/test/roles.integration.test.js` exercises the real routed services against
+an isolated migrated and seeded PostgreSQL database. Run from `server` with
+`TEST_DATABASE_URL` set: `node --import=tsx --test test/roles.integration.test.js`.
+
+Customers receive `403` on staff modules. Internal staff can read catalog resources but catalog
+writes and staff administration require Admin. Both staff roles receive `403` on Customer
+portal routes. Protected routes reject unauthenticated requests with `401`. A Customer can
+read their own subscriptions and invoices; foreign records return the same `404` as absent
+records. Token-supplied roles, customer claims and query IDs cannot replace database identity.
+
+Responsive browser verification covers role-specific menus and direct Admin-only page navigation
+at 375px and 1280px. The dashboard event stream is outside this permission/navigation check.
+No new endpoints or production authorization rules are introduced by this regression suite.
