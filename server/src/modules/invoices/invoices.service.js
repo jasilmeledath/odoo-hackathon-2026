@@ -47,7 +47,7 @@ const LIST_SELECT = {
   subscription: { select: { id: true, number: true } },
 };
 
-const withComputedFields = (invoice) => ({
+export const withComputedFields = (invoice) => ({
   ...invoice,
   balanceAmount: invoice.totalAmount - invoice.paidAmount,
   isOverdue: isOverdue(invoice),

@@ -89,7 +89,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-26 | Customers see their own subscriptions and invoices through a portal | P1 | Yadhu | Not started |
+| PS-26 | Customers see their own subscriptions and invoices through a portal | P1 | Yadhu | Done |
 | PS-27 | Customers manage their own subscriptions: accept a quotation, switch add-ons on and off, and pause or close where the plan allows | P2 | Yadhu | Not started |
 
 ### Beyond the problem statement

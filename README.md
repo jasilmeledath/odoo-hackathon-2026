@@ -16,6 +16,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 - Customers can create Customer-only accounts with password validation and atomic billing-profile linking (PS-1, PS-5).
 - Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
+- Add customer-only subscription and invoice lists and details, scoped queries, URL search, payment history and balance display. (PS-26).
 - Staff can record part and final payments from invoices with transactional balance protection (PS-21, PS-22).
 
 - Startup/hourly processing activates due subscriptions, closes plans at expiry when configured, and generates due invoices (PS-14, PS-15).
