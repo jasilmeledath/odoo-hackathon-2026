@@ -100,7 +100,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/subscriptions` | Staff | List, filtered by `status`, `customerId`, `planId`, `q` | PS-12, PS-13 | |
+| GET | `/subscriptions` | Staff | List, filtered by `status`, `customerId`, `planId`, `q` | PS-12, PS-13 | ✓ |
 | GET | `/subscriptions/:id` | Staff | Subscription with lines, totals and invoices | PS-12 | |
 | GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | |
 | POST | `/subscriptions` | Staff | Create a draft. `templateId` fills in the plan and lines | PS-11, PS-12 | |
@@ -168,6 +168,23 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 Checks the API and the database connection. **Auth:** none.
 
 **Responses:** `200` `{ "ok": true }` · `500` the database cannot be reached
+
+### GET /api/subscriptions
+
+List subscriptions, newest start date first. **Auth:** Admin, Internal. Refs: PS-12, PS-13.
+
+**Query**
+
+| Field | Type | Rules |
+|---|---|---|
+| `page`, `pageSize` | number | Page from 1. Page size 1 to 50, default 10 |
+| `status` | string | `DRAFT`, `QUOTATION`, `CONFIRMED`, `ACTIVE`, `PAUSED` or `CLOSED` |
+| `customerId`, `planId` | number | Positive record IDs |
+| `q` | string | At most 100 characters; matches subscription number, customer name/company or plan name, ignoring case |
+
+Filters combine with AND. **Response** `200`: `{ items, total, page, pageSize, pages }`. Each item includes subscription `id`, `number`, `status`, `startDate`, `expiryDate`, `recurringAmount`, `customer` (`id`, `name`, `companyName`) and `plan` (`id`, `name`, `billingPeriod`). Money is in paise.
+
+**Responses:** `200` the page of subscriptions · `400` invalid query (`fields.status`, `fields.customerId`, `fields.planId`) · `401` not logged in · `403` not staff
 
 ### GET /api/reports/summary
 
