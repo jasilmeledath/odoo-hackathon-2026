@@ -63,3 +63,44 @@ export const validateProduct = (form) => {
   }
   return fields;
 };
+
+export const BILLING_PERIODS = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
+export const MAX_PLAN_NAME = 120;
+export const MAX_PLAN_QUANTITY = 2_147_483_647;
+export const MAX_PLAN_PRICE_RUPEES = 10_000_000;
+const PLAN_PRICE_DECIMALS = 2;
+const isCalendarDate = (value) =>
+  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+  Number.isFinite(Date.parse(value)) &&
+  new Date(value).toISOString().slice(0, 10) === value;
+
+// PS-8: mirror server date/quantity/price limits before conversion to API types.
+export const validatePlan = (form) => {
+  const fields = {};
+  if (!form.name.trim()) fields.name = 'Name is required';
+  else if (form.name.trim().length > MAX_PLAN_NAME) fields.name = 'Name must be at most 120 characters';
+  if (
+    !Number.isInteger(Number(form.productId)) ||
+    Number(form.productId) < 1 ||
+    Number(form.productId) > MAX_PLAN_QUANTITY
+  )
+    fields.productId = 'Choose an existing product';
+  if (!BILLING_PERIODS.includes(form.billingPeriod)) fields.billingPeriod = 'Choose a valid billing period';
+  const price = Number(form.price);
+  if (String(form.price).trim() === '' || !Number.isFinite(price)) fields.price = 'Price is required';
+  else if (price < 0) fields.price = 'Price cannot be negative';
+  else if (price > MAX_PLAN_PRICE_RUPEES) fields.price = 'Price is too large';
+  else if (Number(price.toFixed(PLAN_PRICE_DECIMALS)) !== price)
+    fields.price = 'Price must have at most 2 decimal places';
+  const quantity = Number(form.minQuantity);
+  if (String(form.minQuantity).trim() === '' || !Number.isFinite(quantity))
+    fields.minQuantity = 'Minimum quantity is required';
+  else if (!Number.isInteger(quantity)) fields.minQuantity = 'Minimum quantity must be a whole number';
+  else if (quantity < 1) fields.minQuantity = 'Minimum quantity must be at least 1';
+  else if (quantity > MAX_PLAN_QUANTITY) fields.minQuantity = 'Minimum quantity is too large';
+  if (!isCalendarDate(form.startDate)) fields.startDate = 'Start date must be a valid date';
+  if (form.endDate && !isCalendarDate(form.endDate)) fields.endDate = 'End date must be a valid date';
+  else if (form.endDate && form.endDate < form.startDate)
+    fields.endDate = 'End date must be on or after start date';
+  return fields;
+};

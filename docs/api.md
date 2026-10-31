@@ -431,3 +431,7 @@ for list display and editing without per-row API requests.
 field messages; `401` unauthenticated; `403` wrong role; `409` duplicate
 name with `fields.name`; update returns `404` for an absent plan. No schema
 or migration change. Refs: PS-8, PS-9.
+
+The plan form converts validated rupee prices to paise at submission, mirrors
+quantity and date errors, and uses a paginated product picker. Existing
+product selection remains available while browsing another product page.
