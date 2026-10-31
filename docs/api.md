@@ -124,7 +124,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | ✓ |
 | POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | ✓ |
 | POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 | |
-| POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 | |
+| POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 |Yes |
 | POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 | |
 
 ### Payments (`modules/payments`)
@@ -467,3 +467,12 @@ The database sums recurring pre-tax amounts for one next period per matching
 subscription. The UI labels this as an estimate before tax/discount and explains
 that catch-up can create multiple invoices. Run billing always processes the
 whole queue, including rows outside the current filter.
+
+
+### POST /api/invoices/:id/cancel
+
+**Auth:** Admin/Internal. Returns the updated invoice. `404` for absent records,
+`400` for invalid IDs and `409` for paid/canceled invoices or any payment history.
+In one transaction, lock the subscription and invoice, cancel once, return one
+discount usage, rewind the cursor if necessary and write the timeline. Paused or
+closed subscriptions retain their status and remain excluded from billing.

@@ -1,5 +1,6 @@
 // Invoices: list, read, confirm, cancel and send (PS-15 to PS-18).
 import { Router } from 'express';
+import { cancelInvoice } from './invoiceCancellation.service.js';
 import { STAFF_ROLES } from '../../lib/constants.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { idParamSchema } from '../../lib/validation.js';
@@ -22,4 +23,8 @@ router.get('/:id', validate(idParamSchema, 'params'), async (req, res) => {
 router.post('/:id/confirm', validate(idParamSchema, 'params'), async (req, res) => {
   res.json(await confirmInvoice(req.validParams.id, req.user));
 });
+router.post('/:id/cancel', validate(idParamSchema, 'params'), async (req, res) =>
+  res.json(await cancelInvoice(req.validParams.id, req.user)),
+);
+
 export default router;
