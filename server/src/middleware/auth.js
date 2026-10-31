@@ -9,7 +9,18 @@ const SESSION_ENDED_MESSAGE = 'Session expired, please log in again';
 
 // The token only proves who is calling. Role and customerId come from the
 // database on every request, so a role change or deactivation applies at once.
-export const signToken = ({ id }) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: TOKEN_LIFETIME });
+export const signToken = ({ id, passwordChangedAt }) =>
+  jwt.sign(
+    {
+      id,
+      iat: Math.max(
+        Math.floor(Date.now() / MS_PER_SECOND),
+        Math.ceil((passwordChangedAt?.getTime() ?? 0) / MS_PER_SECOND),
+      ),
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: TOKEN_LIFETIME },
+  );
 
 const verifyToken = (token) => {
   try {
@@ -19,8 +30,7 @@ const verifyToken = (token) => {
   }
 };
 
-const wasIssuedBefore = (payload, date) =>
-  date !== null && payload.iat < Math.floor(date.getTime() / MS_PER_SECOND);
+const wasIssuedBefore = (payload, date) => date !== null && payload.iat * MS_PER_SECOND < date.getTime();
 
 export const requireAuth = async (req, _res, next) => {
   const header = req.headers.authorization ?? '';

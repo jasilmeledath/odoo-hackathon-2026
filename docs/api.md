@@ -37,7 +37,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/health` | Public | Checks the API and the database connection | | Yes |
+| GET | `/health` | Public | Checks the API and the database connection | Yes |
 
 ### Auth (`modules/auth`)
 
@@ -46,8 +46,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | |
 | POST | `/auth/login` | Public | Returns `{ token, user }` | PS-2 | |
 | GET | `/auth/me` | Any | The current user | PS-2 | |
-| POST | `/auth/forgot-password` | Public | Emails a reset link. Always answers `200` | PS-3 | |
-| POST | `/auth/reset-password` | Public | `{ token, password }`. The token works once, for 30 minutes | PS-3 | |
+| POST | `/auth/forgot-password` | Public | Emails a reset link. Always answers `200` | PS-3 | Yes |
+| POST | `/auth/reset-password` | Public | `{ token, password }`. The token works once, for 30 minutes | PS-3 | Yes |
 
 ### Staff and customers (`modules/staff`, `modules/customers`)
 
@@ -290,3 +290,19 @@ including product-detail plans, are `YYYY-MM-DD`; money remains integer paise.
 **Responses:** `200` the record or standard paginated envelope; `400` invalid
 query/ID with per-field messages; `401` unauthenticated; `403` wrong role;
 `404` unknown product or plan. No schema or migration changes are required.
+
+### POST /api/auth/forgot-password
+
+Request a recovery link. **Auth:** public. Refs: PS-3.
+
+**Body:** email, valid and at most 254 characters, trimmed and lowercased. **Response:** 200 { message } for existing, unknown and inactive addresses. Links contain 32 random bytes and expire after 30 minutes. Only SHA-256 hashes are stored. SMTP delivery failures are logged while preserving the generic response. Without SMTP the existing sendMail helper prints the message in the terminal.
+
+**Responses:** 400 fields.email for invalid input; 500 unexpected database failure.
+
+### POST /api/auth/reset-password
+
+Consume a recovery link once. **Auth:** public. Refs: PS-3.
+
+**Body:** token (64 lowercase hexadecimal characters); password (same rule as signup: at least 9 characters, uppercase, lowercase and special character, at most 72 UTF-8 bytes).
+
+**Responses:** 200 { message } instructing the user to log in; 400 field errors or invalid/expired/used link. The transaction serializes recovery for the account, changes the password, sets passwordChangedAt, and consumes all outstanding links. Previous sessions expire immediately, including tokens issued in the same second; new sessions remain valid.
