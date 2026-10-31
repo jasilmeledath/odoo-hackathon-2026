@@ -157,3 +157,20 @@ See [docs/api.md](docs/api.md).
 ## Contributing
 
 Team rules are in [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/engineering-standards.md](docs/engineering-standards.md). Tasks and the timeline are in [docs/implementation-plan.md](docs/implementation-plan.md).
+
+## CI/CD
+
+GitHub Actions runs the pipeline in `.github/workflows`:
+
+| Workflow | Runs on | What it does |
+|---|---|---|
+| `ci.yml` | Pull requests into `develop` or `main`, pushes to `develop` | Prettier check, applies every migration to a fresh PostgreSQL 15, runs the server tests, builds the client |
+| `main-source-guard.yml` | Pull requests into `main` | Fails unless the pull request comes from `develop` |
+| `cd.yml` | Push to `main` (the merge of `develop`) | Re-runs CI, builds a release artifact, then deploys through the `production` environment |
+
+The deploy job skips a step when its secret is missing. Set these under Settings, Secrets and variables, Actions:
+
+- `DATABASE_URL`: production database. When set, the deploy runs `prisma migrate deploy`.
+- `DEPLOY_HOOK_URL`: deploy hook of the hosting provider. When set, the deploy calls it.
+
+To make the checks binding, protect `develop` and `main` in Settings, Branches, and require the checks `Format (Prettier)`, `Server (migrate and test)`, `Client (build)` and, for `main`, `Pull request comes from develop`.
