@@ -56,10 +56,10 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/staff` | Admin | List staff | PS-5 | |
 | POST | `/staff` | Admin | Add a staff member | PS-5 | |
 | PATCH | `/staff/:id` | Admin | Change details or `isActive` | PS-5 | |
-| GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | |
-| POST | `/customers` | Staff | Create a customer | PS-12 | |
-| GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | |
-| PUT | `/customers/:id` | Staff | Update | PS-12 | |
+| GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | Yes |
+| POST | `/customers` | Staff | Create a customer | PS-12 | Yes |
+| GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | Yes |
+| PUT | `/customers/:id` | Staff | Update | PS-12 | Yes |
 
 ### Catalog (`modules/taxes`, `modules/terms`, `modules/products`, `modules/plans`)
 
@@ -435,6 +435,7 @@ or migration change. Refs: PS-8, PS-9.
 The plan form converts validated rupee prices to paise at submission, mirrors
 quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
+
 
 
 
