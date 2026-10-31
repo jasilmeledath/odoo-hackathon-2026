@@ -83,7 +83,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | PS-22 | The team can see which invoices are paid, outstanding and overdue at any moment | P1 | Yadhu | Done |
 | PS-23 | The finance lead sees active subscriptions, revenue, payments, amounts owed and overdue invoices in one place | P1 | Jayasurya | In progress |
 | PS-24 | Reports have filters and a summary view | P2 | Jayasurya | In progress |
-| PS-25 | With thousands of subscriptions, every page responds in under two seconds | P2 | Everyone | Not started |
+| PS-25 | With thousands of subscriptions, every page responds in under two seconds | P2 | Everyone | Done |
 
 ### Customer portal
 

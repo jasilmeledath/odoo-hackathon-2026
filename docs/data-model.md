@@ -792,6 +792,40 @@ Measured on PostgreSQL 15 on a laptop with 5,000 subscriptions, 20,004 invoices,
 | Subscription search across number and company | 3 ms |
 | Subscriptions due for billing | 1 ms |
 
+Page routes were opened in Chrome against a local PostgreSQL fixture seeded with
+5,000 subscriptions. Starting the API also runs the scheduler, which caught up
+due billing periods; when page timing began, the database had 22,654 invoices,
+30,204 invoice lines and 14,686 payments. For each route, timing covers browser
+navigation and the rendered accessibility snapshot; static assets were warm
+and this is a local development measurement, not a cold-cache or production
+network result. All 26 tested routes completed in 113–201 ms:
+
+| Page route | Time |
+|---|---:|
+| Dashboard | 201 ms |
+| Login | 159 ms |
+| Sign-up | 138 ms |
+| Forgot password | 135 ms |
+| Reset password | 113 ms |
+| Customer list / create / detail / edit | 142 / 143 / 146 / 119 ms |
+| Subscription list / create / detail / edit | 146 / 152 / 197 / 150 ms |
+| Billing queue | 173 ms |
+| Invoice list / detail | 148 / 163 ms |
+| Payments | 173 ms |
+| Products | 128 ms |
+| Plans | 135 ms |
+| Taxes | 153 ms |
+| Discounts | 148 ms |
+| Quotation templates | 125 ms |
+| Reports | 159 ms |
+| Staff | 118 ms |
+| Customer portal subscriptions / invoices | 153 / 115 ms |
+
+The same fixture's billing run processed 4,000 due active subscriptions in
+9.8 seconds (3,169 invoices created, 831 skipped, 0 failed). The disposable
+fixture's `next_invoice_date` values were set to the current date to exercise
+the queue; the run was not executed against shared data.
+
 To check a slow query, run it with `EXPLAIN ANALYZE` and look for a sequential scan on a large table.
 
 ## 10. Setup and day-to-day use
