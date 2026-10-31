@@ -139,7 +139,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
 | GET | `/reports/summary` | Staff | Active subscriptions, monthly recurring revenue, revenue, outstanding and overdue, for `from` and `to` | PS-23, PS-24 | |
-| GET | `/reports/revenue` | Staff | Revenue by month, for the chart | PS-24 | |
+| GET | `/reports/revenue` | Staff | Payments received by month, including months with no revenue | PS-24 | ✓ |
 | GET | `/reports/renewals` | Staff | Subscriptions expiring soon or already expired | PS-23 | |
 | GET | `/reports/events` | Staff | Server-Sent Events stream that says when numbers change | PS-28 | |
 
@@ -168,6 +168,16 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 Checks the API and the database connection. **Auth:** none.
 
 **Responses:** `200` `{ "ok": true }` · `500` the database cannot be reached
+
+### GET /api/reports/revenue
+
+Return monthly revenue as payments received, aggregated by PostgreSQL. Every month in the selected range is present, including months with no payments. **Auth:** Admin, Internal. Refs: PS-24.
+
+**Query** `from`, `to`: optional `YYYY-MM-DD` bounds. When omitted, the range defaults to the last 12 calendar months through today. `to` cannot be before `from`.
+
+**Response** `200`: `{ period: { from, to }, items: [{ month, label, amount }] }`. `month` is `YYYY-MM`; money is in paise.
+
+**Responses:** `200` the monthly totals · `400` invalid date (`fields.from`, `fields.to`) · `401` not logged in · `403` not staff
 
 <!-- Add one entry per route, grouped by module, in the format from
 docs/documentation-rules.md §5. Add it in the same commit as the route. -->
