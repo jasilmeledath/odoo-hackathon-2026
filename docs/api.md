@@ -43,7 +43,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | |
+| POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | Yes |
 | POST | `/auth/login` | Public | Returns `{ token, user }` | PS-2 | Yes |
 | GET | `/auth/me` | Any | The current user | PS-2 | Yes |
 | POST | `/auth/forgot-password` | Public | Emails a reset link. Always answers `200` | PS-3 | |
@@ -56,10 +56,10 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/staff` | Admin | List staff | PS-5 | |
 | POST | `/staff` | Admin | Add a staff member | PS-5 | |
 | PATCH | `/staff/:id` | Admin | Change details or `isActive` | PS-5 | |
-| GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | |
-| POST | `/customers` | Staff | Create a customer | PS-12 | |
-| GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | |
-| PUT | `/customers/:id` | Staff | Update | PS-12 | |
+| GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | Yes |
+| POST | `/customers` | Staff | Create a customer | PS-12 | Yes |
+| GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | Yes |
+| PUT | `/customers/:id` | Staff | Update | PS-12 | Yes |
 
 ### Catalog (`modules/taxes`, `modules/terms`, `modules/products`, `modules/plans`)
 
@@ -75,9 +75,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | Yes |
 | POST | `/products` | Admin | Create | PS-6 | Yes |
 | PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | Yes |
-| POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | |
-| PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | |
-| DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | |
+| POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | Yes |
+| PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | Yes |
+| DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | Yes |
 | GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | Yes |
 | GET | `/plans/:id` | Staff | One plan | PS-8 | Yes |
 | POST | `/plans` | Admin | Create | PS-8, PS-9 | Yes |
@@ -131,8 +131,11 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | |
+| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | Yes |
 | POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | |
+
+| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | |
+| POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | Yes |
 
 ### Reports (`modules/reports`)
 
@@ -437,6 +440,47 @@ quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
 
 
+### Product variants (PS-7)
+
+**Auth:** Admin for all writes. Product/variant IDs are validated and updates
+and removals are scoped to the parent product.
+
+#### POST `/api/products/:id/variants`
+
+**Body:** `attribute` and `value` (trimmed, 1 to 60 characters), `extraPrice`
+(integer paise, 0 to 1000000000). **Response:** `201` the variant.
+
+#### PUT `/api/products/:id/variants/:variantId`
+
+Update with the same body. **Response:** `200` the saved variant.
+
+#### DELETE `/api/products/:id/variants/:variantId`
+
+Remove an unused variant. **Response:** `204`. Used subscription variants
+return `409` explaining why they cannot be removed. The check and delete
+run inside one transaction with a variant-row lock, preventing a race
+with concurrent foreign-key references.
+
+**Errors:** `400` invalid body/IDs with fields; `401` unauthenticated;
+`403` wrong role; `404` missing parent/variant or mismatched parent;
+`409` duplicate product/attribute/value with `fields.value`, or used removal.
+No schema or migration changes.
+
+The Plans page connects the validated form with URL-backed name, active-state
+and available-on filters; it displays product names, prices, billing periods
+and sale dates from paginated API results. Internal staff have read-only UI.
+
+### GET /api/payments
+
+Search payments with combined filters. **Auth:** Admin, Internal. Refs: PS-21.
+
+**Query:** page/pageSize use standard pagination; method is a native PaymentMethod enum; from/to are optional valid YYYY-MM-DD inclusive payment-date bounds; to must be on or after from; q at most 100 characters matches invoice number, billing name or note case-insensitively. All supplied filters combine with AND.
+
+**Response:** 200 { items, total, page, pageSize, pages }, ordered by payment date then ID descending. Items include payment fields, invoice { id, number, billingName } and recordedBy { id, name }. Amounts are paise.
+
+**Responses:** 400 invalid filters with field errors; 401 unauthenticated; 403 customer. Empty searches return an empty items array, not an error. Each UI row links to its invoice detail.
+
+
 ### Billing execution (PS-15)
 
 `POST /api/billing/run` bills all due active subscriptions in batches of 100 IDs.
@@ -551,3 +595,51 @@ The Quotation templates page supports URL-backed name search, pagination,
 Admin-only editing and staff previews with current prices. The editor converts
 no prices into snapshots. Subscription creation from a template remains a
 separately owned workflow; PS-11 stays In progress until that integration.
+
+
+
+### POST /api/auth/register
+
+Create a CUSTOMER account and customer profile, or link the unclaimed profile with the same normalized email (A-4). **Auth:** public. Refs: PS-1, PS-5.
+
+**Body:** name (required, at most 120 characters); email (valid, at most 254 characters, normalized); password (at least 9 characters with uppercase, lowercase and special character; at most 72 UTF-8 bytes). A digit is not required. Caller-supplied role and unknown properties are ignored. Each failed password rule appears on its own line in fields.password.
+
+**Responses:** 201 { token, user }; 400 per-field validation; 409 duplicate account or already claimed profile (fields.email). Creation/linking is one transaction and the role is always CUSTOMER. Password hashes are never returned. Token format and eight-hour expiry use the shared auth helper.
+
+
+### GET /api/customers
+
+Search name, company and email case-insensitively with q (at most 100 characters). Standard page/pageSize pagination applies. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** 200 { items, total, page, pageSize, pages }; 400 invalid query; 401 unauthenticated; 403 customer.
+
+### POST /api/customers
+
+Create a customer without creating a login. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Body:** name required, at most 120 characters; email required, valid and at most 254; companyName optional, at most 160; phone optional, a 10-digit Indian mobile starting 6–9; address optional, at most 500; isActive boolean, defaults true. Strings are trimmed and emails lowercased.
+
+**Responses:** 201 customer; 400 field validation; 409 duplicate customer email with fields.email; 401/403 unauthorized.
+
+### GET /api/customers/:id
+
+Return the customer plus subscriptions and invoices grouped by status. Each summary contains _count._all and database-side _sum values (recurringAmount for subscriptions; totalAmount/paidAmount for invoices). Money is paise. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** 200 profile and summaries; 400 invalid ID; 404 missing customer; 401/403 unauthorized.
+
+### PUT /api/customers/:id
+
+Replace the editable customer fields using the POST body rules. Does not modify a linked login. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** 200 customer; 400 field validation; 404 missing customer; 409 duplicate email (fields.email); 401/403 unauthorized.
+
+
+### POST /api/payments
+
+Record payment against a CONFIRMED invoice. **Auth:** Admin, Internal. Refs: PS-21, PS-22.
+
+**Body:** invoiceId positive integer; method CASH/BANK_TRANSFER/UPI/CARD/CHEQUE; amount positive whole paise at most 1,000,000,000 and not above balance; paymentDate valid YYYY-MM-DD not after today in IST; note optional, at most 500 characters.
+
+**Response:** 201 { payment, invoice }, including invoice.balanceAmount. Part payments leave CONFIRMED; full settlement sets PAID and paidAt. Row locking serializes concurrent requests. Payment insertion, balance update and PAYMENT_RECORDED activity happen in one transaction.
+
+**Responses:** 400 field validation or overpayment (fields.amount states current balance); 404 invoice missing; 409 invoice not CONFIRMED; 401 unauthenticated; 403 customer. The invoice-detail form converts rupees to paise at the UI boundary and refreshes invoice/payment history after success.
