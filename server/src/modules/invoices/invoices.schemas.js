@@ -1,6 +1,6 @@
 // Zod schemas for the invoice routes (PS-17, PS-22). Limits and messages are
 // mirrored in client/src/lib/validators.js where a form needs them.
-import { InvoiceStatus } from '@prisma/client';
+import { InvoiceStatus } from '../../generated/prisma/enums.js';
 import { z } from 'zod';
 import { listQuerySchema } from '../../lib/pagination.js';
 import { dateField } from '../../lib/validation.js';
