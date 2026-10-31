@@ -78,6 +78,7 @@ export default function RecordPayment({ invoice, onRecorded }) {
         onRecorded?.(result);
       }}
       submitLabel="Record payment"
+      successMessage="Payment recorded"
     />
   );
 }

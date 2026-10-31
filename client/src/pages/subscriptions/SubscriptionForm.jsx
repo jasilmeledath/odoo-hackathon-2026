@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import SearchSelect from '../../components/SearchSelect.jsx';
 import { Alert, Field, PageHeader, Spinner } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
+import { useToast } from '../../lib/toast.js';
 import { addBillingPeriod, today } from '../../lib/dates.js';
 import { formatMoney, toInputDate } from '../../lib/format.js';
 
@@ -46,6 +47,7 @@ export default function SubscriptionForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     let active = true;
@@ -222,7 +224,10 @@ export default function SubscriptionForm() {
       nextFields.lines = `Choose a product and enter a whole quantity from 1 to ${MAX_QUANTITY} for every line`;
     setFields(nextFields);
     setError('');
-    if (Object.keys(nextFields).length) return;
+    if (Object.keys(nextFields).length) {
+      toast.error('Please fix the highlighted fields.');
+      return;
+    }
     setSaving(true);
     try {
       const saved = await api(editing ? `/subscriptions/${id}` : '/subscriptions', {
@@ -242,10 +247,12 @@ export default function SubscriptionForm() {
           })),
         },
       });
+      toast.success(editing ? 'Subscription updated.' : 'Draft subscription created.');
       navigate(`/subscriptions/${saved.id}`);
     } catch (failure) {
       setFields(failure.fields ?? {});
       setError(failure.message);
+      toast.error(failure.message);
     } finally {
       setSaving(false);
     }

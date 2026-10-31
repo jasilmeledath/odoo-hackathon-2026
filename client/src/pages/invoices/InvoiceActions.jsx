@@ -3,11 +3,19 @@ import { useState } from 'react';
 import { Alert, StatusBadge } from '../../components/ui.jsx';
 import { formatDateTime } from '../../lib/format.js';
 import { api } from '../../lib/api.js';
+import { useToast } from '../../lib/toast.js';
+
+const DONE = {
+  confirm: 'Invoice confirmed.',
+  cancel: 'Invoice canceled.',
+  send: 'Invoice sent.',
+};
 
 export default function InvoiceActions({ invoice, onChanged }) {
   const [pending, setPending] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const toast = useToast();
   const handleAction = async (action) => {
     if (pending) return;
     if (action === 'cancel' && !window.confirm('Cancel this invoice? Its period will return to billing.'))
@@ -17,11 +25,13 @@ export default function InvoiceActions({ invoice, onChanged }) {
     setNotice('');
     try {
       await api(`/invoices/${invoice.id}/${action}`, { method: 'POST', body: {} });
+      toast.success(DONE[action]);
       await onChanged();
       if (action === 'send')
         setNotice('Invoice sent. Without SMTP, the email appears in the server terminal.');
     } catch (failure) {
       setError(failure.message);
+      toast.error(failure.message);
       await onChanged();
     } finally {
       setPending('');
