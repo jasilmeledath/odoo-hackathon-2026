@@ -33,6 +33,8 @@ export const subscriptionWriteSchema = z
     }
   });
 
+export const subscriptionRenewSchema = z.object({ expiryDate: dateField('Expiry date') });
+
 export const subscriptionListQuerySchema = listQuerySchema.extend({
   status: z.enum(SubscriptionStatus, { error: 'Choose a valid subscription status' }).optional(),
   customerId: z.coerce.number({ error: 'Invalid customer' }).int().positive('Invalid customer').optional(),

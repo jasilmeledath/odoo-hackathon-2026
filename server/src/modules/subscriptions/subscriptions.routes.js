@@ -4,11 +4,16 @@ import { STAFF_ROLES } from '../../lib/constants.js';
 import { idParamSchema } from '../../lib/validation.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
-import { subscriptionListQuerySchema, subscriptionWriteSchema } from './subscriptions.schemas.js';
+import {
+  subscriptionListQuerySchema,
+  subscriptionRenewSchema,
+  subscriptionWriteSchema,
+} from './subscriptions.schemas.js';
 import {
   getSubscription,
   getSubscriptionActivity,
   listSubscriptions,
+  manageSubscription,
   createSubscription,
   transitionSubscription,
   updateSubscription,
@@ -40,6 +45,27 @@ router.post('/:id/confirm', validate(idParamSchema, 'params'), async (req, res) 
 
 router.post('/:id/activate', validate(idParamSchema, 'params'), async (req, res) => {
   res.json(await transitionSubscription(req.validParams.id, 'ACTIVATE', req.user));
+});
+
+router.post('/:id/pause', validate(idParamSchema, 'params'), async (req, res) => {
+  res.json(await manageSubscription(req.validParams.id, 'PAUSE', req.user));
+});
+
+router.post('/:id/resume', validate(idParamSchema, 'params'), async (req, res) => {
+  res.json(await manageSubscription(req.validParams.id, 'RESUME', req.user));
+});
+
+router.post(
+  '/:id/renew',
+  validate(idParamSchema, 'params'),
+  validate(subscriptionRenewSchema),
+  async (req, res) => {
+    res.json(await manageSubscription(req.validParams.id, 'RENEW', req.user, req.body));
+  },
+);
+
+router.post('/:id/close', validate(idParamSchema, 'params'), async (req, res) => {
+  res.json(await manageSubscription(req.validParams.id, 'CLOSE', req.user));
 });
 
 router.get('/:id/activity', validate(idParamSchema, 'params'), async (req, res) => {
