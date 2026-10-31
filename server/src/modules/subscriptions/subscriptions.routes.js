@@ -9,6 +9,7 @@ import {
   getSubscription,
   getSubscriptionActivity,
   listSubscriptions,
+  transitionSubscription,
 } from './subscriptions.service.js';
 
 const router = Router();
@@ -17,6 +18,18 @@ router.use(requireAuth, requireRole(...STAFF_ROLES));
 
 router.get('/', validate(subscriptionListQuerySchema, 'query'), async (req, res) => {
   res.json(await listSubscriptions(req.validQuery));
+});
+
+router.post('/:id/quote', validate(idParamSchema, 'params'), async (req, res) => {
+  res.json(await transitionSubscription(req.validParams.id, 'QUOTE', req.user));
+});
+
+router.post('/:id/confirm', validate(idParamSchema, 'params'), async (req, res) => {
+  res.json(await transitionSubscription(req.validParams.id, 'CONFIRM', req.user));
+});
+
+router.post('/:id/activate', validate(idParamSchema, 'params'), async (req, res) => {
+  res.json(await transitionSubscription(req.validParams.id, 'ACTIVATE', req.user));
 });
 
 router.get('/:id/activity', validate(idParamSchema, 'params'), async (req, res) => {
