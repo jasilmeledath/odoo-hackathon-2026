@@ -96,7 +96,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-28 | The dashboard updates live, using Server-Sent Events, when a payment or invoice changes. Odoo strongly recommends real-time data | P2 | Jayasurya | Not started |
+| PS-28 | The dashboard updates live, using Server-Sent Events, when a payment or invoice changes. Odoo strongly recommends real-time data | P2 | Jayasurya | In progress |
 | PS-29 | Login and password reset limit repeated attempts | P2 | Yadhu | Not started |
 
 ## Module ownership
