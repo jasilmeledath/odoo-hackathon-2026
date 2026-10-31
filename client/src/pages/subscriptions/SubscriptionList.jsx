@@ -162,6 +162,11 @@ export default function SubscriptionList() {
             ? `${data.total} ${data.total === 1 ? 'subscription' : 'subscriptions'}`
             : 'Every subscription and where it stands'
         }
+        action={
+          <Link to="/subscriptions/new" className="btn-primary">
+            New subscription
+          </Link>
+        }
       />
       <SubscriptionFilters key={JSON.stringify(filterValues)} values={filterValues} onApply={applyFilters} />
       <Alert>{error}</Alert>
