@@ -13,6 +13,8 @@ const POSTGRES_CHECK_VIOLATION = '23514';
 const isCheckViolation = (err) =>
   err.name === 'PrismaClientUnknownRequestError' && err.message.includes(POSTGRES_CHECK_VIOLATION);
 
+export const reportError = (error) => console.error(error);
+
 export const notFound = (_req, _res, next) => next(new HttpError(404, 'Route not found'));
 
 // Express identifies error middleware by its four arguments.
@@ -27,7 +29,7 @@ export const errorHandler = (err, _req, res, _next) => {
     const [status, message] = PRISMA_ERRORS[err.code];
     return res.status(status).json({ error: message });
   }
-  console.error(err);
+  reportError(err);
   // Validation should stop bad data first; this is the database's safety net.
   if (isCheckViolation(err)) {
     return res.status(409).json({ error: 'That change breaks a business rule' });

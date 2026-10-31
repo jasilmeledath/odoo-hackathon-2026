@@ -26,9 +26,15 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 - Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
 - Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
 
+- Admins manage quotation templates with validated lines; staff preview current plan, product and variant prices (PS-11).
+
+- Admins configure plans with billing periods, sale dates, minimum quantities and subscription behaviour switches; staff can browse and filter plans (PS-8, PS-9).
+
 - Add staff-only paginated payment search with combined method/date/text filters and invoice links. (PS-21).
 
 - Add Admin-only staff search/create/edit with password validation, field conflicts and immediate deactivation. (PS-5).
+
+- Add forgot/reset pages, 30-minute hashed recovery tokens and immediate session invalidation, including the same-second boundary. (PS-3).
 
 ## Screenshots
 

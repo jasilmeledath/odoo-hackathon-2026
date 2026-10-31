@@ -10,9 +10,18 @@ process.env.JWT_SECRET ??= 'isolated-session-regression-secret';
 const { prisma } = await import('../src/lib/prisma.js');
 const { requireAuth, signToken } = await import('../src/middleware/auth.js');
 const { login } = await import('../src/modules/auth/auth.service.js');
-const { saveStaff } = await import('../src/modules/staff/staff.service.js');
-const changePassword = (user, password) =>
-  saveStaff(user.id, { name: user.name, email: user.email, password, isActive: true });
+const { resetPassword } = await import('../src/modules/auth/reset.service.js');
+async function changePassword(user, password) {
+  const token = randomBytes(32).toString('hex');
+  await prisma.passwordResetToken.create({
+    data: {
+      userId: user.id,
+      tokenHash: createHash('sha256').update(token).digest('hex'),
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+    },
+  });
+  return resetPassword({ token, password });
+}
 const createdIds = [];
 const authenticate = (token) => requireAuth({ headers: { authorization: 'Bearer ' + token } }, {}, () => {});
 async function createAccount() {

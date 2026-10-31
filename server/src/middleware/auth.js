@@ -5,7 +5,6 @@ import { prisma } from '../lib/prisma.js';
 import { passwordVersion, matchesPasswordVersion } from '../lib/sessions.js';
 
 const TOKEN_LIFETIME = '8h';
-const MS_PER_SECOND = 1000;
 const SESSION_ENDED_MESSAGE = 'Session expired, please log in again';
 
 // The token only proves who is calling. Role and customerId come from the
