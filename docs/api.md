@@ -131,6 +131,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
+| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | Yes |
+| POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | |
+
 | GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | |
 | POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | Yes |
 
@@ -435,6 +438,16 @@ or migration change. Refs: PS-8, PS-9.
 The plan form converts validated rupee prices to paise at submission, mirrors
 quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
+
+### GET /api/payments
+
+Search payments with combined filters. **Auth:** Admin, Internal. Refs: PS-21.
+
+**Query:** page/pageSize use standard pagination; method is a native PaymentMethod enum; from/to are optional valid YYYY-MM-DD inclusive payment-date bounds; to must be on or after from; q at most 100 characters matches invoice number, billing name or note case-insensitively. All supplied filters combine with AND.
+
+**Response:** 200 { items, total, page, pageSize, pages }, ordered by payment date then ID descending. Items include payment fields, invoice { id, number, billingName } and recordedBy { id, name }. Amounts are paise.
+
+**Responses:** 400 invalid filters with field errors; 401 unauthenticated; 403 customer. Empty searches return an empty items array, not an error. Each UI row links to its invoice detail.
 
 
 ### Billing execution (PS-15)
