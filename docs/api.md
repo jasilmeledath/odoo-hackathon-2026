@@ -43,7 +43,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | |
+| POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | Yes |
 | POST | `/auth/login` | Public | Returns `{ token, user }` | PS-2 | Yes |
 | GET | `/auth/me` | Any | The current user | PS-2 | Yes |
 | POST | `/auth/forgot-password` | Public | Emails a reset link. Always answers `200` | PS-3 | |
@@ -56,10 +56,10 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/staff` | Admin | List staff | PS-5 | |
 | POST | `/staff` | Admin | Add a staff member | PS-5 | |
 | PATCH | `/staff/:id` | Admin | Change details or `isActive` | PS-5 | |
-| GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | |
-| POST | `/customers` | Staff | Create a customer | PS-12 | |
-| GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | |
-| PUT | `/customers/:id` | Staff | Update | PS-12 | |
+| GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | Yes |
+| POST | `/customers` | Staff | Create a customer | PS-12 | Yes |
+| GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | Yes |
+| PUT | `/customers/:id` | Staff | Update | PS-12 | Yes |
 
 ### Catalog (`modules/taxes`, `modules/terms`, `modules/products`, `modules/plans`)
 
@@ -123,7 +123,7 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/invoices` | Staff | List, filtered by `status`, `isOverdue`, `customerId`, `from`, `to`, `q` | PS-17, PS-22 | ✓ |
 | GET | `/invoices/:id` | Staff | Invoice with lines and payments | PS-17 | ✓ |
 | POST | `/invoices/:id/confirm` | Staff | Draft → Confirmed | PS-17 | ✓ |
-| POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 | |
+| POST | `/invoices/confirm-all` | Staff | `{ invoiceIds }`: confirm in bulk | PS-17 |Yes |
 | POST | `/invoices/:id/cancel` | Staff | Cancel if it has no payments. The period returns to the billing queue | PS-17 |Yes |
 | POST | `/invoices/:id/send` | Staff | Emails the invoice and sets `sentAt`. Printing is done in the browser | PS-18 |Yes |
 
@@ -437,6 +437,8 @@ quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
 
 
+
+
 ### Billing execution (PS-15)
 
 `POST /api/billing/run` bills all due active subscriptions in batches of 100 IDs.
@@ -489,3 +491,26 @@ server terminal. Successful delivery updates `sentAt` and logs `SENT` together.
 SMTP delivery and database recording are separate operations; after a database
 failure, check delivery before retrying to avoid duplicate mail.
 Invoice detail provides a print action; print styles hide navigation and actions.
+
+
+### POST /api/invoices/confirm-all
+
+**Auth:** Admin/Internal. Body `{ invoiceIds }`: 1–100 distinct positive integer
+IDs, bounded to PostgreSQL identifiers. Invalid or duplicate IDs return `400`.
+Returns `{ confirmed, skipped, failed }`. Each Draft is confirmed through the
+same transaction/audit rules as the individual action. Stale/non-Draft and
+missing invoices count as skipped. Unexpected errors count as failed and are
+logged without preventing later IDs. The list selects only current-page Drafts,
+disables pending controls and shows the result counts.
+
+
+### Scheduled subscription processing (PS-14, PS-15)
+
+At API startup and hourly, process due Confirmed → Active transitions, close
+expired Active subscriptions only when their plan has `closesAtExpiry`, then run
+billing. Other expired subscriptions remain Active and period starts at/after
+expiry are never billed. Transitions are conditional, paginated in batches of 100,
+and audited with no actor for system work. Phase/record failures are logged and
+do not stop the server or later phases. In-process runs never overlap; database
+state guards and billing locks handle multiple API instances. Shutdown stops the
+timer and waits for in-flight work before disconnecting PostgreSQL.

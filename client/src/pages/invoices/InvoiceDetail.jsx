@@ -140,6 +140,7 @@ export default function InvoiceDetail() {
         subtitle={invoice.isOverdue ? 'Overdue: the due date has passed' : undefined}
         action={<InvoiceActions invoice={invoice} onChanged={reload} />}
       />
+      <p className="hidden print:block">Status: {formatLabel(invoice.status)}</p>
       <Alert>{error}</Alert>
       <Summary invoice={invoice} />
       <LineTable lines={invoice.lines} />

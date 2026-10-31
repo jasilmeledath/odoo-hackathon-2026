@@ -34,7 +34,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-1 | A customer signs up with email and password. Each email belongs to one account. The password must be **more than eight characters** with an uppercase letter, a lowercase letter and a special character | P1 | Yadhu | Not started |
+| PS-1 | A customer signs up with email and password. Each email belongs to one account. The password must be **more than eight characters** with an uppercase letter, a lowercase letter and a special character | P1 | Yadhu | Done |
 | PS-2 | Users log in and stay logged in with a token that expires | P1 | Yadhu | Done |
 | PS-3 | A forgotten password is reset through a link sent to the registered email | P1 | Yadhu | Not started |
 | PS-4 | Three roles see different things. Customers see only their own records, and any other record returns `404` | P1 | Yadhu | Not started |
@@ -57,7 +57,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | PS-11 | Quotation templates hold the plan and product lines and stay valid for a set number of days. A quotation can start from one | P2 | Manoj | Not started |
 | PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | In progress |
 | PS-13 | A subscription moves Draft → Quotation → Confirmed → Active → Closed, and the team can see where it stands and its history | P1 | Jayasurya | In progress |
-| PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | Not started |
+| PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | In progress |
 
 ### Billing
 
