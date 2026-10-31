@@ -131,8 +131,8 @@ export default function InvoiceDetail() {
   }
 
   return (
-    <div className="space-y-6">
-      <Link to="/invoices" className="text-sm text-brand-600">
+    <div className="invoice-document space-y-6">
+      <Link to="/invoices" className="no-print text-sm text-brand-600">
         Back to invoices
       </Link>
       <PageHeader
