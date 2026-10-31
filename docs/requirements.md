@@ -64,7 +64,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-15 | On billing day, invoices are created from due subscriptions with customer details, lines, taxes and totals filled in. Nothing is billed twice or skipped | P1 | Jasil | Not started |
-| PS-16 | Taxes on invoices are calculated automatically from the Admin's rules | P1 | Jasil | Not started |
+| PS-16 | Taxes on invoices are calculated automatically from the Admin's rules | P1 | Jasil | In progress |
 | PS-17 | An invoice moves Draft → Confirmed → Paid, and can be canceled | P1 | Jasil | In progress |
 | PS-18 | The team can send or print any invoice | P2 | Jasil | Not started |
 
@@ -73,7 +73,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-19 | Only the Admin creates discount rules: fixed or percentage, minimum purchase or quantity, start and end dates, usage limit, and scope (specific products or the whole subscription) | P2 | Manoj | Not started |
-| PS-20 | A discount that applies appears on the next invoice by itself, and stops when it expires or runs out | P2 | Jasil | Not started |
+| PS-20 | A discount that applies appears on the next invoice by itself, and stops when it expires or runs out | P2 | Jasil | In progress |
 
 ### Payments and reporting
 
