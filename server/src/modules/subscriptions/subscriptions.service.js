@@ -96,7 +96,15 @@ const DETAIL_INCLUDE = {
   },
   invoices: {
     orderBy: [{ issueDate: 'desc' }, { id: 'desc' }],
-    select: { id: true, number: true, status: true, issueDate: true, dueDate: true, totalAmount: true, paidAmount: true },
+    select: {
+      id: true,
+      number: true,
+      status: true,
+      issueDate: true,
+      dueDate: true,
+      totalAmount: true,
+      paidAmount: true,
+    },
   },
 };
 
@@ -168,7 +176,10 @@ export const transitionSubscription = async (id, action, actor) => {
       data,
     });
     if (count !== 1) {
-      throw new HttpError(409, 'The subscription changed while this action was being processed. Refresh and try again');
+      throw new HttpError(
+        409,
+        'The subscription changed while this action was being processed. Refresh and try again',
+      );
     }
 
     await logActivity(tx, {

@@ -34,8 +34,8 @@ Brightloop Software sells everything on subscription: software billed monthly or
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-1 | A customer signs up with email and password. Each email belongs to one account. The password must be **more than eight characters** with an uppercase letter, a lowercase letter and a special character | P1 | Yadhu | Not started |
-| PS-2 | Users log in and stay logged in with a token that expires | P1 | Yadhu | Not started |
+| PS-1 | A customer signs up with email and password. Each email belongs to one account. The password must be **more than eight characters** with an uppercase letter, a lowercase letter and a special character | P1 | Yadhu | Done |
+| PS-2 | Users log in and stay logged in with a token that expires | P1 | Yadhu | Done |
 | PS-3 | A forgotten password is reset through a link sent to the registered email | P1 | Yadhu | Not started |
 | PS-4 | Three roles see different things. Customers see only their own records, and any other record returns `404` | P1 | Yadhu | Not started |
 | PS-5 | Only the Admin can add a staff member, and sign-up can never create staff | P1 | Yadhu | Not started |
@@ -57,30 +57,30 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | PS-11 | Quotation templates hold the plan and product lines and stay valid for a set number of days. A quotation can start from one | P2 | Manoj | Not started |
 | PS-12 | A subscription has its own number, customer, plan, start date, expiry date, payment terms, and lines with product, quantity, unit price, taxes and amount | P1 | Jayasurya | In progress |
 | PS-13 | A subscription moves Draft → Quotation → Confirmed → Active → Closed, and the team can see where it stands and its history | P1 | Jayasurya | In progress |
-| PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | Not started |
+| PS-14 | Subscriptions can be closed early, paused or renewed when the plan allows it, and close by themselves when the plan says so | P2 | Jayasurya | In progress |
 
 ### Billing
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-15 | On billing day, invoices are created from due subscriptions with customer details, lines, taxes and totals filled in. Nothing is billed twice or skipped | P1 | Jasil | Not started |
-| PS-16 | Taxes on invoices are calculated automatically from the Admin's rules | P1 | Jasil | In progress |
+| PS-15 | On billing day, invoices are created from due subscriptions with customer details, lines, taxes and totals filled in. Nothing is billed twice or skipped | P1 | Jasil | Done |
+| PS-16 | Taxes on invoices are calculated automatically from the Admin's rules | P1 | Jasil | Done |
 | PS-17 | An invoice moves Draft → Confirmed → Paid, and can be canceled | P1 | Jasil | In progress |
-| PS-18 | The team can send or print any invoice | P2 | Jasil | Not started |
+| PS-18 | The team can send or print any invoice | P2 | Jasil | Done |
 
 ### Discounts
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
 | PS-19 | Only the Admin creates discount rules: fixed or percentage, minimum purchase or quantity, start and end dates, usage limit, and scope (specific products or the whole subscription) | P2 | Manoj | Not started |
-| PS-20 | A discount that applies appears on the next invoice by itself, and stops when it expires or runs out | P2 | Jasil | In progress |
+| PS-20 | A discount that applies appears on the next invoice by itself, and stops when it expires or runs out | P2 | Jasil | Done |
 
 ### Payments and reporting
 
 | ID | Requirement | Priority | Owner | Status |
 |---|---|---|---|---|
-| PS-21 | A payment is recorded with method, amount, date and note against the right invoice | P1 | Yadhu | Not started |
-| PS-22 | The team can see which invoices are paid, outstanding and overdue at any moment | P1 | Yadhu | Not started |
+| PS-21 | A payment is recorded with method, amount, date and note against the right invoice | P1 | Yadhu | Done |
+| PS-22 | The team can see which invoices are paid, outstanding and overdue at any moment | P1 | Yadhu | Done |
 | PS-23 | The finance lead sees active subscriptions, revenue, payments, amounts owed and overdue invoices in one place | P1 | Jayasurya | In progress |
 | PS-24 | Reports have filters and a summary view | P2 | Jayasurya | In progress |
 | PS-25 | With thousands of subscriptions, every page responds in under two seconds | P2 | Everyone | Not started |
