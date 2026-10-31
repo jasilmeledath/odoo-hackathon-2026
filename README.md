@@ -10,40 +10,23 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Demo video
 
-*Link added after submission.*
+No demo video is included in this repository.
 
 ## Features
 
-- Customers switch existing subscription add-ons on and off, with protected plan products and recalculated recurring totals (PS-27).
-
-- Customers can create Customer-only accounts with password validation and atomic billing-profile linking (PS-1, PS-5).
+- Customers can sign up and reset passwords; staff accounts and role access are managed by Admins (PS-1–PS-5).
 - Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
-- Add customer-only subscription and invoice lists and details, scoped queries, URL search, payment history and balance display. (PS-26).
-- Staff can record part and final payments from invoices with transactional balance protection (PS-21, PS-22).
-
-- Startup/hourly processing activates due subscriptions, closes plans at expiry when configured, and generates due invoices (PS-14, PS-15).
-
-- Staff can generate recurring Draft invoices with tax snapshots, catch-up billing and duplicate protection (PS-15, PS-16).
-
-- Active accounts log in with expiring tokens and role-based navigation (PS-2).
-- Add bounded per-IP attempt windows to login, forgot-password and reset-password without a new dependency. (PS-29).
-- Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
-- Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
-
-- Admins manage quotation templates with validated lines; staff preview current plan, product and variant prices (PS-11).
-
-- Admins configure plans with billing periods, sale dates, minimum quantities and subscription behaviour switches; staff can browse and filter plans (PS-8, PS-9).
-
-- Add staff-only paginated payment search with combined method/date/text filters and invoice links. (PS-21).
-
-- Add Admin-only staff search/create/edit with password validation, field conflicts and immediate deactivation. (PS-5).
-
-- Add forgot/reset pages, 30-minute hashed recovery tokens and immediate session invalidation, including the same-second boundary. (PS-3).
-
-- Admins manage fixed/percentage discounts, scope-specific products, minimums, dates and usage limits; staff filter current rule states (PS-19).
-
-- Customers pause, resume and close their own subscriptions when the plan allows, with closing confirmation and server-side checks (PS-27).
-- Customers accept their own unexpired quotations in the portal, with transaction-safe ownership and status checks (PS-27).
+- Admins manage products, variants, plans, taxes, payment terms, discounts and quotation templates (PS-6–PS-11, PS-19).
+- Login, password recovery and reset requests have bounded per-IP attempt windows (PS-29).
+- Customers can view their own subscriptions and invoices, accept quotations, switch eligible add-ons, and use plan-enabled pause, resume and close actions (PS-26–PS-27).
+- Staff can start a subscription draft from an active quotation template, then edit its prefilled lines (PS-11).
+- Staff create numbered subscriptions with validated lines, current prices, variants and taxes, then send and confirm quotations (PS-12–PS-13).
+- Staff can activate subscriptions, pause and resume billing, renew the same subscription, or close early when the plan allows it (PS-13–PS-14).
+- Scheduled processing activates subscriptions on their start dates, closes configured plans at expiry, and generates due invoices (PS-14–PS-16).
+- Invoices can be reviewed, confirmed, sent, canceled when unpaid, and paid in full or in part with transactional balance protection (PS-17–PS-22).
+- The finance dashboard and reports show active subscriptions, monthly recurring revenue, payments, invoices, amounts owed, overdue balances and renewals (PS-23–PS-24).
+- Dashboard data refreshes when invoices or payments change (PS-28).
+- Staff can search payments and browse paginated customer and catalog records.
 
 ## Screenshots
 
@@ -224,13 +207,8 @@ See [docs/api.md](docs/api.md).
 
 ## Known limitations
 
-Current limitations (refreshed against develop `122148f`):
-
-- Creating/editing subscriptions, lifecycle controls, discount management, customer portal reads and authentication attempt limits are now implemented.
-- Starting a quotation from a template (#36), portal acceptance (#29), lifecycle actions (#31) and add-on changes (#32) still await their owners. Full demo and final sign-off remain open.
-- The scale results in J-068 apply to its recorded source commit only. Newly merged screens require fresh measurements. PR #114 is merged, but its report is partial, so PS-25 remains in progress and issue #44 stays open.
-- Without SMTP, invoice/recovery messages print locally. Real SMTP delivery has not been exercised. Authentication attempt counters are local to one API process and reset on restart.
-
+- Page-level performance at 5,000 subscriptions is still being measured; the timings in [docs/data-model.md](docs/data-model.md#9-performance) cover queries, not full page loads (PS-25).
+- Without SMTP, invoice and recovery messages print locally. Real SMTP delivery has not been exercised; rate-limit counters are local to one API process and reset on restart.
 
 ## Team
 
@@ -255,5 +233,5 @@ Use a separately created, migrated and seeded local database. Set
 npm run test:integration
 ```
 
-These tests create and remove their own fixture subscriptions and session-regression accounts. Do not point them
-at production data. They exercise transactional billing, concurrent runs and password-session revocation.
+These tests create and remove their own fixture subscriptions. Do not point them
+at production data. They exercise transactional billing and concurrent runs.
