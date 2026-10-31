@@ -12,6 +12,19 @@ const NOT_FOUND_MESSAGE = 'Subscription not found';
 const DEFAULT_QUOTATION_VALIDITY_DAYS = 30;
 const MAX_DATABASE_INTEGER = 2_147_483_647;
 
+// PS-27: ownership and state changes share a row lock, including staff transfers.
+const lockSubscriptionForActor = async (tx, id, actor) => {
+  const isCustomer = actor.role === 'CUSTOMER';
+  const customerId = actor.customerId;
+  if (isCustomer && (!Number.isInteger(customerId) || customerId <= 0))
+    throw new HttpError(404, NOT_FOUND_MESSAGE);
+  const rows = isCustomer
+    ? await tx.$queryRaw`SELECT id FROM subscriptions WHERE id = ${id} AND customer_id = ${customerId} FOR UPDATE`
+    : await tx.$queryRaw`SELECT id FROM subscriptions WHERE id = ${id} FOR UPDATE`;
+  if (!rows.length) throw new HttpError(404, NOT_FOUND_MESSAGE);
+  return isCustomer ? { id, customerId } : { id };
+};
+
 const TRANSITIONS = {
   QUOTE: { from: 'DRAFT', to: 'QUOTATION' },
   CONFIRM: { from: 'QUOTATION', to: 'CONFIRMED' },
@@ -390,9 +403,10 @@ const assertPlanAllows = (plan, flag, action) => {
 
 export const manageSubscription = async (id, action, actor, payload = {}) => {
   await prisma.$transaction(async (tx) => {
+    const where = await lockSubscriptionForActor(tx, id, actor);
     const businessDate = today();
     const subscription = await tx.subscription.findUnique({
-      where: { id },
+      where,
       select: {
         id: true,
         number: true,
@@ -478,7 +492,10 @@ export const manageSubscription = async (id, action, actor, payload = {}) => {
       throw new HttpError(400, 'Choose a valid subscription action');
     }
 
-    const { count } = await tx.subscription.updateMany({ where: { id, status: subscription.status }, data });
+    const { count } = await tx.subscription.updateMany({
+      where: { ...where, status: subscription.status },
+      data,
+    });
     if (count !== 1) {
       throw new HttpError(
         409,

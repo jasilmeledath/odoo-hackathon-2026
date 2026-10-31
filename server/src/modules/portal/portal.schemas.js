@@ -12,3 +12,6 @@ export const portalSubscriptionQuerySchema = portalListQuerySchema.extend({
 export const portalInvoiceQuerySchema = portalListQuerySchema.extend({
   status: z.enum(InvoiceStatus, { error: 'Choose a valid invoice status' }).optional(),
 });
+
+// PS-27: an action accepts no ownership, status or pricing overrides.
+export const portalActionSchema = z.object({}).strict().default({});
