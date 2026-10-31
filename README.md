@@ -40,7 +40,9 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 ## Screenshots
 
-*Added at 4:45 PM from `docs/screenshots/`.*
+![Product catalog](docs/screenshots/products-desktop.png)
+
+![Discount rules on mobile](docs/screenshots/discounts-mobile.png)
 
 ## Tech stack
 

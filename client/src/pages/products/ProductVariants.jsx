@@ -85,7 +85,7 @@ export default function ProductVariants({ productId, disabled }) {
         data &&
         (data.variants.length ? (
           <div className="relative overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="min-w-max w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200">
                   {['Attribute', 'Value', 'Extra price', 'Action'].map((label) => (

@@ -110,7 +110,7 @@ export default function ProductList() {
             <>
               {data.items.length ? (
                 <div className="relative overflow-x-auto">
-                  <table className="w-full text-left text-sm">
+                  <table className="min-w-max w-full text-left text-sm">
                     <thead>
                       <tr className="border-b border-slate-200">
                         {['Name', 'Type', 'Sales price', 'Cost price', 'Status'].map((label) => (
