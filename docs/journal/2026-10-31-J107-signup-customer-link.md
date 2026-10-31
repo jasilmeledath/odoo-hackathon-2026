@@ -1,4 +1,4 @@
-# J-100: Stop signup from taking over staff-made customer records
+# J-107: Stop signup from taking over staff-made customer records
 
 - Date: 2026-10-31
 - Contributor/agent: Jasil M with Claude
