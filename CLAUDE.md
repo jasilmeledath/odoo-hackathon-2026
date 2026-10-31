@@ -8,6 +8,11 @@ Before writing or reviewing code in this repository, read:
 4. [docs/requirements.md](docs/requirements.md): what is being built (`PS-n` IDs) and the decisions made
 5. [docs/implementation-plan.md](docs/implementation-plan.md): tasks, billing design and build order
 6. [docs/data-model.md](docs/data-model.md): the database design
+7. [docs/journal/README.md](docs/journal/README.md) and the five newest entries in `docs/journal/`: required work history and recent context
+
+Before each task, read `docs/engineering-standards.md`, `docs/journal/README.md`, the five newest journal entries, and any entries related to that task. Record every codebase or database change in a new journal entry in the same branch and pull request.
+
+Use a Conventional Commit message for every commit, following `CONTRIBUTING.md` §3. Never bypass the commit-message hook.
 
 Odoo weighs database design most, then coding standards, logic, modularity, frontend design, performance, scalability, security, usability and debugging skill. The database is local PostgreSQL. Do not add backend-as-a-service platforms or third-party APIs.
 

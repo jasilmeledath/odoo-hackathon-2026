@@ -66,22 +66,22 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
 | GET | `/taxes` | Staff | List | PS-10 | Yes |
-| POST | `/taxes` | Admin | Create | PS-10 | |
-| PUT | `/taxes/:id` | Admin | Update or deactivate | PS-10 | |
+| POST | `/taxes` | Admin | Create | PS-10 | Yes |
+| PUT | `/taxes/:id` | Admin | Update or deactivate | PS-10 | Yes |
 | GET | `/payment-terms` | Staff | List | PS-12 | Yes |
-| POST | `/payment-terms` | Admin | Create | PS-12 | |
-| PUT | `/payment-terms/:id` | Admin | Update or deactivate | PS-12 | |
+| POST | `/payment-terms` | Admin | Create | PS-12 | Yes |
+| PUT | `/payment-terms/:id` | Admin | Update or deactivate | PS-12 | Yes |
 | GET | `/products` | Staff | List, filtered by `type`, `isActive`, `q` | PS-6 | Yes |
 | GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | Yes |
-| POST | `/products` | Admin | Create | PS-6 | |
-| PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | |
+| POST | `/products` | Admin | Create | PS-6 | Yes |
+| PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | Yes |
 | POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | |
 | PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | |
 | DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | |
 | GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | Yes |
 | GET | `/plans/:id` | Staff | One plan | PS-8 | Yes |
-| POST | `/plans` | Admin | Create | PS-8, PS-9 | |
-| PUT | `/plans/:id` | Admin | Update or deactivate | PS-8, PS-9 | |
+| POST | `/plans` | Admin | Create | PS-8, PS-9 | Yes |
+| PUT | `/plans/:id` | Admin | Update or deactivate | PS-8, PS-9 | Yes |
 
 ### Quotation templates and discounts (`modules/templates`, `modules/discounts`)
 
@@ -101,13 +101,13 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
 | GET | `/subscriptions` | Staff | List, filtered by `status`, `customerId`, `planId`, `q` | PS-12, PS-13 | ✓ |
-| GET | `/subscriptions/:id` | Staff | Subscription with lines, totals and invoices | PS-12 | |
-| GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | |
+| GET | `/subscriptions/:id` | Staff | Subscription with lines, totals and invoices | PS-12 | ✓ |
+| GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | ✓ |
 | POST | `/subscriptions` | Staff | Create a draft. `templateId` fills in the plan and lines | PS-11, PS-12 | |
 | PUT | `/subscriptions/:id` | Staff | Update, in Draft or Quotation only | PS-12 | |
-| POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation | PS-13 | |
-| POST | `/subscriptions/:id/confirm` | Staff | Quotation → Confirmed | PS-13 | |
-| POST | `/subscriptions/:id/activate` | Staff | Confirmed → Active | PS-13 | |
+| POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation, requires a line | PS-13 | ✓ |
+| POST | `/subscriptions/:id/confirm` | Staff | Unexpired Quotation → Confirmed | PS-13 | ✓ |
+| POST | `/subscriptions/:id/activate` | Staff | Confirmed → Active and schedule billing | PS-13 | ✓ |
 | POST | `/subscriptions/:id/pause` | Staff | Active → Paused, if the plan allows | PS-14 | |
 | POST | `/subscriptions/:id/resume` | Staff | Paused → Active | PS-14 | |
 | POST | `/subscriptions/:id/renew` | Staff | `{ expiryDate }`, if the plan allows | PS-14 | |
@@ -139,9 +139,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
 | GET | `/reports/summary` | Staff | Active subscriptions, monthly recurring revenue, revenue, outstanding and overdue, for `from` and `to` | PS-23, PS-24 | ✓ |
-| GET | `/reports/revenue` | Staff | Revenue by month, for the chart | PS-24 | |
+| GET | `/reports/revenue` | Staff | Payments received by month, including months with no revenue | PS-24 | ✓ |
 | GET | `/reports/renewals` | Staff | Active subscriptions expiring in 30 days or overdue for renewal | PS-23 | ✓ |
-| GET | `/reports/events` | Staff | Server-Sent Events stream that says when numbers change | PS-28 | |
+| GET | `/reports/events` | Staff | Server-Sent Events stream that signals committed invoice or payment changes | PS-28 | ✓ |
 
 ### Customer portal (`modules/portal`)
 
@@ -184,6 +184,54 @@ Return `{ user }` with the same public fields as login. **Auth:** any active acc
 Checks the API and the database connection. **Auth:** none.
 
 **Responses:** `200` `{ "ok": true }` · `500` the database cannot be reached
+
+### GET /api/reports/events
+
+Open a staff-only Server-Sent Events stream. It sends `connected` once, then `changed` after an invoice or payment insert, update or delete commits in PostgreSQL. The event has no financial data; clients reload the relevant reports. The server sends heartbeat comments and removes the subscriber when the response closes. **Auth:** Admin, Internal. Refs: PS-28.
+
+**Responses:** `200` an event stream · `401` not logged in · `403` not staff
+
+### GET /api/reports/revenue
+
+Return monthly revenue as payments received, aggregated by PostgreSQL. Every month in the selected range is present, including months with no payments. **Auth:** Admin, Internal. Refs: PS-24.
+
+**Query** `from`, `to`: optional `YYYY-MM-DD` bounds. When omitted, the range defaults to the last 12 calendar months through today. `to` cannot be before `from`.
+
+**Response** `200`: `{ period: { from, to }, items: [{ month, label, amount }] }`. `month` is `YYYY-MM`; money is in paise.
+
+**Responses:** `200` the monthly totals · `400` invalid date (`fields.from`, `fields.to`) · `401` not logged in · `403` not staff
+
+### GET /api/subscriptions/:id
+
+Read one subscription with its customer, plan rules, payment terms, lines and invoice summaries. **Auth:** Admin, Internal. Refs: PS-12, PS-13.
+
+**Responses:** `200` the subscription with `lines`, `invoices`, `customer`, `plan` and `paymentTerm` · `400` the id is not a positive integer · `401` not logged in · `403` not staff · `404` subscription not found
+
+### GET /api/subscriptions/:id/activity
+
+Read a subscription's activity timeline in chronological order, including the actor when recorded. Scheduler actions have a null actor and are displayed as System. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Response** `200`: an array of `{ id, action, detail, createdAt, actor }` entries.
+
+**Responses:** `200` the timeline (an empty array when no activity exists) · `400` the id is not a positive integer · `401` not logged in · `403` not staff · `404` subscription not found
+
+### POST /api/subscriptions/:id/quote
+
+Move a draft subscription to Quotation. Requires at least one line. Quote expiry comes from the selected template's validity; without a template, validity defaults to 30 days. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not a draft or has no lines
+
+### POST /api/subscriptions/:id/confirm
+
+Move an unexpired quotation to Confirmed. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not a quotation or the quotation expired
+
+### POST /api/subscriptions/:id/activate
+
+Move a confirmed subscription to Active and set `nextInvoiceDate` to `startDate`. **Auth:** Admin, Internal. Refs: PS-13.
+
+**Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not confirmed
 
 ### GET /api/subscriptions
 
@@ -306,3 +354,80 @@ including product-detail plans, are `YYYY-MM-DD`; money remains integer paise.
 **Responses:** `200` the record or standard paginated envelope; `400` invalid
 query/ID with per-field messages; `401` unauthenticated; `403` wrong role;
 `404` unknown product or plan. No schema or migration changes are required.
+### Tax and payment-term writes (PS-10, PS-12)
+
+**Auth:** Admin only. Internal and Customer users receive `403`.
+
+#### POST `/api/taxes`
+
+Create a tax rule. **Body:** `name` (trimmed, 1 to 60 characters), `ratePercent`
+(number, 0 to 100 inclusive, at most two decimal places), optional `isActive`
+(boolean, defaults to true). **Response:** `201` the saved rule. Refs: PS-10.
+
+#### PUT `/api/taxes/:id`
+
+Update a rule using the same body. Set `isActive: false` to deactivate it
+without deleting history. **Response:** `200` the saved rule. Refs: PS-10.
+
+#### POST `/api/payment-terms`
+
+Create payment terms. **Body:** `name` (trimmed, 1 to 60 characters), `dueDays`
+(integer, 0 to 2147483647), optional `isActive` (boolean, defaults to true).
+**Response:** `201` the saved record. Refs: PS-12.
+
+#### PUT `/api/payment-terms/:id`
+
+Update payment terms using the same body. Deactivate with `isActive: false`;
+records are never deleted by these routes. **Response:** `200`. Refs: PS-12.
+
+**Errors for all four routes:** `400` invalid body or ID with field messages;
+`401` unauthenticated; `403` wrong role; `409` duplicate name with
+`fields.name`; update also returns `404` for an absent ID. No schema change.
+
+
+### Product writes (PS-6)
+
+#### POST `/api/products`
+
+Create a product. **Auth:** Admin. **Body:** `name` (1 to 120 trimmed
+characters), `type` (SOFTWARE, ADD_ON or SERVICE), `salesPrice` and `costPrice`
+(integer paise, 0 to 1000000000), optional `notes` (up to 1000 characters
+or null), optional `isActive` (boolean, default true). **Response:** `201`
+the saved product. Refs: PS-6.
+
+#### PUT `/api/products/:id`
+
+Update a product with the same body. Deactivate using `isActive: false`
+without deleting history. **Auth:** Admin. **Response:** `200` the saved
+product. Refs: PS-6.
+
+**Errors:** `400` invalid input with field messages; `401` unauthenticated;
+`403` wrong role; `409` duplicate name with `fields.name`; update returns
+`404` for an absent ID. Money remains whole paise. No schema change.
+The product form component accepts prices in rupees, rejects negative,
+non-finite, oversized or sub-paise input, then uses `toPaise` once before
+submitting. The displayed margin is sales price minus cost price and is
+not stored. The Products page wires the form to its filtered catalog list.
+
+### Plan writes (PS-8, PS-9)
+
+#### POST `/api/plans`
+
+Create a plan. **Auth:** Admin. **Body:** `name` (1 to 120 trimmed characters),
+`productId` (existing product), `price` (integer paise, 0 to 1000000000),
+`billingPeriod` (DAILY, WEEKLY, MONTHLY, YEARLY), `minQuantity` (integer,
+1 to 2147483647), `startDate` (YYYY-MM-DD), optional nullable `endDate`
+(on/after startDate). Boolean defaults: `closesAtExpiry=false`,
+`canCloseEarly=true`, `canPause=false`, `canRenew=true`, `isActive=true`.
+**Response:** `201` the saved plan with product ID/name and date-only dates.
+
+#### PUT `/api/plans/:id`
+
+Update with the same body, including the intended behaviour switches.
+**Auth:** Admin. **Response:** `200`. Reads now include product ID/name
+for list display and editing without per-row API requests.
+
+**Errors:** `400` invalid input, unknown product or reversed dates with
+field messages; `401` unauthenticated; `403` wrong role; `409` duplicate
+name with `fields.name`; update returns `404` for an absent plan. No schema
+or migration change. Refs: PS-8, PS-9.
