@@ -43,7 +43,9 @@ export default function RevenueChart() {
                 <p className="mt-2 truncate text-center text-[10px] text-slate-600 sm:text-xs">
                   {item.label}
                 </p>
-                <p className="sr-only">{item.month}: {formatMoney(item.amount)}</p>
+                <p className="sr-only">
+                  {item.month}: {formatMoney(item.amount)}
+                </p>
               </div>
             );
           })}

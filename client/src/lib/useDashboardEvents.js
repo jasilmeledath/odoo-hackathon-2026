@@ -38,7 +38,11 @@ const readDashboardStream = async (signal) => {
       while (frameEnd !== -1) {
         const frame = buffer.slice(0, frameEnd);
         buffer = buffer.slice(frameEnd + 2);
-        const event = frame.split('\n').find((line) => line.startsWith('event:'))?.slice(6).trim();
+        const event = frame
+          .split('\n')
+          .find((line) => line.startsWith('event:'))
+          ?.slice(6)
+          .trim();
         if (event === 'changed') window.dispatchEvent(new Event('dashboard:changed'));
         frameEnd = buffer.indexOf('\n\n');
       }

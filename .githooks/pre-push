@@ -1,0 +1,12 @@
+#!/bin/sh
+# Keep main PR-only; the local promotion command validates develop and opens its PR.
+set -eu
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    printf '%s\n' 'Direct pushes to main are blocked. Run `npm run promote:main` to validate develop and open a promotion PR.' >&2
+    exit 1
+  fi
+done
+
+exit 0

@@ -143,6 +143,32 @@ From `server/`, run `npm test` for billing and catalog validation regressions.
 The test runner uses the same tsx loader as the API for generated Prisma enums.
 From `client/`, run `npm run build` to check the frontend.
 
+### Local develop-to-main promotion
+
+The local gate replaces GitHub Actions for promotion checks and keeps `main` PR-only. Install the root Prettier dependency and enable the repository hooks once:
+
+```bash
+npm install
+```
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Set `server/.env` to a local PostgreSQL account that can create databases. From a clean, up-to-date `develop` branch, run the checks without opening a PR:
+
+```bash
+npm run ci:local
+```
+
+To rerun the checks and create or locate the `develop`-to-`main` PR:
+
+```bash
+npm run promote:main
+```
+
+The gate checks tracked source formatting, creates a disposable local database, applies migrations, runs `server` tests, and builds the client. It removes the temporary database afterward. The promotion command requires local `develop` to match `origin/develop`; the pre-push hook blocks direct pushes to `main`. Review and merge the generated PR through the normal flow. The `gh` CLI must be installed and authenticated to create that PR.
+
 ## API
 
 See [docs/api.md](docs/api.md).
