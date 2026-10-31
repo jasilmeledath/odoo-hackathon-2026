@@ -44,8 +44,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
 | POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | |
-| POST | `/auth/login` | Public | Returns `{ token, user }` | PS-2 | |
-| GET | `/auth/me` | Any | The current user | PS-2 | |
+| POST | `/auth/login` | Public | Returns `{ token, user }` | PS-2 | Yes |
+| GET | `/auth/me` | Any | The current user | PS-2 | Yes |
 | POST | `/auth/forgot-password` | Public | Emails a reset link. Always answers `200` | PS-3 | |
 | POST | `/auth/reset-password` | Public | `{ token, password }`. The token works once, for 30 minutes | PS-3 | |
 
@@ -162,6 +162,22 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 ---
 
 ## Route details
+
+### POST /api/auth/login
+
+Authenticate an active account. **Auth:** public. Refs: PS-2.
+
+**Body:** `email` (valid email, at most 254 characters, trimmed and lowercased), `password` (required, at most 72 characters, preserved verbatim).
+
+**Response** `200`: `{ token, user }`. Token expires after eight hours and carries only the user ID plus JWT timestamps. User includes `id`, `name`, `email`, `role`, `customerId`; no password hash.
+
+**Responses:** `400` field validation; `401` identical message for unknown email, wrong password and inactive account.
+
+### GET /api/auth/me
+
+Return `{ user }` with the same public fields as login. **Auth:** any active account. Refs: PS-2.
+
+**Responses:** `200` current database identity; `401` missing, invalid or expired token, inactive user or session invalidated by password change. Roles and customer ownership are loaded from the database on every request.
 
 ### GET /api/health
 
