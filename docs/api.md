@@ -53,9 +53,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/staff` | Admin | List staff | PS-5 | |
-| POST | `/staff` | Admin | Add a staff member | PS-5 | |
-| PATCH | `/staff/:id` | Admin | Change details or `isActive` | PS-5 | |
+| GET | `/staff` | Admin | List staff | PS-5 | Yes |
+| POST | `/staff` | Admin | Add a staff member | PS-5 | Yes |
+| PATCH | `/staff/:id` | Admin | Change details or `isActive` | PS-5 | Yes |
 | GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | Yes |
 | POST | `/customers` | Staff | Create a customer | PS-12 | Yes |
 | GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | Yes |
@@ -659,6 +659,26 @@ Record payment against a CONFIRMED invoice. **Auth:** Admin, Internal. Refs: PS-
 **Response:** 201 { payment, invoice }, including invoice.balanceAmount. Part payments leave CONFIRMED; full settlement sets PAID and paidAt. Row locking serializes concurrent requests. Payment insertion, balance update and PAYMENT_RECORDED activity happen in one transaction.
 
 **Responses:** 400 field validation or overpayment (fields.amount states current balance); 404 invoice missing; 409 invoice not CONFIRMED; 401 unauthenticated; 403 customer. The invoice-detail form converts rupees to paise at the UI boundary and refreshes invoice/payment history after success.
+
+### GET /api/staff
+
+List INTERNAL accounts with standard pagination and q search over name/email. **Auth:** Admin only. Refs: PS-5.
+
+**Responses:** 200 paginated public account fields; 400 query validation; 401 unauthenticated; 403 Internal/Customer. Password hashes are never returned.
+
+### POST /api/staff
+
+Create an INTERNAL account; caller-supplied role is ignored. **Auth:** Admin only. Refs: PS-5.
+
+**Body:** name required, at most 120; email required, valid, at most 254, normalized; password follows signup (9+ characters, uppercase/lowercase/special, at most 72 UTF-8 bytes); isActive boolean defaults true.
+
+**Responses:** 201 public account; 400 per-field validation; 409 duplicate email (fields.email); 401/403 unauthorized.
+
+### PATCH /api/staff/:id
+
+Update an INTERNAL account. Name/email/isActive use POST rules; password is optional and when present must satisfy the same rule. Admin and Customer records cannot be edited here. **Auth:** Admin only. Refs: PS-5.
+
+**Responses:** 200 public account; 400 validation; 404 missing/non-staff account; 409 duplicate email (fields.email); 401/403 unauthorized. Deactivation takes effect on the next authenticated request. Password changes update passwordChangedAt monotonically under an account lock. The precise signed passwordVersion must equal the current database version, ending older sessions immediately.
 
 ### Discount catalog reads (PS-19, A-24)
 

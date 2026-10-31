@@ -38,7 +38,7 @@ Brightloop Software sells everything on subscription: software billed monthly or
 | PS-2 | Users log in and stay logged in with a token that expires | P1 | Yadhu | Done |
 | PS-3 | A forgotten password is reset through a link sent to the registered email | P1 | Yadhu | Done |
 | PS-4 | Three roles see different things. Customers see only their own records, and any other record returns `404` | P1 | Yadhu | Not started |
-| PS-5 | Only the Admin can add a staff member, and sign-up can never create staff | P1 | Yadhu | Not started |
+| PS-5 | Only the Admin can add a staff member, and sign-up can never create staff | P1 | Yadhu | Done |
 
 ### Catalog
 
