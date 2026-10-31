@@ -49,3 +49,42 @@ export const saveProduct = async (data, id) => {
     throw error;
   }
 };
+
+const rethrowVariantError = (error) => {
+  if (error.code === 'P2002')
+    throw new HttpError(409, 'This attribute and value already exist for this product', {
+      value: 'This attribute and value already exist for this product',
+    });
+  if (error.code === 'P2003') throw new HttpError(404, 'Product not found');
+  if (error.code === 'P2025') throw new HttpError(404, 'Variant not found');
+  throw error;
+};
+
+export const saveVariant = async (productId, data, variantId) => {
+  try {
+    return variantId
+      ? await prisma.productVariant.update({ where: { id: variantId, productId }, data })
+      : await prisma.productVariant.create({ data: { ...data, productId } });
+  } catch (error) {
+    rethrowVariantError(error);
+  }
+};
+
+export const removeVariant = (productId, variantId) =>
+  prisma.$transaction(async (transaction) => {
+    // PS-7: SET NULL foreign keys alone do not protect history. Lock the parent
+    // against concurrent subscription references before checking and deleting.
+    const locked = await transaction.$queryRaw`
+    SELECT id FROM product_variants
+    WHERE id = ${variantId} AND product_id = ${productId}
+    FOR UPDATE
+  `;
+    if (!locked.length) throw new HttpError(404, 'Variant not found');
+    const variant = await transaction.productVariant.findUnique({
+      where: { id: variantId },
+      select: { _count: { select: { subscriptionLines: true } } },
+    });
+    if (variant._count.subscriptionLines)
+      throw new HttpError(409, 'This variant is used by a subscription and cannot be removed');
+    await transaction.productVariant.delete({ where: { id: variantId } });
+  });

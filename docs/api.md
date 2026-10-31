@@ -25,7 +25,7 @@ Base URL: `http://localhost:4000/api`. Every route except sign-up, login, passwo
 
 **Money** is whole paise in both directions: `156000` means ₹1,560.00. **Dates** are `YYYY-MM-DD`.
 
-**Status codes:** `200` OK · `201` created · `204` deleted · `400` validation failed · `401` not logged in · `403` not allowed · `404` not found, or another customer's record · `409` a conflict, such as a duplicate value or an action not allowed in the current status · `500` unexpected.
+**Status codes:** `200` OK · `201` created · `204` deleted · `400` validation failed · `401` not logged in · `403` not allowed · `404` not found, or another customer's record · `409` a conflict, such as a duplicate value or an action not allowed in the current status · `429` too many attempts (Retry-After seconds) · `500` unexpected.
 
 ## Route map
 
@@ -46,16 +46,16 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | POST | `/auth/register` | Public | Customer sign-up. Creates the login and customer record, or links an existing customer with that email. Ignores any `role` sent | PS-1, PS-5 | Yes |
 | POST | `/auth/login` | Public | Returns `{ token, user }` | PS-2 | Yes |
 | GET | `/auth/me` | Any | The current user | PS-2 | Yes |
-| POST | `/auth/forgot-password` | Public | Emails a reset link. Always answers `200` | PS-3 | |
-| POST | `/auth/reset-password` | Public | `{ token, password }`. The token works once, for 30 minutes | PS-3 | |
+| POST | `/auth/forgot-password` | Public | Emails a reset link. Always answers `200` | PS-3 | Yes |
+| POST | `/auth/reset-password` | Public | `{ token, password }`. The token works once, for 30 minutes | PS-3 | Yes |
 
 ### Staff and customers (`modules/staff`, `modules/customers`)
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/staff` | Admin | List staff | PS-5 | |
-| POST | `/staff` | Admin | Add a staff member | PS-5 | |
-| PATCH | `/staff/:id` | Admin | Change details or `isActive` | PS-5 | |
+| GET | `/staff` | Admin | List staff | PS-5 | Yes |
+| POST | `/staff` | Admin | Add a staff member | PS-5 | Yes |
+| PATCH | `/staff/:id` | Admin | Change details or `isActive` | PS-5 | Yes |
 | GET | `/customers` | Staff | List, with `q` searching name, company and email | PS-12 | Yes |
 | POST | `/customers` | Staff | Create a customer | PS-12 | Yes |
 | GET | `/customers/:id` | Staff | Customer with subscription and invoice summary | PS-12 | Yes |
@@ -75,9 +75,9 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/products/:id` | Staff | Product with variants and plans | PS-6, PS-7 | Yes |
 | POST | `/products` | Admin | Create | PS-6 | Yes |
 | PUT | `/products/:id` | Admin | Update or deactivate | PS-6 | Yes |
-| POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | |
-| PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | |
-| DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | |
+| POST | `/products/:id/variants` | Admin | Add a variant | PS-7 | Yes |
+| PUT | `/products/:id/variants/:variantId` | Admin | Update a variant | PS-7 | Yes |
+| DELETE | `/products/:id/variants/:variantId` | Admin | Remove a variant | PS-7 | Yes |
 | GET | `/plans` | Staff | List, filtered by `availableOn` (date), `isActive`, `q` | PS-8 | Yes |
 | GET | `/plans/:id` | Staff | One plan | PS-8 | Yes |
 | POST | `/plans` | Admin | Create | PS-8, PS-9 | Yes |
@@ -87,14 +87,16 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/templates` | Staff | List | PS-11 | |
-| GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | |
-| POST | `/templates` | Admin | Create with lines | PS-11 | |
-| PUT | `/templates/:id` | Admin | Update with lines | PS-11 | |
-| GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`) | PS-19 | |
-| GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | |
-| POST | `/discounts` | Admin | Create | PS-19 | |
-| PUT | `/discounts/:id` | Admin | Update or deactivate | PS-19 | |
+| GET | `/templates` | Staff | List | PS-11 | Yes |
+| GET | `/templates/:id` | Staff | Template with lines and current prices | PS-11 | Yes |
+| POST | `/templates` | Admin | Create with lines | PS-11 | Yes |
+| PUT | `/templates/:id` | Admin | Update with lines | PS-11 | Yes |
+| GET | `/discounts` | Staff | List, filtered by `state` (`ACTIVE`, `EXPIRED`, `USED_UP`) | PS-19 | Yes |
+| GET | `/discounts/:id` | Staff | Discount with products and usage | PS-19 | Yes |
+| POST | `/discounts` | Admin | Create | PS-19 | Yes |
+| PUT | `/discounts/:id` | Admin | Update or deactivate | PS-19 | Yes |
+
+
 
 ### Subscriptions (`modules/subscriptions`)
 
@@ -103,15 +105,15 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | GET | `/subscriptions` | Staff | List, filtered by `status`, `customerId`, `planId`, `q` | PS-12, PS-13 | ✓ |
 | GET | `/subscriptions/:id` | Staff | Subscription with lines, totals and invoices | PS-12 | ✓ |
 | GET | `/subscriptions/:id/activity` | Staff | Timeline | PS-13 | ✓ |
-| POST | `/subscriptions` | Staff | Create a draft. `templateId` fills in the plan and lines | PS-11, PS-12 | |
-| PUT | `/subscriptions/:id` | Staff | Update, in Draft or Quotation only | PS-12 | |
+| POST | `/subscriptions` | Staff | Create a numbered draft with customer, available plan, payment terms and priced lines | PS-12 | ✓ |
+| PUT | `/subscriptions/:id` | Staff | Update details and replace priced lines, in Draft or Quotation only | PS-12 | ✓ |
 | POST | `/subscriptions/:id/quote` | Staff | Draft → Quotation, requires a line | PS-13 | ✓ |
 | POST | `/subscriptions/:id/confirm` | Staff | Unexpired Quotation → Confirmed | PS-13 | ✓ |
 | POST | `/subscriptions/:id/activate` | Staff | Confirmed → Active and schedule billing | PS-13 | ✓ |
-| POST | `/subscriptions/:id/pause` | Staff | Active → Paused, if the plan allows | PS-14 | |
-| POST | `/subscriptions/:id/resume` | Staff | Paused → Active | PS-14 | |
-| POST | `/subscriptions/:id/renew` | Staff | `{ expiryDate }`, if the plan allows | PS-14 | |
-| POST | `/subscriptions/:id/close` | Staff | Close early, if the plan allows | PS-14 | |
+| POST | `/subscriptions/:id/pause` | Staff | Active → Paused, if the plan allows | PS-14 | ✓ |
+| POST | `/subscriptions/:id/resume` | Staff | Paused → Active at the next scheduled billing boundary | PS-14 | ✓ |
+| POST | `/subscriptions/:id/renew` | Staff | Extend the same subscription with `{ expiryDate }`, if the plan allows | PS-14 | ✓ |
+| POST | `/subscriptions/:id/close` | Staff | Close an Active or Paused subscription early, if the plan allows | PS-14 | ✓ |
 
 ### Billing and invoices (`modules/billing`, `modules/invoices`)
 
@@ -132,10 +134,8 @@ This is the agreed contract. The **Done** column is ticked in the same commit th
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
 | GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | Yes |
-| POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | |
-
-| GET | `/payments` | Staff | List, filtered by `method`, `from`, `to`, `q` | PS-21 | |
 | POST | `/payments` | Staff | `{ invoiceId, method, amount, paymentDate, note }` | PS-21, PS-22 | Yes |
+
 
 ### Reports (`modules/reports`)
 
@@ -152,19 +152,35 @@ Every portal query is limited to the logged-in customer. Anyone else's record re
 
 | Method | Path | Roles | Purpose | Refs | Done |
 |---|---|---|---|---|---|
-| GET | `/portal/subscriptions` | Customer | Own subscriptions | PS-26 | |
-| GET | `/portal/subscriptions/:id` | Customer | One subscription with lines | PS-26 | |
+| GET | `/portal/subscriptions` | Customer | Own subscriptions | PS-26 | Yes |
+| GET | `/portal/subscriptions/:id` | Customer | One subscription with lines | PS-26 | Yes |
 | POST | `/portal/subscriptions/:id/accept` | Customer | Accept a quotation | PS-27 | |
 | PATCH | `/portal/subscriptions/:id/lines/:lineId` | Customer | `{ isActive }`: switch an add-on on or off | PS-27 | |
 | POST | `/portal/subscriptions/:id/pause` | Customer | Pause, if the plan allows | PS-27 | |
 | POST | `/portal/subscriptions/:id/resume` | Customer | Resume | PS-27 | |
 | POST | `/portal/subscriptions/:id/close` | Customer | Close, if the plan allows | PS-27 | |
-| GET | `/portal/invoices` | Customer | Own invoices | PS-26 | |
-| GET | `/portal/invoices/:id` | Customer | One invoice with lines and payments | PS-26 | |
+| GET | `/portal/invoices` | Customer | Own invoices | PS-26 | Yes |
+| GET | `/portal/invoices/:id` | Customer | One invoice with lines and payments | PS-26 | Yes |
 
 ---
 
 ## Route details
+
+### Authentication attempt limits
+
+Login and recovery requests have separate in-memory windows keyed by the connection IP. **Auth:** public. Refs: PS-29.
+
+| Route | Attempts per 15 minutes |
+|---|---|
+| POST /api/auth/login | 20 |
+| POST /api/auth/forgot-password | 5 |
+| POST /api/auth/reset-password | 10 |
+
+Validation failures count too. A limited request returns 429 with { error } explaining how many seconds remain and a Retry-After header containing that wait in seconds. Further blocked requests do not extend the window. Other auth endpoints and authenticated sessions remain usable.
+
+The server does not trust forwarded IP headers. Expired entries are removed, storage is capped at 10,000 clients per endpoint and active windows are never evicted to admit another client. At capacity, a new client gets 429 until space becomes available.
+
+Limits are per process and restart with the API; multiple server processes do not share counters. Existing form alerts display the 429 message. No database schema, environment variable or dependency is added.
 
 ### POST /api/auth/login
 
@@ -172,9 +188,25 @@ Authenticate an active account. **Auth:** public. Refs: PS-2.
 
 **Body:** `email` (valid email, at most 254 characters, trimmed and lowercased), `password` (required, at most 72 characters, preserved verbatim).
 
-**Response** `200`: `{ token, user }`. Token expires after eight hours and carries only the user ID plus JWT timestamps. User includes `id`, `name`, `email`, `role`, `customerId`; no password hash.
+**Response** `200`: `{ token, user }`. Token expires after eight hours and carries the user ID, a signed passwordVersion and standard JWT timestamps. User includes `id`, `name`, `email`, `role`, `customerId`; no password hash.
 
 **Responses:** `400` field validation; `401` identical message for unknown email, wrong password and inactive account.
+
+### POST /api/auth/forgot-password
+
+Request a recovery link. **Auth:** public. Refs: PS-3.
+
+**Body:** email, valid and at most 254 characters, trimmed and lowercased. **Response:** 200 { message } for existing, unknown and inactive addresses. Links contain 32 random bytes and expire after 30 minutes. Only SHA-256 hashes are stored. SMTP delivery failures are logged while preserving the generic response. Without SMTP the existing sendMail helper prints the message in the terminal.
+
+**Responses:** 400 fields.email for invalid input; 500 unexpected database failure.
+
+### POST /api/auth/reset-password
+
+Consume a recovery link once. **Auth:** public. Refs: PS-3.
+
+**Body:** token (64 lowercase hexadecimal characters); password (same rule as signup: at least 9 characters, uppercase, lowercase and special character, at most 72 UTF-8 bytes).
+
+**Responses:** 200 { message } instructing the user to log in; 400 field errors or invalid/expired/used link. The transaction serializes recovery for the account, changes the password, sets passwordChangedAt, and consumes all outstanding links. Previous sessions expire immediately, including tokens issued in the same second; new sessions remain valid. Standard JWT iat is preserved; an exact signed passwordVersion is compared with the current database passwordChangedAt on every request.
 
 ### GET /api/auth/me
 
@@ -210,6 +242,20 @@ Read one subscription with its customer, plan rules, payment terms, lines and in
 
 **Responses:** `200` the subscription with `lines`, `invoices`, `customer`, `plan` and `paymentTerm` · `400` the id is not a positive integer · `401` not logged in · `403` not staff · `404` subscription not found
 
+### POST /api/subscriptions
+
+Create a numbered Draft. The request body contains `customerId`, `planId`, `paymentTermId`, `startDate`, `expiryDate`, optional `notes`, and at least one `lines` entry with `productId`, optional `variantId` and optional `taxId`, and `quantity`. Prices and amounts are read from the database: the plan price applies to its product line; other products use their current sales price; variant extra price is added. The server calculates line amounts and both recurring totals in paise. The plan must be available on `startDate`, and `minQuantity` applies to the plan product only. **Auth:** Admin, Internal. Refs: PS-12.
+
+The client form defaults `startDate` to the current IST business date. API callers must still provide `startDate` explicitly.
+
+**Responses:** `201` the created subscription · `400` invalid fields or unavailable references (`fields` identifies the invalid field) · `401` not logged in · `403` not staff
+
+### PUT /api/subscriptions/:id
+
+Replace the subscription details and lines using the same request body as `POST /api/subscriptions`. Updates are allowed only while the subscription is Draft or Quotation. Prices, line amounts, `recurringAmount` and `monthlyRecurringAmount` are recalculated from current database values in the transaction; the number, status and template association are retained. **Auth:** Admin, Internal. Refs: PS-12.
+
+**Responses:** `200` the updated subscription · `400` invalid fields or unavailable references · `401` not logged in · `403` not staff · `404` subscription not found · `409` status does not allow editing or a concurrent update changed the status
+
 ### GET /api/subscriptions/:id/activity
 
 Read a subscription's activity timeline in chronological order, including the actor when recorded. Scheduler actions have a null actor and are displayed as System. **Auth:** Admin, Internal. Refs: PS-13.
@@ -235,6 +281,24 @@ Move an unexpired quotation to Confirmed. **Auth:** Admin, Internal. Refs: PS-13
 Move a confirmed subscription to Active and set `nextInvoiceDate` to `startDate`. **Auth:** Admin, Internal. Refs: PS-13.
 
 **Responses:** `200` the updated subscription · `400` invalid id · `401` not logged in · `403` not staff · `404` subscription not found · `409` the subscription is not confirmed
+
+### POST /api/subscriptions/:id/pause and `/resume`
+
+Pause is allowed for Active subscriptions only when the plan's `canPause` flag is enabled. A Paused subscription is excluded from billing. Resume requires Paused status and the same plan flag; its next invoice date advances on the original billing schedule to the first period boundary on or after today, so paused periods are not charged. **Auth:** Admin, Internal. Refs: PS-14, A-18.
+
+**Responses:** `200` the updated subscription · `401` not logged in · `403` not staff · `404` subscription not found · `409` the plan disallows the action or the status is invalid
+
+### POST /api/subscriptions/:id/renew
+
+Extend the expiry date of the same Active subscription. The body is `{ "expiryDate": "YYYY-MM-DD" }`; the new date must be after both the current expiry and today. When billing had stopped at expiry, the next invoice date resumes at the next scheduled boundary derived from the last non-canceled invoice (or the subscription start date if none exists). The plan's `canRenew` flag must be enabled. **Auth:** Admin, Internal. Refs: PS-14, A-19.
+
+**Responses:** `200` the updated subscription · `400` invalid date (`fields.expiryDate`) · `401` not logged in · `403` not staff · `404` subscription not found · `409` the plan disallows renewal or the subscription is not Active
+
+### POST /api/subscriptions/:id/close
+
+Close an Active or Paused subscription early when the plan's `canCloseEarly` flag is enabled. The next invoice date is cleared and future billing stops; existing invoices and history remain. The change is recorded as `CLOSED` with close reason `CLOSED_EARLY`. **Auth:** Admin, Internal. Refs: PS-14.
+
+**Responses:** `200` the updated subscription · `401` not logged in · `403` not staff · `404` subscription not found · `409` the plan disallows early closing or the subscription status is invalid
 
 ### GET /api/subscriptions
 
@@ -262,6 +326,44 @@ Read finance totals and the ten oldest overdue invoices. Revenue is the sum of p
 **Response** `200`: `{ period, activeSubscriptionCount, monthlyRecurringAmount, invoicedAmount, revenueAmount, outstandingAmount, overdueAmount, overdueInvoices }`. `overdueInvoices` contains at most ten oldest overdue entries with `balanceAmount`. Money is in paise.
 
 **Responses:** `200` the summary · `400` invalid date (`fields.from`, `fields.to`) · `401` not logged in · `403` not staff
+
+### GET /api/portal/subscriptions
+
+List only the authenticated customer's subscriptions. **Auth:** Customer. Refs: PS-26.
+
+**Query**
+
+| Field | Type | Rules |
+|---|---|---|
+| page, pageSize | number | Standard pagination: page from 1, page size 1–50, default 10 |
+| q | string | Trimmed, at most 100 characters; case-insensitive subscription number search |
+| status | string | A native SubscriptionStatus value |
+
+**Response:** 200 { items, total, page, pageSize, pages }. Each item includes number, status, start/expiry dates, recurring amount and plan name/billing period. Caller-supplied customerId is ignored; ownership comes only from req.user.customerId.
+
+**Responses:** 400 field validation; 401 missing/invalid session; 403 non-Customer; 404 missing customer profile.
+
+### GET /api/portal/subscriptions/:id
+
+Read an owned subscription with product/variant lines, quantities, saved unit prices, active flags and tax descriptions. **Auth:** Customer. Refs: PS-26.
+
+**Responses:** 200 subscription; 400 invalid ID; 401/403 unauthorized; 404 missing profile, absent subscription or another customer's subscription. Internal cost prices and account secrets are not selected.
+
+### GET /api/portal/invoices
+
+List only the authenticated customer's invoices, newest issue date first. **Auth:** Customer. Refs: PS-26.
+
+**Query:** standard page/pageSize; q at most 100 characters, matching invoice number or billing name; optional native InvoiceStatus status. Filters combine with ownership.
+
+**Response:** 200 { items, total, page, pageSize, pages }. Items include totalAmount, paidAmount, balanceAmount and isOverdue. Balance and overdue rules reuse the existing invoice service helper; money is whole paise.
+
+**Responses:** 400 invalid filters; 401/403 unauthorized; 404 missing customer profile.
+
+### GET /api/portal/invoices/:id
+
+Read an owned invoice with billing snapshot, line prices/discounts/tax, payments and remaining balance. **Auth:** Customer. Refs: PS-26.
+
+**Responses:** 200 invoice; 400 invalid ID; 401/403 unauthorized; 404 missing profile, absent invoice or another customer's invoice. Payments expose date, method, amount and note; internal staff identities and password/account fields are omitted.
 
 ### GET /api/reports/renewals
 
@@ -439,6 +541,37 @@ The plan form converts validated rupee prices to paise at submission, mirrors
 quantity and date errors, and uses a paginated product picker. Existing
 product selection remains available while browsing another product page.
 
+
+### Product variants (PS-7)
+
+**Auth:** Admin for all writes. Product/variant IDs are validated and updates
+and removals are scoped to the parent product.
+
+#### POST `/api/products/:id/variants`
+
+**Body:** `attribute` and `value` (trimmed, 1 to 60 characters), `extraPrice`
+(integer paise, 0 to 1000000000). **Response:** `201` the variant.
+
+#### PUT `/api/products/:id/variants/:variantId`
+
+Update with the same body. **Response:** `200` the saved variant.
+
+#### DELETE `/api/products/:id/variants/:variantId`
+
+Remove an unused variant. **Response:** `204`. Used subscription variants
+return `409` explaining why they cannot be removed. The check and delete
+run inside one transaction with a variant-row lock, preventing a race
+with concurrent foreign-key references.
+
+**Errors:** `400` invalid body/IDs with fields; `401` unauthenticated;
+`403` wrong role; `404` missing parent/variant or mismatched parent;
+`409` duplicate product/attribute/value with `fields.value`, or used removal.
+No schema or migration changes.
+
+The Plans page connects the validated form with URL-backed name, active-state
+and available-on filters; it displays product names, prices, billing periods
+and sale dates from paginated API results. Internal staff have read-only UI.
+
 ### GET /api/payments
 
 Search payments with combined filters. **Auth:** Admin, Internal. Refs: PS-21.
@@ -462,6 +595,13 @@ Each period locks its subscription, snapshots active lines and taxes, creates a
 Draft invoice, advances its cursor and logs the actor in one transaction.
 Failures roll back the period and do not stop later subscriptions. Financial
 amounts that exceed PostgreSQL limits fail without moving the cursor.
+
+Scale fixture billing observation (not a complete PS-25 page check): against a
+local 5,000-subscription fixture, 4,000 active subscriptions were made due.
+Processing completed in 9.8 seconds: 3,169 invoices created, 831 skipped, and
+0 failed. Skipped periods already had an invoice, confirming the duplicate
+billing guard. Page coverage and readiness limitations are in the performance
+section of the data model.
 
 
 Billing automatically chooses the eligible discount with the largest saving,
@@ -526,6 +666,46 @@ do not stop the server or later phases. In-process runs never overlap; database
 state guards and billing locks handle multiple API instances. Shutdown stops the
 timer and waits for in-flight work before disconnecting PostgreSQL.
 
+### Quotation templates (PS-11)
+
+**Auth:** Staff reads; Admin writes (A-7). No new schema or migrations.
+
+#### GET /api/templates
+
+Paginated, case-insensitive name search through `q`. Returns template summaries,
+the plan and `_count.lines`. Uses the shared page and pageSize limits.
+
+#### GET /api/templates/:id
+
+Returns the template with ordered lines, product/variant names and current
+`unitPrice` in paise. The plan price replaces its own product's sales price;
+other lines use sales price, then add the variant extra price (A-5). No prices
+are stored on templates or their lines.
+
+#### POST /api/templates / PUT /api/templates/:id
+
+| Field | Type | Rules |
+|---|---|---|
+| name | string | Trimmed, 1-120 characters, unique |
+| planId | number | Existing plan |
+| validityDays | number | Integer, 1-2147483647 |
+| notes | string/null | Optional, at most 1000 characters |
+| isActive | boolean | Default true; deactivate to retain history |
+| lines | array | 1-100 lines, replaced atomically on update |
+| lines[].productId | number | Existing product |
+| lines[].variantId | number/null | Optional; must belong to the selected product |
+| lines[].quantity | number | Integer, 1-2147483647 |
+
+Responses: `201` created, `200` updated; `400` invalid fields (line keys such as
+`lines.0.variantId`), `401` unauthenticated, `403` forbidden, `404` missing
+template, `409` duplicate name or concurrently removed catalog references.
+Line inputs reject price fields rather than accepting a stale snapshot.
+The Quotation templates page supports URL-backed name search, pagination,
+Admin-only editing and staff previews with current prices. The editor converts
+no prices into snapshots. Subscription creation from a template remains a
+separately owned workflow; PS-11 stays In progress until that integration.
+
+
 
 ### POST /api/auth/register
 
@@ -572,3 +752,86 @@ Record payment against a CONFIRMED invoice. **Auth:** Admin, Internal. Refs: PS-
 **Response:** 201 { payment, invoice }, including invoice.balanceAmount. Part payments leave CONFIRMED; full settlement sets PAID and paidAt. Row locking serializes concurrent requests. Payment insertion, balance update and PAYMENT_RECORDED activity happen in one transaction.
 
 **Responses:** 400 field validation or overpayment (fields.amount states current balance); 404 invoice missing; 409 invoice not CONFIRMED; 401 unauthenticated; 403 customer. The invoice-detail form converts rupees to paise at the UI boundary and refreshes invoice/payment history after success.
+
+### GET /api/staff
+
+List INTERNAL accounts with standard pagination and q search over name/email. **Auth:** Admin only. Refs: PS-5.
+
+**Responses:** 200 paginated public account fields; 400 query validation; 401 unauthenticated; 403 Internal/Customer. Password hashes are never returned.
+
+### POST /api/staff
+
+Create an INTERNAL account; caller-supplied role is ignored. **Auth:** Admin only. Refs: PS-5.
+
+**Body:** name required, at most 120; email required, valid, at most 254, normalized; password follows signup (9+ characters, uppercase/lowercase/special, at most 72 UTF-8 bytes); isActive boolean defaults true.
+
+**Responses:** 201 public account; 400 per-field validation; 409 duplicate email (fields.email); 401/403 unauthorized.
+
+### PATCH /api/staff/:id
+
+Update an INTERNAL account. Name/email/isActive use POST rules; password is optional and when present must satisfy the same rule. Admin and Customer records cannot be edited here. **Auth:** Admin only. Refs: PS-5.
+
+**Responses:** 200 public account; 400 validation; 404 missing/non-staff account; 409 duplicate email (fields.email); 401/403 unauthorized. Deactivation takes effect on the next authenticated request. Password changes update passwordChangedAt monotonically under an account lock. The precise signed passwordVersion must equal the current database version, ending older sessions immediately.
+
+### Discount catalog reads (PS-19, A-24)
+
+#### GET /api/discounts
+
+**Auth:** Staff. Shared pagination and case-insensitive name search `q`.
+Optional `state`: ACTIVE, EXPIRED, USED_UP, SCHEDULED or INACTIVE.
+Filtering/counting happens in PostgreSQL before pagination, including usage
+count versus limit. Returns records with current derived state and products.
+
+State precedence: disabled is Inactive; past end date is Expired; a reached
+non-null limit is Used up; future start date is Scheduled; otherwise Active.
+Business dates use IST and both boundaries are inclusive. The user approved
+the Scheduled/Inactive labels; no new database state column is introduced.
+
+#### GET /api/discounts/:id
+
+**Auth:** Staff. Returns the rule, linked products, read-only usage count,
+numeric percentage and dates as YYYY-MM-DD.
+
+Responses: `200`; `400` invalid query/ID, `401` unauthenticated, `403`
+not staff, `404` missing discount. No schema or migration changes.
+### Discount writes (PS-19)
+
+#### POST /api/discounts / PUT /api/discounts/:id
+
+**Auth:** Admin. Responses: `201` created or `200` updated with derived state
+and linked products. Product links are replaced atomically on update.
+
+| Field | Type | Rules |
+|---|---|---|
+| name | string | Trimmed, 1-120 characters, unique |
+| type | string | FIXED or PERCENT |
+| fixedAmount | number/null | Positive integer paise up to 1000000000 for FIXED; null otherwise |
+| percent | number/null | Above 0, at most 100, up to 2 decimals for PERCENT; null otherwise |
+| scope | string | PRODUCT or SUBSCRIPTION |
+| productIds | array | 1-100 distinct existing IDs for PRODUCT; empty for SUBSCRIPTION |
+| minPurchaseAmount | number | Integer paise, 0-1000000000, default 0 |
+| minQuantity | number | Integer, 0-2147483647, default 0 |
+| startDate / endDate | string | YYYY-MM-DD; end on/after start |
+| usageLimit | number/null | Integer, 1-2147483647; null means unlimited |
+| isActive | boolean | Default true; deactivate to retain history |
+
+`usageCount` is read-only and rejected in input. A row lock serializes updates
+with billing claims; the limit cannot be lower than the current usage count.
+
+Errors: `400` field errors or invalid/read-only input, `401` unauthenticated,
+`403` not Admin, `404` missing discount, `409` duplicate name with
+`fields.name` or concurrently removed product choices. No schema changes.
+
+### Discount administration (PS-19)
+
+The Discounts page uses URL-backed search/state filters and real paginated
+rules. Admin-only forms show product selection only for PRODUCT scope, convert
+rupees to paise once and preserve usage counts. Internal staff browse read-only.
+
+### Catalog UI verification (#46)
+
+Products, variants, plans, taxes, payment terms, templates and discounts are
+checked with real Admin/Internal login at 375px and 1280px. Wide tables scroll
+inside their cards; the shell can shrink without page overflow. Invalid or
+incomplete prices do not show a calculated margin. Invalid input, empty/error
+states and read-only staff controls are verified. No API or schema changes.

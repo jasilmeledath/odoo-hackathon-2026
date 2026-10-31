@@ -1,6 +1,5 @@
-// Customer's own invoices (PS-26).
-import { PageHeader } from '../../components/ui.jsx';
-
+// Customer invoice directory (PS-26).
+import PortalList from './PortalList.jsx';
 export default function PortalInvoices() {
-  return <PageHeader title="My invoices" subtitle="See what you have been billed" />;
+  return <PortalList resource="invoices" title="My invoices" />;
 }

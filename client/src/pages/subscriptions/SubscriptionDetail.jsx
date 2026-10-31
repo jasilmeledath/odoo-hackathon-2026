@@ -11,6 +11,7 @@ import {
   SubscriptionLines,
   SubscriptionSummary,
 } from './SubscriptionDetailSections.jsx';
+import SubscriptionLifecycleActions from './SubscriptionLifecycleActions.jsx';
 
 export default function SubscriptionDetail() {
   const { id } = useParams();
@@ -19,18 +20,20 @@ export default function SubscriptionDetail() {
   const [actionError, setActionError] = useState('');
   const [actionNotice, setActionNotice] = useState('');
 
-  const handleTransition = async (action) => {
+  const handleTransition = async (action, body) => {
     setIsTransitioning(true);
     setActionError('');
     setActionNotice('');
     try {
-      await api(`/subscriptions/${id}/${action}`, { method: 'POST' });
-      setActionNotice('Subscription status updated.');
+      await api(`/subscriptions/${id}/${action}`, { method: 'POST', body });
+      setActionNotice(action === 'renew' ? 'Subscription renewed.' : 'Subscription status updated.');
       window.dispatchEvent(new Event('subscription:changed'));
       await reload();
+      return true;
     } catch (requestError) {
       setActionError(requestError.message);
       await reload();
+      return false;
     } finally {
       setIsTransitioning(false);
     }
@@ -65,6 +68,11 @@ export default function SubscriptionDetail() {
         action={
           <div className="flex items-center gap-3">
             <StatusBadge status={subscription.status} />
+            {['DRAFT', 'QUOTATION'].includes(subscription.status) && (
+              <Link className="btn-secondary" to={`/subscriptions/${id}/edit`}>
+                Edit
+              </Link>
+            )}
             {nextAction && (
               <button
                 className="btn-primary"
@@ -85,6 +93,11 @@ export default function SubscriptionDetail() {
         </p>
       )}
       <StatusBar status={subscription.status} />
+      <SubscriptionLifecycleActions
+        subscription={subscription}
+        disabled={isTransitioning}
+        onAction={handleTransition}
+      />
       <SubscriptionSummary subscription={subscription} />
       <SubscriptionLines lines={subscription.lines} />
       <InvoiceList invoices={subscription.invoices} />

@@ -16,6 +16,7 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 
 - Customers can create Customer-only accounts with password validation and atomic billing-profile linking (PS-1, PS-5).
 - Staff can search, create and edit customers and inspect database-backed financial summaries (PS-12).
+- Add customer-only subscription and invoice lists and details, scoped queries, URL search, payment history and balance display. (PS-26).
 - Staff can record part and final payments from invoices with transactional balance protection (PS-21, PS-22).
 
 - Startup/hourly processing activates due subscriptions, closes plans at expiry when configured, and generates due invoices (PS-14, PS-15).
@@ -23,14 +24,39 @@ Brightloop Software earns its money every month, but runs on a spreadsheet: rene
 - Staff can generate recurring Draft invoices with tax snapshots, catch-up billing and duplicate protection (PS-15, PS-16).
 
 - Active accounts log in with expiring tokens and role-based navigation (PS-2).
+- Add bounded per-IP attempt windows to login, forgot-password and reset-password without a new dependency. (PS-29).
 - Staff can read paginated catalog data; Admins can create, edit and deactivate tax rules and payment terms (PS-10, PS-12).
 - Admins can create, edit and deactivate products, with rupee inputs and margin calculation; staff can browse filtered product lists (PS-6).
 
+- Admins manage quotation templates with validated lines; staff preview current plan, product and variant prices (PS-11).
+
+- Admins configure plans with billing periods, sale dates, minimum quantities and subscription behaviour switches; staff can browse and filter plans (PS-8, PS-9).
+
 - Add staff-only paginated payment search with combined method/date/text filters and invoice links. (PS-21).
+
+- Add Admin-only staff search/create/edit with password validation, field conflicts and immediate deactivation. (PS-5).
+
+- Add forgot/reset pages, 30-minute hashed recovery tokens and immediate session invalidation, including the same-second boundary. (PS-3).
+
+- Admins manage fixed/percentage discounts, scope-specific products, minimums, dates and usage limits; staff filter current rule states (PS-19).
 
 ## Screenshots
 
-*Added at 4:45 PM from `docs/screenshots/`.*
+**Finance dashboard:** recurring revenue, payments and overdue invoices (PS-23).
+
+![Finance dashboard with live subscription and payment totals](docs/screenshots/dashboard-desktop.png)
+
+**Subscription workflow:** customer plans, lifecycle statuses and recurring amounts (PS-12, PS-13).
+
+![Subscription workflow showing Draft, Quotation, Active, Paused and Closed records](docs/screenshots/subscriptions-desktop.png)
+
+**Form validation:** required-name and invalid-price feedback before a product is saved (PS-6).
+
+![Product form showing missing-name, sub-paise sales-price and negative-cost validation errors](docs/screenshots/product-validation-desktop.png)
+
+**Mobile view:** discount administration at 375 px (PS-19).
+
+![Discount rule editor and catalog on a 375 px mobile screen](docs/screenshots/discounts-mobile.png)
 
 ## Tech stack
 

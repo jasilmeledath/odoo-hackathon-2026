@@ -84,8 +84,8 @@ export default function TaxTermSection({ kind }) {
         data && (
           <>
             {data.items.length ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
+              <div className="relative overflow-x-auto">
+                <table className="min-w-max w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-slate-200">
                       <th className="p-2">Name</th>

@@ -121,7 +121,7 @@ export default function Layout() {
         {account}
       </aside>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 p-4 md:p-8">
+      <main className="mx-auto min-w-0 w-full max-w-6xl flex-1 p-4 md:p-8">
         <Outlet />
       </main>
     </div>

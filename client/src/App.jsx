@@ -21,6 +21,7 @@ import DiscountList from './pages/discounts/DiscountList.jsx';
 import TemplateList from './pages/templates/TemplateList.jsx';
 import SubscriptionList from './pages/subscriptions/SubscriptionList.jsx';
 import SubscriptionDetail from './pages/subscriptions/SubscriptionDetail.jsx';
+import SubscriptionForm from './pages/subscriptions/SubscriptionForm.jsx';
 import BillingRun from './pages/billing/BillingRun.jsx';
 import InvoiceDetail from './pages/invoices/InvoiceDetail.jsx';
 import InvoiceList from './pages/invoices/InvoiceList.jsx';
@@ -28,6 +29,8 @@ import PaymentList from './pages/payments/PaymentList.jsx';
 import Reports from './pages/reports/Reports.jsx';
 import PortalSubscriptions from './pages/portal/PortalSubscriptions.jsx';
 import PortalInvoices from './pages/portal/PortalInvoices.jsx';
+import PortalSubscriptionDetail from './pages/portal/PortalSubscriptionDetail.jsx';
+import PortalInvoiceDetail from './pages/portal/PortalInvoiceDetail.jsx';
 
 const STAFF = ['ADMIN', 'INTERNAL'];
 const ADMIN = ['ADMIN'];
@@ -61,6 +64,8 @@ export default function App() {
             <Route path="/customers/:id/edit" element={<CustomerForm />} />
 
             <Route path="/subscriptions" element={<SubscriptionList />} />
+            <Route path="/subscriptions/new" element={<SubscriptionForm />} />
+            <Route path="/subscriptions/:id/edit" element={<SubscriptionForm />} />
 
             <Route path="/subscriptions/:id" element={<SubscriptionDetail />} />
 
@@ -90,8 +95,11 @@ export default function App() {
 
           <Route element={<RequireRole roles={CUSTOMER} />}>
             <Route path="/portal" element={<PortalSubscriptions />} />
+            <Route path="/portal/subscriptions" element={<PortalSubscriptions />} />
+            <Route path="/portal/subscriptions/:id" element={<PortalSubscriptionDetail />} />
 
             <Route path="/portal/invoices" element={<PortalInvoices />} />
+            <Route path="/portal/invoices/:id" element={<PortalInvoiceDetail />} />
           </Route>
         </Route>
       </Route>
